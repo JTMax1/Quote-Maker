@@ -6,7 +6,6 @@
  * - Click-To-Pick Eye-Dropper sampling directly on canvas
  */
 
-import { PRESET_AUTHOR_PORTRAITS } from '../data/authorCutouts.js';
 import { PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
 import { BgRemoverService } from '../services/bgRemoverService.js';
 import { Toast } from './toast.js';
@@ -46,31 +45,15 @@ export class AuthorImageModal {
 
         <!-- Body -->
         <div class="step-body" style="overflow-y: auto; max-height: 580px; gap: 1.5rem; padding: 1.5rem;">
-          <!-- Top Section: Upload & Preloaded Thinkers -->
-          <div style="display: grid; grid-template-columns: 280px 1fr; gap: 1rem;">
-            <!-- Upload Box -->
-            <div class="format-card" id="uploadDropZone" style="align-items: center; text-align: center; border-style: dashed; padding: 1.25rem; justify-content: center; cursor: pointer;">
-              <span style="font-size: 2rem; margin-bottom: 0.25rem;">📁</span>
-              <div style="font-size: 0.9rem; font-weight: 700;">Upload Author Photo</div>
-              <div style="font-size: 0.72rem; color: var(--text-muted);">PNG, JPG, WebP</div>
-              <input type="file" id="authorFileInput" accept="image/*" style="display: none;" />
-              <button class="btn-glass" id="btnTriggerUpload" style="margin-top: 0.5rem; font-size: 0.78rem; padding: 0.4rem 0.9rem;">
-                Browse Files
-              </button>
-            </div>
-
-            <!-- Preloaded Thinkers Grid -->
-            <div>
-              <label class="form-label" style="margin-bottom: 0.4rem; display: block;">Or Pick Iconic Thinker Cutout:</label>
-              <div class="author-thinkers-grid" id="thinkersGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; max-height: 140px; overflow-y: auto;">
-                ${PRESET_AUTHOR_PORTRAITS.map(p => `
-                  <div class="thinker-card" data-id="${p.id}" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 0.4rem; text-align: center; cursor: pointer;">
-                    <img src="${p.imageUrl}" style="width: 36px; height: 42px; object-fit: contain; margin: 0 auto; display: block;" alt="${p.name}" />
-                    <span style="font-size: 0.65rem; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.2rem;">${p.name.split(' ')[0]}</span>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
+          <!-- Top Section: Upload Author Photo -->
+          <div class="format-card" id="uploadDropZone" style="align-items: center; text-align: center; border-style: dashed; padding: 1.5rem; justify-content: center; cursor: pointer; background: var(--bg-surface-elevated); border: 2px dashed var(--border-glass); border-radius: var(--radius-md); transition: all 0.2s ease;">
+            <span style="font-size: 2.2rem; margin-bottom: 0.35rem;">📸</span>
+            <div style="font-size: 1rem; font-weight: 700;">Upload Author Portrait or Subject Photo</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Drag & drop image here, or browse files (PNG, JPG, WebP)</div>
+            <input type="file" id="authorFileInput" accept="image/*" style="display: none;" />
+            <button class="btn-glass" id="btnTriggerUpload" style="margin-top: 0.75rem; font-size: 0.82rem; padding: 0.45rem 1.1rem;">
+              📁 Browse Image File
+            </button>
           </div>
 
           <!-- Middle Section: Intelligent Background Remover -->
@@ -150,7 +133,6 @@ export class AuthorImageModal {
 
     document.body.appendChild(this.modalEl);
     this.bindEvents();
-    this.selectThinker('marcus-aurelius');
   }
 
   bindEvents() {
@@ -183,14 +165,30 @@ export class AuthorImageModal {
       }
     });
 
-    // Thinkers click
-    const thinkersGrid = this.modalEl.querySelector('#thinkersGrid');
-    thinkersGrid.addEventListener('click', (e) => {
-      const card = e.target.closest('.thinker-card');
-      if (!card) return;
-      thinkersGrid.querySelectorAll('.thinker-card').forEach(c => c.style.borderColor = 'var(--border-glass)');
-      card.style.borderColor = 'var(--brand-primary)';
-      this.selectThinker(card.dataset.id);
+    // Drag and drop upload support
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--brand-primary)';
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.borderColor = 'var(--border-glass)';
+    });
+    dropZone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border-glass)';
+      const file = e.dataTransfer?.files?.[0];
+      if (!file) return;
+
+      Toast.show('Loading author image...', 'info');
+      try {
+        const loaded = await BgRemoverService.loadImage(file);
+        this.currentImage = loaded;
+        this.processedDataUrl = null;
+        this.drawPreview(loaded);
+        Toast.show('Photo loaded! Click "Remove Background".', 'success');
+      } catch (err) {
+        Toast.show('Failed to load image file', 'error');
+      }
     });
 
     // Eye-dropper click on preview canvas
@@ -311,19 +309,7 @@ export class AuthorImageModal {
     }
   }
 
-  async selectThinker(thinkerId) {
-    const thinker = PRESET_AUTHOR_PORTRAITS.find(p => p.id === thinkerId);
-    if (!thinker) return;
 
-    try {
-      const img = await BgRemoverService.loadImage(thinker.imageUrl);
-      this.currentImage = img;
-      this.processedDataUrl = thinker.imageUrl;
-      this.drawPreview(img);
-    } catch (e) {
-      console.error(e);
-    }
-  }
 
   drawPreview(img) {
     const canvas = this.modalEl.querySelector('#bgRemoverPreviewCanvas');

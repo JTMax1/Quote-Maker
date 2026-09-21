@@ -39,7 +39,7 @@ export class Editor {
       showWatermark: this.profile.showWatermark ?? true,
       showAuthorImage: true,
       authorImage: PRESET_AUTHOR_PORTRAITS[1].imageUrl, // Default Seneca cutout!
-      authorImagePlacement: 'right',
+      authorImagePlacement: 'cutout-right',
       styles: { ...this.activePreset }
     };
 
