@@ -1,17 +1,17 @@
 /**
  * High-DPI Canvas 2D Rendering Engine for QuoteForge
- * Supports 50 dynamic layout rearrangements, author cutouts with drop shadows,
- * circular avatars, and 100+ aesthetic themes.
+ * Supports:
+ * - 50 Dynamic Layout Rearrangements
+ * - 50 Portrait Placements on Canvas
+ * - Abstract Geometric Background Line Art (subtle & non-intrusive)
+ * - Transparent Cutout Drop Shadows & Portals
  */
 
-import { CANVAS_FORMATS, LAYOUT_STYLES } from '../data/defaultPresets.js';
+import { CANVAS_FORMATS, LAYOUT_STYLES, PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
 
 export class CanvasRenderer {
   static imageCache = new Map();
 
-  /**
-   * Helper to ensure custom Google Fonts are loaded before canvas rendering
-   */
   static async ensureFontsLoaded(fontFamilies = []) {
     if (!document.fonts) return;
     const promises = fontFamilies.map(font => {
@@ -24,9 +24,6 @@ export class CanvasRenderer {
     await Promise.all(promises);
   }
 
-  /**
-   * Helper to load Image into HTMLImageElement with caching
-   */
   static async loadImageAsync(src) {
     if (!src) return null;
     if (this.imageCache.has(src)) return this.imageCache.get(src);
@@ -43,9 +40,6 @@ export class CanvasRenderer {
     });
   }
 
-  /**
-   * Render quote onto a newly created or target canvas element
-   */
   static async renderToCanvas(data, targetCanvas = null) {
     const {
       quote = "Your quote here...",
@@ -70,11 +64,11 @@ export class CanvasRenderer {
     const width = formatInfo.width;
     const height = formatInfo.height;
 
-    // Resolve layout configuration
     const activeLayout = LAYOUT_STYLES.find(l => l.id === layoutId) || LAYOUT_STYLES[0];
-    const effectivePlacement = authorImagePlacement !== 'auto' ? authorImagePlacement : activeLayout.portraitPlacement;
+    const effectivePlacement = authorImagePlacement !== 'auto' 
+      ? authorImagePlacement 
+      : (activeLayout.portraitPlacement || 'cutout-right');
 
-    // Load fonts and optional author image
     await this.ensureFontsLoaded([
       styles.fontFamily || 'Playfair Display',
       styles.authorFontFamily || 'Plus Jakarta Sans'
@@ -90,17 +84,23 @@ export class CanvasRenderer {
     canvas.height = height;
     const ctx = canvas.getContext('2d');
 
-    // 1. Draw Canvas Background (Solid, Gradient, Mesh, or Scrim)
+    // 1. Draw Canvas Background (with subtle abstract geometric line art)
     this.drawBackground(ctx, width, height, styles, activeLayout, loadedAuthorImg, effectivePlacement);
 
-    // 2. Base Margins and Usable Canvas Area
+    // 2. Base Dimensions
     const padding = Math.round(width * 0.08);
-    const cardX = padding;
-    const cardY = padding;
-    const cardW = width - padding * 2;
-    const cardH = height - padding * 2;
+    let cardX = padding;
+    let cardY = padding;
+    let cardW = width - padding * 2;
+    let cardH = height - padding * 2;
 
-    // 3. Draw Card Frame or Border Style
+    // Polaroid layout adjust card bounds
+    if (activeLayout.id === 'polaroid-photo') {
+      cardY = Math.round(height * 0.05);
+      cardH = Math.round(height * 0.9);
+    }
+
+    // 3. Draw Card Frame
     this.drawCardFrame(ctx, cardX, cardY, cardW, cardH, styles, activeLayout);
 
     // 4. Content Area
@@ -110,7 +110,7 @@ export class CanvasRenderer {
     let contentW = cardW - innerPadding * 2;
     let contentH = cardH - innerPadding * 2;
 
-    // 5. If layout has a side cutout (Left or Right), allocate side space
+    // 5. Layout-Driven Space Partitioning
     let quoteBoxX = contentX;
     let quoteBoxW = contentW;
     let cutoutX = 0;
@@ -118,36 +118,60 @@ export class CanvasRenderer {
     let cutoutW = 0;
     let cutoutH = 0;
 
-    const hasSideCutout = loadedAuthorImg && (effectivePlacement === 'right' || effectivePlacement === 'left');
-    if (hasSideCutout) {
+    const isSideCutout = loadedAuthorImg && (
+      effectivePlacement === 'cutout-right' || 
+      effectivePlacement === 'cutout-left' || 
+      effectivePlacement === 'cutout-edge-left' ||
+      effectivePlacement === 'cutout-edge-right'
+    );
+
+    if (isSideCutout) {
       const cutoutWidthFactor = 0.38;
       cutoutW = Math.round(contentW * cutoutWidthFactor);
-      cutoutH = Math.round(contentH * 0.82);
+      cutoutH = Math.round(contentH * 0.85);
       cutoutY = contentY + contentH - cutoutH;
 
-      if (effectivePlacement === 'right') {
-        cutoutX = contentX + contentW - cutoutW + 20;
+      if (effectivePlacement === 'cutout-right' || effectivePlacement === 'cutout-edge-right') {
+        cutoutX = contentX + contentW - cutoutW + 10;
         quoteBoxW = contentW - cutoutW - 20;
       } else {
-        cutoutX = contentX - 20;
+        cutoutX = contentX - 10;
         quoteBoxX = contentX + cutoutW + 20;
         quoteBoxW = contentW - cutoutW - 20;
       }
-    } else if (loadedAuthorImg && effectivePlacement === 'bottom') {
-      // Bottom pop out
+    } else if (loadedAuthorImg && (effectivePlacement === 'cutout-bottom' || effectivePlacement === 'cutout-bottom-left' || effectivePlacement === 'cutout-bottom-right')) {
       const bottomCutoutH = Math.round(height * 0.35);
       cutoutW = Math.round(bottomCutoutH * 0.85);
       cutoutH = bottomCutoutH;
-      cutoutX = (width - cutoutW) / 2;
       cutoutY = height - cutoutH;
-      contentH -= Math.round(bottomCutoutH * 0.4);
+
+      if (effectivePlacement === 'cutout-bottom-left') {
+        cutoutX = contentX;
+      } else if (effectivePlacement === 'cutout-bottom-right') {
+        cutoutX = contentX + contentW - cutoutW;
+      } else {
+        cutoutX = (width - cutoutW) / 2;
+      }
+      contentH -= Math.round(bottomCutoutH * 0.35);
     }
 
-    // 6. Draw Layout Specific Accents (Header, Drop Cap, Watermark, Terminal chrome)
+    // 6. Header
     let currentY = contentY;
     const headerH = Math.round(height * 0.07);
 
-    // Big Watermark Quote marks
+    // Magazine Masthead
+    if (activeLayout.id === 'magazine-cover') {
+      this.drawMagazineMasthead(ctx, contentX, currentY, contentW, styles);
+      currentY += 80;
+    }
+
+    // Terminal Code Window Header
+    if (activeLayout.id === 'terminal-code') {
+      this.drawTerminalChrome(ctx, cardX, cardY, cardW);
+      currentY += 44;
+    }
+
+    // Big Watermark
     if (activeLayout.id === 'big-watermark') {
       ctx.save();
       ctx.font = `italic 380px "${styles.fontFamily || 'Playfair Display'}", serif`;
@@ -158,13 +182,7 @@ export class CanvasRenderer {
       ctx.restore();
     }
 
-    // Terminal Code Window Header
-    if (activeLayout.id === 'terminal-code') {
-      this.drawTerminalChrome(ctx, cardX, cardY, cardW);
-      currentY += 40;
-    }
-
-    // Draw Header (Category & Date)
+    // Header Badges
     if ((showCategory || showDate) && activeLayout.id !== 'terminal-code') {
       this.drawHeader(ctx, {
         showCategory,
@@ -180,11 +198,23 @@ export class CanvasRenderer {
       currentY += headerH;
     }
 
-    // 7. Render Avatar (if layout uses avatar placement)
-    if (loadedAuthorImg && (effectivePlacement === 'avatar-top' || effectivePlacement === 'avatar-center')) {
-      const avatarSize = 100;
-      const avatarX = quoteBoxX + (quoteBoxW - avatarSize) / 2;
-      this.drawAvatar(ctx, loadedAuthorImg, avatarX, currentY, avatarSize, styles);
+    // 7. Render Avatar (Top/Center Placements)
+    const isTopAvatar = loadedAuthorImg && (
+      effectivePlacement === 'avatar-top-center' || 
+      effectivePlacement === 'avatar-top-left' || 
+      effectivePlacement === 'avatar-top-right' ||
+      effectivePlacement === 'oval-cameo-center' ||
+      effectivePlacement === 'hexagon-badge-top' ||
+      effectivePlacement === 'arch-portal-center'
+    );
+
+    if (isTopAvatar) {
+      const avatarSize = 110;
+      let avX = quoteBoxX + (quoteBoxW - avatarSize) / 2;
+      if (effectivePlacement === 'avatar-top-left') avX = quoteBoxX;
+      if (effectivePlacement === 'avatar-top-right') avX = quoteBoxX + quoteBoxW - avatarSize;
+
+      this.drawAvatarPlacement(ctx, loadedAuthorImg, avX, currentY, avatarSize, effectivePlacement, styles);
       currentY += avatarSize + 24;
     }
 
@@ -194,7 +224,7 @@ export class CanvasRenderer {
 
     // 9. Draw Quote Text
     const quoteY = currentY + (availableQuoteHeight * 0.08);
-    const maxQuoteH = availableQuoteHeight * 0.9;
+    const maxQuoteH = availableQuoteHeight * 0.88;
 
     this.drawQuote(ctx, {
       quote,
@@ -208,22 +238,30 @@ export class CanvasRenderer {
 
     // 10. Draw Footer (Author & Watermark)
     const footerY = contentY + contentH - footerReservedHeight + (footerReservedHeight * 0.15);
+    const isBottomAvatar = loadedAuthorImg && (
+      effectivePlacement === 'avatar-bottom-left' || 
+      effectivePlacement === 'avatar-bottom-right' || 
+      effectivePlacement === 'avatar-bottom-center' ||
+      effectivePlacement === 'avatar-mid-left'
+    );
+
     this.drawFooter(ctx, {
       showAuthor,
       author,
       handle,
       showWatermark,
       watermark,
-      loadedAuthorImg: effectivePlacement === 'avatar-left' || effectivePlacement === 'avatar-bottom' ? loadedAuthorImg : null,
+      loadedAuthorImg: isBottomAvatar ? loadedAuthorImg : null,
       x: quoteBoxX,
       y: footerY,
       width: quoteBoxW,
       styles,
-      activeLayout
+      activeLayout,
+      effectivePlacement
     });
 
-    // 11. Draw Cutout Portrait over canvas (if present)
-    if (loadedAuthorImg && (effectivePlacement === 'right' || effectivePlacement === 'left' || effectivePlacement === 'bottom')) {
+    // 11. Draw Cutout Portrait
+    if (loadedAuthorImg && (isSideCutout || effectivePlacement.startsWith('cutout-bottom'))) {
       this.drawCutoutPortrait(ctx, loadedAuthorImg, cutoutX, cutoutY, cutoutW, cutoutH, styles);
     }
 
@@ -231,15 +269,14 @@ export class CanvasRenderer {
   }
 
   /**
-   * Draw Canvas Background
+   * Draw Canvas Background with optional Abstract Lines & Geometry
    */
   static drawBackground(ctx, width, height, styles, activeLayout, loadedAuthorImg, effectivePlacement) {
     ctx.save();
 
-    // If Scrim Overlay mode and image provided
-    if (effectivePlacement === 'scrim' && loadedAuthorImg) {
+    // Scrim overlay mode
+    if ((effectivePlacement === 'scrim' || effectivePlacement === 'scrim-radial') && loadedAuthorImg) {
       ctx.drawImage(loadedAuthorImg, 0, 0, width, height);
-      // Dark vignette scrim gradient
       const scrim = ctx.createLinearGradient(0, 0, 0, height);
       scrim.addColorStop(0, 'rgba(4, 7, 13, 0.7)');
       scrim.addColorStop(0.5, 'rgba(4, 7, 13, 0.85)');
@@ -250,35 +287,13 @@ export class CanvasRenderer {
       return;
     }
 
-    // 50/50 Split Canvas Background
-    if (activeLayout.id === 'split-50') {
+    // Split 50%
+    if (activeLayout.id === 'split-50' || effectivePlacement === 'half-screen-left') {
       ctx.fillStyle = styles.background || '#18181b';
       ctx.fillRect(0, 0, width / 2, height);
       ctx.fillStyle = styles.accentColor ? `${styles.accentColor}22` : '#27272a';
       ctx.fillRect(width / 2, 0, width / 2, height);
-      ctx.restore();
-      return;
-    }
-
-    // Dot Grid Background
-    if (activeLayout.id === 'dotted-grid-bg') {
-      ctx.fillStyle = styles.background || '#ffffff';
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = styles.metaColor ? `${styles.metaColor}44` : 'rgba(0,0,0,0.12)';
-      const dotSpacing = 40;
-      for (let x = 20; x < width; x += dotSpacing) {
-        for (let y = 20; y < height; y += dotSpacing) {
-          ctx.beginPath();
-          ctx.arc(x, y, 2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      ctx.restore();
-      return;
-    }
-
-    // Standard linear/radial gradient or solid
-    if (styles.gradient && styles.gradient.startsWith('linear-gradient')) {
+    } else if (styles.gradient && styles.gradient.startsWith('linear-gradient')) {
       const grad = ctx.createLinearGradient(0, 0, width, height);
       if (styles.gradient.includes('#1b003a') || styles.gradient.includes('#ff5e62')) {
         grad.addColorStop(0, '#1b003a');
@@ -314,14 +329,145 @@ export class CanvasRenderer {
       ctx.fillRect(0, 0, width, height);
     }
 
-    // Ambient glow for glass cards
-    if (styles.cardStyle === 'glass' || styles.borderStyle === 'neon-glow') {
-      const glowGrad = ctx.createRadialGradient(width * 0.85, height * 0.15, 10, width * 0.85, height * 0.15, width * 0.45);
-      glowGrad.addColorStop(0, styles.accentColor ? `${styles.accentColor}33` : 'rgba(99, 102, 241, 0.25)');
-      glowGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = glowGrad;
-      ctx.fillRect(0, 0, width, height);
+    // DRAW ABSTRACT LINES & GEOMETRY (subtle, delicate, non-overshadowing)
+    const pattern = styles.abstractPattern;
+    if (pattern) {
+      this.drawAbstractPattern(ctx, width, height, pattern, styles.accentColor || '#6366f1');
     }
+
+    ctx.restore();
+  }
+
+  /**
+   * Draw subtle abstract geometric background lines
+   */
+  static drawAbstractPattern(ctx, width, height, pattern, color) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.4;
+    ctx.globalAlpha = 0.16; // soft subtle opacity to never overshadow text
+
+    if (pattern === 'orbital-rings') {
+      const cx = width * 0.75;
+      const cy = height * 0.35;
+      for (let r = 80; r <= 420; r += 70) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // Tilted orbital ellipse
+      ctx.beginPath();
+      ctx.ellipse(width * 0.4, height * 0.6, 320, 140, Math.PI / 4, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (pattern === 'fibonacci') {
+      let r = 20;
+      let x = width * 0.6;
+      let y = height * 0.55;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      for (let angle = 0; angle < Math.PI * 6; angle += 0.1) {
+        r = 15 * Math.exp(0.18 * angle);
+        const px = x + r * Math.cos(angle);
+        const py = y + r * Math.sin(angle);
+        ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    } else if (pattern === 'celestial') {
+      const cx = width * 0.8;
+      const cy = height * 0.25;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 180, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx - 220, cy);
+      ctx.lineTo(cx + 220, cy);
+      ctx.moveTo(cx, cy - 220);
+      ctx.lineTo(cx, cy + 220);
+      ctx.stroke();
+    } else if (pattern === 'zen-waves') {
+      for (let y = height * 0.65; y < height + 60; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= width; x += 30) {
+          const dy = Math.sin(x * 0.015 + y * 0.05) * 20;
+          ctx.lineTo(x, y + dy);
+        }
+        ctx.stroke();
+      }
+    } else if (pattern === 'isometric') {
+      const spacing = 60;
+      for (let x = -width; x < width * 2; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + height * 0.577, height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x - height * 0.577, height);
+        ctx.stroke();
+      }
+    } else if (pattern === 'sunburst') {
+      const ox = width * 0.5;
+      const oy = 0;
+      for (let angle = 0; angle < Math.PI; angle += Math.PI / 18) {
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.lineTo(ox + Math.cos(angle) * width * 1.5, oy + Math.sin(angle) * height * 1.5);
+        ctx.stroke();
+      }
+    } else if (pattern === 'mandala') {
+      const cx = width / 2;
+      const cy = height / 2;
+      for (let i = 0; i < 8; i++) {
+        const ang = (i * Math.PI) / 4;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(ang) * 90, cy + Math.sin(ang) * 90, 140, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    } else if (pattern === 'diagonal-hatch') {
+      for (let p = -height; p < width + height; p += 36) {
+        ctx.beginPath();
+        ctx.moveTo(p, 0);
+        ctx.lineTo(p + height, height);
+        ctx.stroke();
+      }
+    } else if (pattern === 'topography') {
+      for (let y = height * 0.2; y <= height * 0.9; y += 75) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(width * 0.25, y - 40, width * 0.75, y + 40, width, y);
+        ctx.stroke();
+      }
+    } else if (pattern === 'perspective') {
+      const vpX = width / 2;
+      const vpY = height * 0.45;
+      for (let x = 0; x <= width; x += 90) {
+        ctx.beginPath();
+        ctx.moveTo(vpX, vpY);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Draw Magazine Cover Top Masthead
+   */
+  static drawMagazineMasthead(ctx, x, y, width, styles) {
+    ctx.save();
+    ctx.font = `900 68px "Cinzel", "Playfair Display", serif`;
+    ctx.fillStyle = styles.textColor || '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '0.15em';
+    ctx.fillText('DISPATCH', x + width / 2, y + 54);
+
+    ctx.strokeStyle = styles.accentColor || '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y + 74);
+    ctx.lineTo(x + width, y + 74);
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -337,26 +483,22 @@ export class CanvasRenderer {
 
     const radius = borderStyle === 'rounded-soft' || cardStyle === 'glass' ? 32 : 16;
 
-    // Fill card background if not transparent
     if (cardBg && cardBg !== 'transparent') {
       ctx.fillStyle = cardBg;
       this.roundRect(ctx, x, y, w, h, radius, true, false);
     }
 
-    // Framed Inset Layout
     if (activeLayout.id === 'framed-inset') {
       ctx.strokeStyle = borderColor || styles.accentColor || '#6366f1';
       ctx.lineWidth = 2;
-      this.roundRect(ctx, x + 20, y + 20, w - 40, h - 40, 8, false, true);
+      this.roundRect(ctx, x + 24, y + 24, w - 48, h - 48, 8, false, true);
     }
 
-    // Left accent bar
     if (activeLayout.id === 'left-accent-bar' || borderStyle === 'thick-left') {
       ctx.fillStyle = styles.accentColor || '#3b82f6';
       ctx.fillRect(x, y, 16, h);
     }
 
-    // Border Styles
     if (borderStyle === 'double') {
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = 4;
@@ -384,9 +526,9 @@ export class CanvasRenderer {
       ctx.strokeRect(x, y, w, h);
     } else if (borderStyle === 'polaroid' || activeLayout.id === 'polaroid-photo') {
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0,0,0,0.12)';
-      ctx.shadowBlur = 28;
-      ctx.shadowOffsetY = 14;
+      ctx.shadowColor = 'rgba(0,0,0,0.14)';
+      ctx.shadowBlur = 32;
+      ctx.shadowOffsetY = 16;
       this.roundRect(ctx, x, y, w, h, 14, true, false);
       ctx.strokeStyle = '#e7e5e4';
       ctx.lineWidth = 2;
@@ -404,33 +546,26 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  /**
-   * Draw decorative corners for classical/luxury borders
-   */
   static drawCornerAccents(ctx, x, y, w, h, color) {
     ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = 4;
     const len = 30;
-    // Top-left
     ctx.beginPath();
     ctx.moveTo(x - 8, y + len);
     ctx.lineTo(x - 8, y - 8);
     ctx.lineTo(x + len, y - 8);
     ctx.stroke();
-    // Top-right
     ctx.beginPath();
     ctx.moveTo(x + w + 8, y + len);
     ctx.lineTo(x + w + 8, y - 8);
     ctx.lineTo(x + w - len, y - 8);
     ctx.stroke();
-    // Bottom-left
     ctx.beginPath();
     ctx.moveTo(x - 8, y + h - len);
     ctx.lineTo(x - 8, y + h + 8);
     ctx.lineTo(x + len, y + h + 8);
     ctx.stroke();
-    // Bottom-right
     ctx.beginPath();
     ctx.moveTo(x + w + 8, y + h - len);
     ctx.lineTo(x + w + 8, y + h + 8);
@@ -439,16 +574,10 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  /**
-   * Draw Terminal Window Chrome (Traffic lights)
-   */
   static drawTerminalChrome(ctx, x, y, w) {
     ctx.save();
-    // Window header bar
     ctx.fillStyle = '#21262d';
     this.roundRect(ctx, x, y, w, 44, 12, true, false);
-
-    // Three buttons (red, yellow, green)
     const btnRadius = 6;
     const btnY = y + 22;
 
@@ -466,45 +595,64 @@ export class CanvasRenderer {
     ctx.beginPath();
     ctx.arc(x + 64, btnY, btnRadius, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.restore();
   }
 
   /**
-   * Draw Circular Avatar Badge
+   * Draw Avatar in multiple geometrical frames
    */
-  static drawAvatar(ctx, img, x, y, size, styles) {
+  static drawAvatarPlacement(ctx, img, x, y, size, placement, styles) {
     ctx.save();
+    const cx = x + size / 2;
+    const cy = y + size / 2;
     const radius = size / 2;
-    const cx = x + radius;
-    const cy = y + radius;
 
-    // Outer glow or border
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
-    ctx.fillStyle = styles.accentColor || '#3b82f6';
-    ctx.fill();
+    if (placement === 'oval-cameo-center') {
+      // Victorian oval
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, radius * 0.85, radius * 1.1, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = styles.accentColor || '#d4af37';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.clip();
+      ctx.drawImage(img, x, y, size, size);
+    } else if (placement === 'hexagon-badge-top') {
+      // Hexagon
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        const hx = cx + radius * Math.cos(a);
+        const hy = cy + radius * Math.sin(a);
+        if (i === 0) ctx.moveTo(hx, hy);
+        else ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = styles.accentColor || '#38bdf8';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.clip();
+      ctx.drawImage(img, x, y, size, size);
+    } else {
+      // Standard circular avatar
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
+      ctx.fillStyle = styles.accentColor || '#3b82f6';
+      ctx.fill();
 
-    // Clip circle for image
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.clip();
-
-    ctx.drawImage(img, x, y, size, size);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, x, y, size, size);
+    }
     ctx.restore();
   }
 
-  /**
-   * Draw Cutout Portrait standing on canvas with natural drop shadow
-   */
   static drawCutoutPortrait(ctx, img, x, y, w, h, styles) {
     ctx.save();
-    // Subtle drop shadow for realism
     ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
     ctx.shadowBlur = 32;
     ctx.shadowOffsetY = 16;
 
-    // Aspect ratio fit
     const imgRatio = (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
     let drawW = w;
     let drawH = drawW / imgRatio;
@@ -521,16 +669,12 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  /**
-   * Draw Header Badges (Category & Date)
-   */
   static drawHeader(ctx, { showCategory, category, showDate, date, x, y, width, styles, activeLayout }) {
     ctx.save();
     const metaColor = styles.metaColor || '#71717a';
     const accentColor = styles.accentColor || '#3b82f6';
     const font = styles.authorFontFamily || 'Plus Jakarta Sans';
 
-    // Category Pill / Tag
     if (showCategory && category) {
       const catText = category.toUpperCase();
       ctx.font = `700 24px "${font}", sans-serif`;
@@ -573,7 +717,6 @@ export class CanvasRenderer {
       }
     }
 
-    // Date
     if (showDate && date) {
       ctx.font = `500 24px "${font}", sans-serif`;
       ctx.fillStyle = metaColor;
@@ -581,18 +724,14 @@ export class CanvasRenderer {
       ctx.textBaseline = 'middle';
       ctx.fillText(date, x + width, y + 21);
     }
-
     ctx.restore();
   }
 
-  /**
-   * Draw Quote text with auto-fitting font size and multi-line wrapping
-   */
   static drawQuote(ctx, { quote, x, y, width, maxHeight, styles, activeLayout }) {
     ctx.save();
     let textAlign = styles.textAlign || 'center';
     if (activeLayout.id === 'right-aligned-minimal') textAlign = 'right';
-    if (activeLayout.id === 'left-accent-bar' || activeLayout.id === 'cutout-right') textAlign = 'left';
+    if (activeLayout.id === 'left-accent-bar' || activeLayout.id === 'cutout-right' || activeLayout.id === 'tweet-card') textAlign = 'left';
 
     const textColor = styles.textColor || '#18181b';
     const accentColor = styles.accentColor || '#3b82f6';
@@ -611,7 +750,7 @@ export class CanvasRenderer {
     }
 
     // Draw Quote Marks
-    if (quoteMarkStyle === 'classic' && activeLayout.id !== 'big-watermark') {
+    if (quoteMarkStyle === 'classic' && activeLayout.id !== 'big-watermark' && activeLayout.id !== 'tweet-card') {
       ctx.font = `italic 140px "Playfair Display", serif`;
       ctx.fillStyle = `${accentColor}44`;
       ctx.textAlign = textAlign === 'center' ? 'center' : 'left';
@@ -631,9 +770,14 @@ export class CanvasRenderer {
       ctx.moveTo(dashX, y - 10);
       ctx.lineTo(dashX + 60, y - 10);
       ctx.stroke();
+    } else if (quoteMarkStyle === 'decorative-stars') {
+      ctx.font = `28px serif`;
+      ctx.fillStyle = accentColor;
+      ctx.textAlign = 'center';
+      ctx.fillText('✦  ✦  ✦', x + width / 2, y - 10);
     }
 
-    // Dynamic Font Size Auto-Calculation
+    // Dynamic Font Sizing
     let fontSize = Math.min(Math.round(width * 0.08), 84);
     if (activeLayout.id === 'billboard-heavy') fontSize = Math.min(Math.round(width * 0.11), 104);
 
@@ -643,17 +787,13 @@ export class CanvasRenderer {
 
     while (fontSize >= minFontSize) {
       ctx.font = `600 ${fontSize}px "${fontFamily}", sans-serif`;
-      lines = this.wrapText(ctx, `“${quote}”`, width);
+      lines = this.wrapText(ctx, activeLayout.id === 'tweet-card' ? quote : `“${quote}”`, width);
       calculatedLineHeight = fontSize * lineHeightRatio;
       const totalBlockHeight = lines.length * calculatedLineHeight;
-
-      if (totalBlockHeight <= maxHeight) {
-        break;
-      }
+      if (totalBlockHeight <= maxHeight) break;
       fontSize -= 3;
     }
 
-    // Render wrapped lines
     ctx.font = `600 ${fontSize}px "${fontFamily}", sans-serif`;
     ctx.fillStyle = textColor;
     ctx.textAlign = textAlign;
@@ -679,7 +819,6 @@ export class CanvasRenderer {
       ctx.fillText(line, drawX, startY + (index * calculatedLineHeight));
     });
 
-    // Lower pull-quote line
     if (activeLayout.id === 'pull-quote-rules') {
       ctx.strokeStyle = accentColor;
       ctx.lineWidth = 2;
@@ -692,31 +831,52 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  /**
-   * Draw Author, Handle, and Watermark in Footer
-   */
-  static drawFooter(ctx, { showAuthor, author, handle, showWatermark, watermark, loadedAuthorImg, x, y, width, styles, activeLayout }) {
+  static drawFooter(ctx, { showAuthor, author, handle, showWatermark, watermark, loadedAuthorImg, x, y, width, styles, activeLayout, effectivePlacement }) {
     ctx.save();
     let textAlign = styles.textAlign || 'center';
     if (activeLayout.id === 'right-aligned-minimal') textAlign = 'right';
-    if (activeLayout.id === 'left-accent-bar' || activeLayout.id === 'cutout-right') textAlign = 'left';
+    if (activeLayout.id === 'left-accent-bar' || activeLayout.id === 'cutout-right' || activeLayout.id === 'tweet-card') textAlign = 'left';
 
     const textColor = styles.textColor || '#18181b';
     const accentColor = styles.accentColor || '#3b82f6';
     const metaColor = styles.metaColor || '#71717a';
     const font = styles.authorFontFamily || 'Plus Jakarta Sans';
 
-    // Draw Small Avatar inside footer if configured
     let textOffsetX = 0;
     if (loadedAuthorImg) {
       const avSize = 56;
-      this.drawAvatar(ctx, loadedAuthorImg, x, y - 6, avSize, styles);
-      textOffsetX = avSize + 16;
-      textAlign = 'left';
+      let avX = x;
+      if (effectivePlacement === 'avatar-bottom-right') avX = x + width - avSize;
+      if (effectivePlacement === 'avatar-bottom-center') avX = x + (width - avSize) / 2;
+
+      this.drawAvatarPlacement(ctx, loadedAuthorImg, avX, y - 6, avSize, 'avatar-round', styles);
+      if (effectivePlacement !== 'avatar-bottom-center' && effectivePlacement !== 'avatar-bottom-right') {
+        textOffsetX = avSize + 16;
+        textAlign = 'left';
+      }
     }
 
-    // Draw Author & Handle
-    if (showAuthor && author) {
+    // Draw Tweet verified badge
+    if (activeLayout.id === 'tweet-card' && showAuthor) {
+      ctx.font = `700 36px "${font}", sans-serif`;
+      ctx.fillStyle = textColor;
+      ctx.fillText(author, x + textOffsetX, y);
+      const nameW = ctx.measureText(author).width;
+      // Blue verified checkmark
+      ctx.fillStyle = '#1d9bf0';
+      ctx.beginPath();
+      ctx.arc(x + textOffsetX + nameW + 20, y + 14, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `700 16px sans-serif`;
+      ctx.fillText('✓', x + textOffsetX + nameW + 15, y + 20);
+
+      if (handle) {
+        ctx.font = `500 24px "${font}", sans-serif`;
+        ctx.fillStyle = metaColor;
+        ctx.fillText(handle, x + textOffsetX, y + 44);
+      }
+    } else if (showAuthor && author) {
       let authorX = x + textOffsetX + (width - textOffsetX) / 2;
       if (textAlign === 'left') authorX = x + textOffsetX;
       if (textAlign === 'right') authorX = x + width;
@@ -734,20 +894,15 @@ export class CanvasRenderer {
       }
     }
 
-    // Watermark
     if (showWatermark && watermark) {
       ctx.font = `600 20px "${font}", sans-serif`;
       ctx.fillStyle = `${metaColor}88`;
       ctx.textAlign = 'right';
       ctx.fillText(watermark.toUpperCase(), x + width, y + 68);
     }
-
     ctx.restore();
   }
 
-  /**
-   * Word wrap helper
-   */
   static wrapText(ctx, text, maxWidth) {
     const words = text.split(/\s+/);
     const lines = [];
@@ -763,15 +918,10 @@ export class CanvasRenderer {
         currentLine = testLine;
       }
     }
-    if (currentLine) {
-      lines.push(currentLine);
-    }
+    if (currentLine) lines.push(currentLine);
     return lines;
   }
 
-  /**
-   * Rounded rect helper
-   */
   static roundRect(ctx, x, y, width, height, radius, fill = true, stroke = false) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -788,9 +938,6 @@ export class CanvasRenderer {
     if (stroke) ctx.stroke();
   }
 
-  /**
-   * Export to high-res Blob
-   */
   static async exportBlob(data, format = 'image/png', quality = 0.95) {
     const canvas = await this.renderToCanvas(data);
     return new Promise(resolve => {
@@ -798,9 +945,6 @@ export class CanvasRenderer {
     });
   }
 
-  /**
-   * Export to Data URL
-   */
   static async exportDataURL(data, format = 'image/png', quality = 0.95) {
     const canvas = await this.renderToCanvas(data);
     return canvas.toDataURL(format, quality);
