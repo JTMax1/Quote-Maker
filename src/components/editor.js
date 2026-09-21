@@ -44,6 +44,9 @@ export class Editor {
       styles: { ...this.activePreset }
     };
 
+    this.exportFormat = 'png';
+    this.mobileViewMode = 'canvas';
+
     // Sub-modals
     this.authorImageModal = new AuthorImageModal((imageConfig) => {
       this.state.showAuthorImage = imageConfig.showAuthorImage;
@@ -107,74 +110,111 @@ export class Editor {
     const currentLayout = LAYOUT_STYLES.find(l => l.id === this.state.layoutId) || LAYOUT_STYLES[0];
 
     this.containerEl.innerHTML = `
-      <div class="editor-layout">
+      <!-- Mobile Segmented View Switcher -->
+      <div class="mobile-editor-switcher" id="mobileEditorSwitcher" role="tablist" aria-label="Mobile Layout View Toggle">
+        <button class="switcher-btn ${this.mobileViewMode === 'canvas' ? 'active' : ''}" data-mode="canvas" role="tab" aria-selected="${this.mobileViewMode === 'canvas'}">
+          <span aria-hidden="true">🖼</span>
+          <span>Preview</span>
+        </button>
+        <button class="switcher-btn ${this.mobileViewMode === 'controls' ? 'active' : ''}" data-mode="controls" role="tab" aria-selected="${this.mobileViewMode === 'controls'}">
+          <span aria-hidden="true">✍️</span>
+          <span>Controls</span>
+        </button>
+        <button class="switcher-btn ${this.mobileViewMode === 'split' ? 'active' : ''}" data-mode="split" role="tab" aria-selected="${this.mobileViewMode === 'split'}">
+          <span aria-hidden="true">↕</span>
+          <span>Split</span>
+        </button>
+      </div>
+
+      <div class="editor-layout" id="editorLayoutRoot">
         <!-- Canvas Stage Area -->
-        <div class="canvas-stage-wrapper">
+        <div class="canvas-stage-wrapper ${this.mobileViewMode === 'controls' ? 'hidden-mobile' : ''}" id="canvasStageWrapper">
           <!-- Ratio Switcher & Layout Trigger -->
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; width: 100%;">
-            <div class="ratio-switcher" id="ratioSwitcher">
+            <div class="ratio-switcher" id="ratioSwitcher" role="radiogroup" aria-label="Canvas Aspect Ratio">
               ${CANVAS_FORMATS.map(f => `
-                <button class="ratio-chip ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}">
-                  <span class="ratio-icon">📐</span>
+                <button class="ratio-chip ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}" role="radio" aria-checked="${this.state.ratio === f.id}" aria-label="${f.label} ratio">
+                  <span class="ratio-icon" aria-hidden="true">📐</span>
                   <span>${f.label}</span>
                 </button>
               `).join('')}
             </div>
 
             <!-- 50 Layouts Trigger Pill -->
-            <button class="btn-glass" id="btnOpenLayouts" style="padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600;">
-              <span>🔀</span>
+            <button class="btn-glass" id="btnOpenLayouts" aria-label="Choose from 50 Canvas Layouts" style="padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600;">
+              <span aria-hidden="true">🔀</span>
               <span id="lblActiveLayout">Layout: ${currentLayout.name}</span>
-              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.7rem;">50 Styles</span>
+              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.7rem;">50 Canvas Layouts</span>
             </button>
           </div>
 
           <!-- Canvas Card Container -->
           <div class="canvas-viewport-card">
             <div class="canvas-frame" id="canvasFrame">
-              <canvas id="previewCanvas"></canvas>
+              <canvas id="previewCanvas" aria-label="Rendered Quote Preview Canvas" role="img"></canvas>
             </div>
           </div>
 
           <!-- Quick Action Bar -->
           <div class="canvas-actions-bar">
-            <button class="btn-primary" id="btnDownload">
-              <span>⬇</span>
-              <span>Download High-Res (2x)</span>
-            </button>
-            <button class="btn-accent" id="btnCopy">
-              <span>📋</span>
+            <!-- Split Download Button with Format Dropdown -->
+            <div class="download-split-group">
+              <button class="btn-primary" id="btnDownload" aria-label="Download High-Res Image in ${this.exportFormat.toUpperCase()} format">
+                <span aria-hidden="true">⬇</span>
+                <span id="lblDownloadText">Download (${this.exportFormat.toUpperCase()} 2x)</span>
+              </button>
+              <button class="btn-dropdown-trigger" id="btnExportFormatToggle" aria-label="Select download file format" aria-haspopup="true" aria-expanded="false">
+                <span aria-hidden="true">▾</span>
+              </button>
+              <div class="export-format-menu" id="exportFormatMenu" role="menu" hidden>
+                <button class="format-menu-item ${this.exportFormat === 'png' ? 'active' : ''}" data-format="png" role="menuitem">
+                  <strong>PNG (Retina 2x)</strong>
+                  <span>Lossless clarity for Instagram & X</span>
+                </button>
+                <button class="format-menu-item ${this.exportFormat === 'jpg' ? 'active' : ''}" data-format="jpg" role="menuitem">
+                  <strong>JPG (Compact)</strong>
+                  <span>High quality compressed file</span>
+                </button>
+                <button class="format-menu-item ${this.exportFormat === 'webp' ? 'active' : ''}" data-format="webp" role="menuitem">
+                  <strong>WebP (Modern Web)</strong>
+                  <span>Ultra-efficient lightweight graphic</span>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn-accent" id="btnCopy" aria-label="Copy rendered quote image to clipboard">
+              <span aria-hidden="true">📋</span>
               <span>Copy Image</span>
             </button>
-            <button class="btn-glass" id="btnShare">
-              <span>↗</span>
+            <button class="btn-glass" id="btnShare" aria-label="Share quote image via system share">
+              <span aria-hidden="true">↗</span>
               <span>Share</span>
             </button>
-            <button class="btn-glass" id="btnSaveHistory">
-              <span>💾</span>
+            <button class="btn-glass" id="btnSaveHistory" aria-label="Save quote to history">
+              <span aria-hidden="true">💾</span>
               <span>Save</span>
             </button>
-            <button class="btn-glass" id="btnPublish">
-              <span>🌐</span>
+            <button class="btn-glass" id="btnPublish" aria-label="Publish quote to community feed">
+              <span aria-hidden="true">🌐</span>
               <span>Publish to Community</span>
             </button>
           </div>
         </div>
 
         <!-- Controls Side Panel -->
-        <div class="editor-controls-panel">
+        <div class="editor-controls-panel ${this.mobileViewMode === 'canvas' ? 'hidden-mobile' : ''}" id="editorControlsPanel">
           <!-- Active Theme Card -->
           <div class="control-card">
             <div class="active-theme-strip">
               <div class="theme-pill-left">
-                <div class="theme-preview-dot" id="themePreviewDot" style="background: ${this.activePreset.gradient || this.activePreset.background};"></div>
+                <div class="theme-preview-dot" id="themePreviewDot" style="background: ${this.activePreset.gradient || this.activePreset.background};" aria-hidden="true"></div>
                 <div>
                   <div class="theme-title-text" id="themeTitleText">${this.activePreset.name}</div>
                   <div class="theme-subtitle-text" id="themeSubText">${this.activePreset.fontFamily} • ${this.activePreset.category}</div>
                 </div>
               </div>
-              <button class="btn-glass" id="btnBrowsePresets" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
-                Browse 100+ Themes
+              <button class="btn-glass" id="btnBrowsePresets" aria-label="Browse all presets" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
+                Browse Presets
               </button>
             </div>
           </div>
@@ -183,11 +223,11 @@ export class Editor {
           <div class="control-card">
             <div class="control-card-header">
               <span class="card-title">
-                <span>👤</span>
+                <span aria-hidden="true">👤</span>
                 <span>Author Portrait & Cutout</span>
               </span>
-              <label class="switch">
-                <input type="checkbox" id="toggleAuthorImage" ${this.state.showAuthorImage ? 'checked' : ''} />
+              <label class="switch" for="toggleAuthorImage">
+                <input type="checkbox" id="toggleAuthorImage" aria-label="Toggle author portrait and cutout display" ${this.state.showAuthorImage ? 'checked' : ''} />
                 <span class="slider"></span>
               </label>
             </div>
@@ -195,7 +235,7 @@ export class Editor {
             <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-elevated); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass);" id="authorImageStatusStrip">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <div id="authorThumbBox" style="width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: #27272a; display: flex; align-items: center; justify-content: center; border: 2px solid var(--brand-accent);">
-                  ${this.state.authorImage ? `<img src="${this.state.authorImage}" style="width: 100%; height: 100%; object-fit: cover;" />` : '👤'}
+                  ${this.state.authorImage ? `<img src="${this.state.authorImage}" alt="Portrait preview" style="width: 100%; height: 100%; object-fit: cover;" />` : '👤'}
                 </div>
                 <div>
                   <div style="font-size: 0.85rem; font-weight: 700;" id="lblAuthorPhotoStatus">${this.state.authorImage ? 'Portrait Active' : 'No Photo Selected'}</div>
@@ -203,8 +243,9 @@ export class Editor {
                 </div>
               </div>
 
-              <button class="btn-glass" id="btnOpenAuthorStudio" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 600;">
-                <span>✂️ Studio / Remover</span>
+              <button class="btn-glass" id="btnOpenAuthorStudio" aria-label="Change portrait and cutout photo" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 600;">
+                <span aria-hidden="true">✂️</span>
+                <span>Change Portrait & Cutout</span>
               </button>
             </div>
           </div>
@@ -213,16 +254,17 @@ export class Editor {
           <div class="control-card">
             <div class="control-card-header">
               <span class="card-title">
-                <span>💬</span>
+                <span aria-hidden="true">💬</span>
                 <span>Quote Content</span>
               </span>
-              <button class="inspire-btn" id="btnInspire">
-                <span>✨</span>
-                <span>Inspire Me</span>
+              <button class="inspire-btn" id="btnInspire" aria-label="Load a random inspiration quote">
+                <span aria-hidden="true">🎲</span>
+                <span>Random Quote</span>
               </button>
             </div>
 
             <div class="quote-textarea-wrap">
+              <label for="quoteTextInput" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Quote Content</label>
               <textarea class="quote-textarea" id="quoteTextInput" rows="4" placeholder="Type or paste your quote here..." aria-label="Quote Content Textarea">${escapeHtml(this.state.quote)}</textarea>
               <div class="input-char-count" id="quoteCharCount">${this.state.quote.length} chars</div>
             </div>
@@ -428,10 +470,113 @@ export class Editor {
       if (this.onOpenPresets) this.onOpenPresets();
     });
 
+    // Mobile Layout View Switcher
+    const mobileSwitcher = this.containerEl.querySelector('#mobileEditorSwitcher');
+    const stageWrapper = this.containerEl.querySelector('#canvasStageWrapper');
+    const controlsPanel = this.containerEl.querySelector('#editorControlsPanel');
+
+    const setMobileMode = (mode) => {
+      this.mobileViewMode = mode;
+      if (mobileSwitcher) {
+        mobileSwitcher.querySelectorAll('.switcher-btn').forEach(btn => {
+          const isActive = btn.dataset.mode === mode;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+      }
+
+      if (stageWrapper && controlsPanel) {
+        if (mode === 'canvas') {
+          stageWrapper.classList.remove('hidden-mobile');
+          controlsPanel.classList.add('hidden-mobile');
+          document.body.classList.remove('show-floating-preview');
+        } else if (mode === 'controls') {
+          stageWrapper.classList.add('hidden-mobile');
+          controlsPanel.classList.remove('hidden-mobile');
+          document.body.classList.add('show-floating-preview');
+        } else {
+          // split
+          stageWrapper.classList.remove('hidden-mobile');
+          controlsPanel.classList.remove('hidden-mobile');
+          document.body.classList.remove('show-floating-preview');
+        }
+      }
+    };
+
+    if (mobileSwitcher) {
+      mobileSwitcher.addEventListener('click', (e) => {
+        const btn = e.target.closest('.switcher-btn');
+        if (!btn) return;
+        setMobileMode(btn.dataset.mode);
+      });
+    }
+
+    // Floating Preview Trigger on mobile
+    let floatingBtn = document.getElementById('btnFloatingShowPreview');
+    if (!floatingBtn) {
+      floatingBtn = document.createElement('button');
+      floatingBtn.id = 'btnFloatingShowPreview';
+      floatingBtn.className = 'floating-preview-trigger';
+      floatingBtn.setAttribute('aria-label', 'View preview canvas');
+      floatingBtn.innerHTML = '<span aria-hidden="true">🖼</span><span>View Canvas</span>';
+      document.body.appendChild(floatingBtn);
+      floatingBtn.addEventListener('click', () => {
+        setMobileMode('canvas');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    // Export Format Dropdown
+    const btnFormatToggle = this.containerEl.querySelector('#btnExportFormatToggle');
+    const formatMenu = this.containerEl.querySelector('#exportFormatMenu');
+    const lblDownload = this.containerEl.querySelector('#lblDownloadText');
+
+    if (btnFormatToggle && formatMenu) {
+      const toggleFormatMenu = (open) => {
+        const isOpen = typeof open === 'boolean' ? open : formatMenu.hidden;
+        formatMenu.hidden = !isOpen;
+        btnFormatToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      };
+
+      btnFormatToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFormatMenu();
+      });
+
+      formatMenu.querySelectorAll('.format-menu-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fmt = item.dataset.format;
+          if (fmt) {
+            this.exportFormat = fmt;
+            formatMenu.querySelectorAll('.format-menu-item').forEach(m => m.classList.toggle('active', m.dataset.format === fmt));
+            if (lblDownload) {
+              lblDownload.textContent = `Download (${fmt.toUpperCase()} 2x)`;
+            }
+            toggleFormatMenu(false);
+            Toast.show(`Export format set to ${fmt.toUpperCase()}`, 'info');
+          }
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!formatMenu.hidden && !formatMenu.contains(e.target) && e.target !== btnFormatToggle) {
+          toggleFormatMenu(false);
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !formatMenu.hidden) {
+          toggleFormatMenu(false);
+          btnFormatToggle.focus();
+        }
+      });
+    }
+
     // Action Buttons
     this.containerEl.querySelector('#btnDownload').addEventListener('click', () => {
       this.saveToHistorySilent();
-      ShareService.downloadImage(this.state, 'png');
+      ShareService.downloadImage(this.state, this.exportFormat);
     });
 
     this.containerEl.querySelector('#btnCopy').addEventListener('click', () => {

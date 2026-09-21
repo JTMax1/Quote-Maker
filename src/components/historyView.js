@@ -103,6 +103,7 @@ export class HistoryView {
       </div>
     `;
 
+    this.pendingDeletes = new Map();
     this.bindEvents();
   }
 
@@ -131,10 +132,48 @@ export class HistoryView {
         StorageService.publishToCommunity(item, profile);
         Toast.show('Published to Community Showcase! 🌟', 'success');
       } else if (target.classList.contains('btn-delete')) {
-        StorageService.deleteFromHistory(id);
-        Toast.show('Deleted from history', 'info');
-        this.render();
+        const card = grid.querySelector(`.history-card[data-id="${id}"]`);
+        if (!card) return;
+
+        // Optimistic soft delete with undo grace period
+        card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+
+        setTimeout(() => {
+          card.style.display = 'none';
+        }, 250);
+
+        const deleteTimeout = setTimeout(() => {
+          StorageService.deleteFromHistory(id);
+          this.pendingDeletes.delete(id);
+          // If all items deleted, re-render empty state
+          if (StorageService.getHistory().length === 0) {
+            this.render();
+          }
+        }, 6000);
+
+        this.pendingDeletes.set(id, deleteTimeout);
+
+        Toast.show('Quote removed from history', 'info', {
+          actionText: 'Undo',
+          duration: 6000,
+          onAction: () => {
+            const timeout = this.pendingDeletes.get(id);
+            if (timeout) {
+              clearTimeout(timeout);
+              this.pendingDeletes.delete(id);
+            }
+            card.style.display = '';
+            requestAnimationFrame(() => {
+              card.style.opacity = '1';
+              card.style.transform = 'scale(1)';
+            });
+            Toast.show('Restored quote to history!', 'success');
+          }
+        });
       }
     });
   }
 }
+

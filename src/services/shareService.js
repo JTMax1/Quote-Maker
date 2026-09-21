@@ -7,13 +7,16 @@ import { Toast } from '../components/toast.js';
 
 export class ShareService {
   /**
-   * Download rendered quote as PNG or WebP
+   * Download rendered quote as PNG, JPG, or WebP
    */
   static async downloadImage(quoteData, format = 'png', scale = 2) {
     try {
-      Toast.show('Generating 2x high-res image...', 'info');
-      const mimeType = format === 'webp' ? 'image/webp' : 'image/png';
-      const blob = await CanvasRenderer.exportBlob(quoteData, mimeType, 0.95, scale);
+      const normalizedFormat = format.toLowerCase() === 'jpeg' || format.toLowerCase() === 'jpg' ? 'jpg' : (format.toLowerCase() === 'webp' ? 'webp' : 'png');
+      const mimeType = normalizedFormat === 'webp' ? 'image/webp' : (normalizedFormat === 'jpg' ? 'image/jpeg' : 'image/png');
+      const quality = normalizedFormat === 'jpg' ? 0.92 : 0.95;
+
+      Toast.show(`Generating ${normalizedFormat.toUpperCase()} (2x high-res)...`, 'info');
+      const blob = await CanvasRenderer.exportBlob(quoteData, mimeType, quality, scale);
 
       if (!blob) {
         Toast.show('Failed to generate image', 'error');
@@ -22,7 +25,7 @@ export class ShareService {
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      const filename = `quote-${(quoteData.author || 'quoteforge').toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${format}`;
+      const filename = `quote-${(quoteData.author || 'quoteforge').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}.${normalizedFormat}`;
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
@@ -30,7 +33,7 @@ export class ShareService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      Toast.show(`Saved ${filename} (Retina 2x)!`, 'success');
+      Toast.show(`Downloaded ${filename} (${normalizedFormat.toUpperCase()} 2x)!`, 'success');
     } catch (e) {
       console.error('Download error:', e);
       Toast.show('Could not download image', 'error');

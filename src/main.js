@@ -15,6 +15,7 @@ import './styles/toast.css';
 
 import { StorageService } from './services/storageService.js';
 import { OnboardingModal } from './components/onboarding.js';
+import { ProfileSettingsModal } from './components/profileSettingsModal.js';
 import { Editor } from './components/editor.js';
 import { PresetPicker } from './components/presetPicker.js';
 import { HistoryView } from './components/historyView.js';
@@ -47,7 +48,7 @@ class App {
 
     appEl.innerHTML = `
       <!-- Header -->
-      <header class="app-header">
+      <header class="app-header" role="banner">
         <div class="header-container">
           <div class="brand">
             <div class="brand-icon" aria-hidden="true">❝</div>
@@ -58,44 +59,68 @@ class App {
           <!-- Navigation Tabs -->
           <nav class="nav-tabs" id="appNavTabs" aria-label="Main Navigation">
             <button class="tab-btn active" data-tab="editor" aria-label="Create Quote Editor">
-              <span>✍️</span>
+              <span aria-hidden="true">✍️</span>
               <span>Create Quote</span>
             </button>
             <button class="tab-btn" data-tab="presets" aria-label="Browse Presets Catalog">
-              <span>🎨</span>
+              <span aria-hidden="true">🎨</span>
               <span>Presets</span>
             </button>
             <button class="tab-btn" data-tab="history" aria-label="View Saved History">
-              <span>🕰</span>
+              <span aria-hidden="true">🕰</span>
               <span>History</span>
             </button>
             <button class="tab-btn" data-tab="community" aria-label="Community Showcase Feed">
-              <span>🌐</span>
+              <span aria-hidden="true">🌐</span>
               <span>Community</span>
             </button>
             <button class="tab-btn" data-tab="studio" aria-label="Template Studio Creator">
-              <span>📐</span>
+              <span aria-hidden="true">📐</span>
               <span>Template Studio</span>
             </button>
           </nav>
 
           <!-- Header Actions -->
           <div class="header-actions">
-            <button class="btn-glass" id="btnExportBackup" title="Export Quotes & Themes Backup (JSON)" aria-label="Export backup" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; border-radius: var(--radius-full);">
-              <span>💾</span>
-              <span class="desktop-only" style="margin-left: 0.25rem;">Backup</span>
-            </button>
-            <button class="btn-glass" id="btnImportBackup" title="Restore Quotes & Themes Backup (JSON)" aria-label="Restore backup" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; border-radius: var(--radius-full);">
-              <span>📂</span>
-              <span class="desktop-only" style="margin-left: 0.25rem;">Restore</span>
-            </button>
-            <input type="file" id="inputRestoreJson" accept=".json,application/json" style="display: none;" aria-label="Upload backup JSON file" />
+            <div class="desktop-actions">
+              <button class="btn-glass btn-header-action" id="btnExportBackup" title="Export Quotes & Themes Backup (JSON)" aria-label="Export backup">
+                <span aria-hidden="true">💾</span>
+                <span>Backup</span>
+              </button>
+              <button class="btn-glass btn-header-action" id="btnImportBackup" title="Restore Quotes & Themes Backup (JSON)" aria-label="Restore backup">
+                <span aria-hidden="true">📂</span>
+                <span>Restore</span>
+              </button>
+            </div>
 
-            <button class="profile-chip" id="btnProfilePreset" title="Edit Signature Preset" aria-label="Edit signature profile preset">
-              <div class="avatar-initial" id="headerAvatar">${initial}</div>
-              <span style="font-weight: 600;" id="headerProfileName">${escapeHtml(profile.name || 'My Preset')}</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);" aria-hidden="true">⚙️</span>
+            <button class="profile-chip" id="btnProfilePreset" title="Edit Signature Profile" aria-label="Edit signature profile preset">
+              <div class="avatar-initial" id="headerAvatar" aria-hidden="true">${initial}</div>
+              <span class="profile-chip-name" id="headerProfileName">${escapeHtml(profile.name || 'My Preset')}</span>
+              <span class="profile-gear-icon" aria-hidden="true">⚙️</span>
             </button>
+
+            <!-- Mobile Overflow Menu -->
+            <div class="mobile-more-wrapper mobile-only">
+              <button class="btn-glass btn-icon-only" id="btnMobileOverflow" aria-label="Open more options" aria-expanded="false" aria-haspopup="true">
+                <span aria-hidden="true">⋮</span>
+              </button>
+              <div class="mobile-overflow-dropdown" id="mobileOverflowMenu" role="menu" hidden>
+                <button class="overflow-menu-item" id="btnMobileExportBackup" role="menuitem">
+                  <span aria-hidden="true">💾</span>
+                  <span>Export Backup (JSON)</span>
+                </button>
+                <button class="overflow-menu-item" id="btnMobileImportBackup" role="menuitem">
+                  <span aria-hidden="true">📂</span>
+                  <span>Restore Backup (JSON)</span>
+                </button>
+                <button class="overflow-menu-item" id="btnMobileOpenOnboarding" role="menuitem">
+                  <span aria-hidden="true">✨</span>
+                  <span>Quick Setup Tour</span>
+                </button>
+              </div>
+            </div>
+
+            <input type="file" id="inputRestoreJson" accept=".json,application/json" style="display: none;" aria-label="Upload backup JSON file" />
           </div>
         </div>
       </header>
@@ -201,8 +226,14 @@ class App {
       }
     );
 
-    // 6. Onboarding Modal
+    // 6. Onboarding Modal (First time setup)
     this.components.onboarding = new OnboardingModal((updatedProfile) => {
+      this.components.editor.updateProfile(updatedProfile);
+      this.updateHeaderProfile(updatedProfile);
+    });
+
+    // 7. Profile Settings Modal (Direct profile editing)
+    this.components.profileSettings = new ProfileSettingsModal((updatedProfile) => {
       this.components.editor.updateProfile(updatedProfile);
       this.updateHeaderProfile(updatedProfile);
     });
@@ -218,40 +249,89 @@ class App {
       this.switchTab(tabName);
     });
 
-    // Profile & Preset Button
+    // Profile & Preset Button -> Opens dedicated ProfileSettingsModal
     const btnProfile = document.getElementById('btnProfilePreset');
     if (btnProfile) {
       btnProfile.addEventListener('click', () => {
+        this.components.profileSettings.open();
+      });
+    }
+
+    // Mobile Overflow Menu toggle
+    const btnMobileOverflow = document.getElementById('btnMobileOverflow');
+    const mobileOverflowMenu = document.getElementById('mobileOverflowMenu');
+    if (btnMobileOverflow && mobileOverflowMenu) {
+      const toggleMenu = (show) => {
+        const isCurrentlyOpen = !mobileOverflowMenu.hidden;
+        const willOpen = typeof show === 'boolean' ? show : !isCurrentlyOpen;
+        mobileOverflowMenu.hidden = !willOpen;
+        btnMobileOverflow.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      };
+
+      btnMobileOverflow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleMenu();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!mobileOverflowMenu.hidden && !mobileOverflowMenu.contains(e.target) && e.target !== btnMobileOverflow) {
+          toggleMenu(false);
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !mobileOverflowMenu.hidden) {
+          toggleMenu(false);
+          btnMobileOverflow.focus();
+        }
+      });
+    }
+
+    // Mobile Onboarding button
+    const btnMobileTour = document.getElementById('btnMobileOpenOnboarding');
+    if (btnMobileTour) {
+      btnMobileTour.addEventListener('click', () => {
+        if (mobileOverflowMenu) mobileOverflowMenu.hidden = true;
         this.components.onboarding.open();
       });
     }
 
-    // Export Backup JSON
+    // Export Backup JSON Helper
+    const handleExportBackup = () => {
+      if (mobileOverflowMenu) mobileOverflowMenu.hidden = true;
+      const jsonStr = StorageService.exportBackupJSON();
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `quoteforge-backup-${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      Toast.show('Exported QuoteForge backup JSON!', 'success');
+    };
+
     const btnExport = document.getElementById('btnExportBackup');
-    if (btnExport) {
-      btnExport.addEventListener('click', () => {
-        const jsonStr = StorageService.exportBackupJSON();
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `quoteforge-backup-${Date.now()}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        Toast.show('Exported QuoteForge backup JSON!', 'success');
-      });
-    }
+    if (btnExport) btnExport.addEventListener('click', handleExportBackup);
 
-    // Import / Restore Backup JSON
-    const btnImport = document.getElementById('btnImportBackup');
+    const btnMobileExport = document.getElementById('btnMobileExportBackup');
+    if (btnMobileExport) btnMobileExport.addEventListener('click', handleExportBackup);
+
+    // Import / Restore Backup JSON Helper
     const inputRestore = document.getElementById('inputRestoreJson');
-    if (btnImport && inputRestore) {
-      btnImport.addEventListener('click', () => {
-        inputRestore.click();
-      });
+    const handleImportClick = () => {
+      if (mobileOverflowMenu) mobileOverflowMenu.hidden = true;
+      if (inputRestore) inputRestore.click();
+    };
 
+    const btnImport = document.getElementById('btnImportBackup');
+    if (btnImport) btnImport.addEventListener('click', handleImportClick);
+
+    const btnMobileImport = document.getElementById('btnMobileImportBackup');
+    if (btnMobileImport) btnMobileImport.addEventListener('click', handleImportClick);
+
+    if (inputRestore) {
       inputRestore.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;

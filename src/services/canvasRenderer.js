@@ -1602,21 +1602,33 @@ export class CanvasRenderer {
       ctx.fillText('✦  ✦  ✦', x + width / 2, y - 10);
     }
 
-    // Dynamic Font Sizing
-    let fontSize = Math.min(Math.round(width * 0.08), 84);
-    if (activeLayout.id === 'billboard-heavy') fontSize = Math.min(Math.round(width * 0.11), 104);
+    // Dynamic Font Sizing with Adaptive Auto-Shrink Algorithm (P2-3)
+    const charLen = quote.length;
+    let baseMaxFont = Math.min(Math.round(width * 0.08), 84);
+    if (activeLayout.id === 'billboard-heavy') baseMaxFont = Math.min(Math.round(width * 0.11), 104);
 
-    const minFontSize = 26;
+    // Scale down starting font size and minimum threshold for long quotes
+    if (charLen > 350) {
+      baseMaxFont = Math.min(baseMaxFont, 40);
+    } else if (charLen > 220) {
+      baseMaxFont = Math.min(baseMaxFont, 52);
+    } else if (charLen > 140) {
+      baseMaxFont = Math.min(baseMaxFont, 66);
+    }
+
+    let fontSize = baseMaxFont;
+    const minFontSize = charLen > 250 ? 16 : 22;
+    const effectiveLineRatio = charLen > 250 ? Math.min(lineHeightRatio, 1.28) : lineHeightRatio;
     let lines = [];
-    let calculatedLineHeight = fontSize * lineHeightRatio;
+    let calculatedLineHeight = fontSize * effectiveLineRatio;
 
     while (fontSize >= minFontSize) {
       ctx.font = `600 ${fontSize}px "${fontFamily}", sans-serif`;
       lines = this.wrapText(ctx, activeLayout.id === 'tweet-card' ? quote : `“${quote}”`, width);
-      calculatedLineHeight = fontSize * lineHeightRatio;
+      calculatedLineHeight = fontSize * effectiveLineRatio;
       const totalBlockHeight = lines.length * calculatedLineHeight;
       if (totalBlockHeight <= maxHeight) break;
-      fontSize -= 3;
+      fontSize -= 2;
     }
 
     // Safety guard: If text exceeds maxHeight even at minFontSize, clamp lines cleanly with ellipsis

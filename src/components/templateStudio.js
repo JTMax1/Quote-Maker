@@ -54,15 +54,15 @@ export class TemplateStudio {
 
           <!-- Basic Info -->
           <div class="studio-section">
-            <label class="section-label">1. Theme Name & Category</label>
+            <span class="section-label">1. Theme Name & Category</span>
             <div class="input-row">
               <div class="form-group">
-                <label class="form-label">Template Name</label>
-                <input type="text" class="form-input" id="studioThemeName" value="${this.template.name}" placeholder="e.g. Cyber Velvet" />
+                <label class="form-label" for="studioThemeName">Template Name</label>
+                <input type="text" class="form-input" id="studioThemeName" value="${this.template.name}" placeholder="e.g. Cyber Velvet" aria-label="Template Name" />
               </div>
               <div class="form-group">
-                <label class="form-label">Category</label>
-                <select class="form-input" id="studioCategorySelect">
+                <label class="form-label" for="studioCategorySelect">Category</label>
+                <select class="form-input" id="studioCategorySelect" aria-label="Theme Category">
                   ${PRESET_CATEGORIES.filter(c => c.id !== 'all').map(c => `
                     <option value="${c.id}" ${this.template.category === c.id ? 'selected' : ''}>${c.icon} ${c.label}</option>
                   `).join('')}
@@ -73,9 +73,9 @@ export class TemplateStudio {
 
           <!-- Abstract Lines & Geometry Patterns -->
           <div class="studio-section">
-            <label class="section-label">2. Abstract Lines & Geometric Patterns</label>
+            <span class="section-label">2. Abstract Lines & Geometric Patterns</span>
             <span style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.35rem; display: block;">Subtle geometric background lines that enhance elegance without overshadowing text:</span>
-            <div class="option-chips-grid" id="abstractPatternGrid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="option-chips-grid" id="abstractPatternGrid" style="grid-template-columns: repeat(3, 1fr);" role="group" aria-label="Geometric pattern style">
               <button class="option-chip-btn ${this.template.abstractPattern === 'orbital-rings' ? 'active' : ''}" data-pattern="orbital-rings">Orbital Rings</button>
               <button class="option-chip-btn ${this.template.abstractPattern === 'fibonacci' ? 'active' : ''}" data-pattern="fibonacci">Golden Spiral</button>
               <button class="option-chip-btn ${this.template.abstractPattern === 'celestial' ? 'active' : ''}" data-pattern="celestial">Star Map</button>
@@ -92,54 +92,54 @@ export class TemplateStudio {
 
           <!-- Color Palette -->
           <div class="studio-section">
-            <label class="section-label">3. Color Palette</label>
+            <span class="section-label">3. Color Palette</span>
             <div class="color-picker-grid">
               <div class="color-input-item">
-                <input type="color" class="color-swatch-input" id="colorBg" value="${this.template.background}" />
-                <label>Background</label>
+                <input type="color" class="color-swatch-input" id="colorBg" value="${this.template.background}" aria-label="Background Color" />
+                <label for="colorBg">Background</label>
               </div>
               <div class="color-input-item">
-                <input type="color" class="color-swatch-input" id="colorText" value="${this.template.textColor}" />
-                <label>Text</label>
+                <input type="color" class="color-swatch-input" id="colorText" value="${this.template.textColor}" aria-label="Quote Text Color" />
+                <label for="colorText">Text</label>
               </div>
               <div class="color-input-item">
-                <input type="color" class="color-swatch-input" id="colorAccent" value="${this.template.accentColor}" />
-                <label>Accent</label>
+                <input type="color" class="color-swatch-input" id="colorAccent" value="${this.template.accentColor}" aria-label="Accent Color" />
+                <label for="colorAccent">Accent</label>
               </div>
               <div class="color-input-item">
-                <input type="color" class="color-swatch-input" id="colorMeta" value="${this.template.metaColor}" />
-                <label>Secondary</label>
+                <input type="color" class="color-swatch-input" id="colorMeta" value="${this.template.metaColor}" aria-label="Secondary Meta Color" />
+                <label for="colorMeta">Secondary</label>
               </div>
             </div>
 
             <!-- Gradient Presets Quick Swatches -->
             <div style="margin-top: 0.5rem;">
               <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Or Choose Background Gradient:</span>
-              <div class="gradient-swatches-row" id="gradientSwatches">
-                <button class="gradient-swatch-btn" data-grad="" style="background: ${this.template.background};" title="Solid"></button>
-                <button class="gradient-swatch-btn" data-grad="linear-gradient(135deg, #090a0f 0%, #17153b 50%, #0f172a 100%)" style="background: linear-gradient(135deg, #090a0f 0%, #17153b 50%, #0f172a 100%);" title="Cyber Dark"></button>
-                <button class="gradient-swatch-btn" data-grad="linear-gradient(180deg, #1b003a 0%, #751268 60%, #ff5e62 100%)" style="background: linear-gradient(180deg, #1b003a 0%, #751268 60%, #ff5e62 100%);" title="Retro Sunset"></button>
-                <button class="gradient-swatch-btn" data-grad="linear-gradient(160deg, #020617 0%, #0c2b4e 50%, #064e3b 100%)" style="background: linear-gradient(160deg, #020617 0%, #0c2b4e 50%, #064e3b 100%);" title="Deep Abyss"></button>
-                <button class="gradient-swatch-btn" data-grad="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);" title="Nordic Aurora"></button>
+              <div class="gradient-swatches-row" id="gradientSwatches" role="group" aria-label="Gradient color presets">
+                <button class="gradient-swatch-btn" data-grad="" style="background: ${this.template.background};" title="Solid" aria-label="Solid background"></button>
+                <button class="gradient-swatch-btn" data-grad="linear-gradient(135deg, #090a0f 0%, #17153b 50%, #0f172a 100%)" style="background: linear-gradient(135deg, #090a0f 0%, #17153b 50%, #0f172a 100%);" title="Cyber Dark" aria-label="Cyber Dark gradient"></button>
+                <button class="gradient-swatch-btn" data-grad="linear-gradient(180deg, #1b003a 0%, #751268 60%, #ff5e62 100%)" style="background: linear-gradient(180deg, #1b003a 0%, #751268 60%, #ff5e62 100%);" title="Retro Sunset" aria-label="Retro Sunset gradient"></button>
+                <button class="gradient-swatch-btn" data-grad="linear-gradient(160deg, #020617 0%, #0c2b4e 50%, #064e3b 100%)" style="background: linear-gradient(160deg, #020617 0%, #0c2b4e 50%, #064e3b 100%);" title="Deep Abyss" aria-label="Deep Abyss gradient"></button>
+                <button class="gradient-swatch-btn" data-grad="linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);" title="Nordic Aurora" aria-label="Nordic Aurora gradient"></button>
               </div>
             </div>
           </div>
 
           <!-- Typography -->
           <div class="studio-section">
-            <label class="section-label">4. Typography & Quote Marks</label>
+            <span class="section-label">4. Typography & Quote Marks</span>
             <div class="input-row">
               <div class="form-group">
-                <label class="form-label">Quote Font Family</label>
-                <select class="form-input" id="studioFontSelect">
+                <label class="form-label" for="studioFontSelect">Quote Font Family</label>
+                <select class="form-input" id="studioFontSelect" aria-label="Quote Font Family">
                   ${FONT_FAMILIES.map(f => `
                     <option value="${f.id}" ${this.template.fontFamily === f.id ? 'selected' : ''}>${f.label}</option>
                   `).join('')}
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Text Alignment</label>
-                <select class="form-input" id="studioAlignSelect">
+                <label class="form-label" for="studioAlignSelect">Text Alignment</label>
+                <select class="form-input" id="studioAlignSelect" aria-label="Text Alignment">
                   <option value="center" ${this.template.textAlign === 'center' ? 'selected' : ''}>Center</option>
                   <option value="left" ${this.template.textAlign === 'left' ? 'selected' : ''}>Left</option>
                   <option value="right" ${this.template.textAlign === 'right' ? 'selected' : ''}>Right</option>
@@ -150,7 +150,7 @@ export class TemplateStudio {
             <!-- Quote Marks Selection -->
             <div style="margin-top: 0.5rem;">
               <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Quote Mark Styling:</span>
-              <div class="option-chips-grid" id="quoteMarkOptionsGrid">
+              <div class="option-chips-grid" id="quoteMarkOptionsGrid" role="group" aria-label="Quote Mark Style">
                 <button class="option-chip-btn ${this.template.quoteMarkStyle === 'classic' ? 'active' : ''}" data-qm="classic">Classic “ ”</button>
                 <button class="option-chip-btn ${this.template.quoteMarkStyle === 'modern-brackets' ? 'active' : ''}" data-qm="modern-brackets">Brackets // </button>
                 <button class="option-chip-btn ${this.template.quoteMarkStyle === 'minimal-dash' ? 'active' : ''}" data-qm="minimal-dash">Minimal —</button>
@@ -162,19 +162,19 @@ export class TemplateStudio {
 
           <!-- Layout & Portrait Placement -->
           <div class="studio-section">
-            <label class="section-label">5. Default Layout & Portrait Placement</label>
+            <span class="section-label">5. Default Layout & Portrait Placement</span>
             <div class="input-row">
               <div class="form-group">
-                <label class="form-label">Associated Layout Style</label>
-                <select class="form-input" id="studioLayoutSelect">
+                <label class="form-label" for="studioLayoutSelect">Associated Layout Style</label>
+                <select class="form-input" id="studioLayoutSelect" aria-label="Associated Layout Style">
                   ${LAYOUT_STYLES.map(l => `
                     <option value="${l.id}" ${this.template.layoutId === l.id ? 'selected' : ''}>${l.icon} ${l.name}</option>
                   `).join('')}
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Default Portrait Placement</label>
-                <select class="form-input" id="studioPlacementSelect">
+                <label class="form-label" for="studioPlacementSelect">Default Portrait Placement</label>
+                <select class="form-input" id="studioPlacementSelect" aria-label="Default Portrait Placement">
                   ${PORTRAIT_PLACEMENTS.map(p => `
                     <option value="${p.id}" ${this.template.portraitPlacement === p.id ? 'selected' : ''}>${p.label}</option>
                   `).join('')}

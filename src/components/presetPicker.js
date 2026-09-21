@@ -38,8 +38,9 @@ export class PresetPicker {
             `).join('')}
           </div>
 
-          <div style="min-width: 240px;">
-            <input type="text" class="form-input" id="presetSearchInput" placeholder="🔍 Search themes or fonts..." style="width: 100%; border-radius: 9999px;" />
+          <div style="min-width: 240px; position: relative;">
+            <label for="presetSearchInput" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Search presets</label>
+            <input type="search" class="form-input" id="presetSearchInput" placeholder="🔍 Search themes or fonts..." aria-label="Search themes, styles, or fonts" style="width: 100%; border-radius: 9999px;" />
           </div>
         </div>
 
@@ -91,12 +92,41 @@ export class PresetPicker {
     }
 
     if (filtered.length === 0) {
+      const displayQuery = escapeHtml(this.searchQuery);
       grid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-secondary);">
-          <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No design themes match your search.</p>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Try a different category or create a custom theme in Template Studio!</p>
+        <div class="empty-state-card" style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background: var(--bg-surface-elevated); border: 1px dashed var(--border-glass-strong); border-radius: var(--radius-xl); margin: 1rem 0;">
+          <div style="font-size: 2.8rem; margin-bottom: 0.75rem;" aria-hidden="true">🔍</div>
+          <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">
+            ${displayQuery ? `No themes matching "${displayQuery}"` : 'No themes in this category'}
+          </h3>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 420px; margin: 0 auto 1.5rem auto; line-height: 1.5;">
+            We couldn't find any presets matching your criteria. Reset your search or browse all categories to explore over 100 styles.
+          </p>
+          <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-primary" id="btnClearPresetSearch" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; border-radius: var(--radius-full);">
+              <span>✕</span>
+              <span>Clear Search & Reset</span>
+            </button>
+          </div>
         </div>
       `;
+
+      const btnClear = grid.querySelector('#btnClearPresetSearch');
+      if (btnClear) {
+        btnClear.addEventListener('click', () => {
+          this.searchQuery = '';
+          this.selectedCategory = 'all';
+          const searchInput = this.containerEl.querySelector('#presetSearchInput');
+          if (searchInput) searchInput.value = '';
+          const catBar = this.containerEl.querySelector('#presetCategoryBar');
+          if (catBar) {
+            catBar.querySelectorAll('.category-chip').forEach(b => {
+              b.classList.toggle('active', b.dataset.cat === 'all');
+            });
+          }
+          this.renderCards();
+        });
+      }
       return;
     }
 
