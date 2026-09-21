@@ -7,6 +7,7 @@
  */
 
 import { PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
+import { PRESET_AUTHOR_PORTRAITS } from '../data/authorCutouts.js';
 import { BgRemoverService } from '../services/bgRemoverService.js';
 import { dbService } from '../services/dbService.js';
 import { Toast } from './toast.js';
@@ -18,6 +19,8 @@ export class AuthorImageModal {
     this.onApplyAuthorImage = onApplyAuthorImage;
     this.currentImage = null;
     this.processedDataUrl = null;
+    this.currentImageSrc = null;
+    this.previewImgCache = null;
     this.selectedPlacement = 'cutout-right';
     this.tolerance = 32;
     this.feather = 2;
@@ -46,7 +49,7 @@ export class AuthorImageModal {
         <div class="stepper-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.85rem;">
           <div>
             <h2 style="font-size: 1.25rem; font-weight: 700; font-family: var(--font-display); margin: 0;">Author Portrait Studio</h2>
-            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">Isolate subject portraits and select from 50 precise canvas layouts.</p>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">Isolate subject portraits and select from 100 precise canvas placements.</p>
           </div>
           <button class="btn-glass modal-close-btn" id="btnCloseAuthorModal" style="padding: 0.4rem 0.65rem;" aria-label="Close author studio">
             ${icon('x', { size: 16 })}
@@ -61,8 +64,8 @@ export class AuthorImageModal {
           </button>
           <button class="tab-btn ${this.activeTab === 'placements' ? 'active' : ''}" id="tabBtnPlacements" role="tab" aria-selected="${this.activeTab === 'placements'}" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
             <span>${icon('layout', { size: 14 })}</span>
-            <span>50 Canvas Placements</span>
-            <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.68rem; margin-left: 0.25rem;">50</span>
+            <span>Placements</span>
+            <span class="tab-badge" id="placementsBadgeCount" style="background: var(--brand-primary); font-size: 0.68rem; margin-left: 0.25rem;">${PORTRAIT_PLACEMENTS.length}</span>
           </button>
         </div>
 
@@ -123,14 +126,25 @@ export class AuthorImageModal {
             </div>
           </div>
 
-          <!-- TAB 2: 50 Portrait Placements on Canvas (No inner nested scroll container!) -->
-          <div id="authorTabPanePlacements" style="display: ${this.activeTab === 'placements' ? 'flex' : 'none'}; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface-elevated); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
-              <div>
-                <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Active Placement:</span>
-                <span style="font-size: 0.88rem; color: var(--brand-primary); font-weight: 700; margin-left: 0.35rem;" id="lblCurrentPlacementName">${this.selectedPlacement}</span>
+          <!-- TAB 2: Canvas Placements (Interactive Live Placement Preview) -->
+          <div id="authorTabPanePlacements" style="display: ${this.activeTab === 'placements' ? 'flex' : 'none'}; flex-direction: column; gap: 0.85rem;">
+            <!-- Interactive Live Mockup Card -->
+            <div class="placement-preview-panel" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 0.85rem; display: flex; flex-direction: column; gap: 0.65rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                  <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">Active Placement:</span>
+                  <span style="font-size: 0.88rem; color: var(--brand-primary); font-weight: 700;" id="lblCurrentPlacementName">${this.selectedPlacement}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="tab-badge" id="lblPlacementTypeBadge" style="background: rgba(99,102,241,0.2); color: var(--brand-primary); border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 0.2rem 0.6rem;">cutout</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">Click any option to preview</span>
+                </div>
               </div>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">Click any option to preview</span>
+
+              <!-- Interactive Mockup Stage Canvas -->
+              <div style="width: 100%; height: 210px; background: radial-gradient(circle at center, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: var(--radius-sm); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: var(--shadow-sm);">
+                <canvas id="placementMockupCanvas" width="420" height="210" style="max-width: 100%; max-height: 210px; object-fit: contain;"></canvas>
+              </div>
             </div>
 
             <!-- Placement Cards Grid (Flows with main modal scroll) -->
@@ -183,6 +197,10 @@ export class AuthorImageModal {
 
       paneRemover.style.display = tab === 'remover' ? 'flex' : 'none';
       panePlacements.style.display = tab === 'placements' ? 'flex' : 'none';
+
+      if (tab === 'placements') {
+        this.renderPlacementPreview();
+      }
     };
 
     tabBtnRemover.addEventListener('click', () => switchModalTab('remover'));
@@ -314,6 +332,7 @@ export class AuthorImageModal {
       this.selectedPlacement = btn.dataset.place;
       const found = PORTRAIT_PLACEMENTS.find(p => p.id === this.selectedPlacement);
       if (lblPlacement && found) lblPlacement.textContent = found.label;
+      this.renderPlacementPreview();
     });
 
     // Clear photo
@@ -404,8 +423,207 @@ export class AuthorImageModal {
     ctx.drawImage(img, dx, dy, dw, dh);
   }
 
-  open() {
+  async renderPlacementPreview() {
+    const canvas = this.modalEl.querySelector('#placementMockupCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = 420;
+    const height = 210;
+    canvas.width = width;
+    canvas.height = height;
+
+    const currentPlacement = this.selectedPlacement || 'cutout-right';
+    const placementObj = PORTRAIT_PLACEMENTS.find(p => p.id === currentPlacement) || PORTRAIT_PLACEMENTS[0];
+
+    const lblType = this.modalEl.querySelector('#lblPlacementTypeBadge');
+    if (lblType) lblType.textContent = placementObj.type || 'placement';
+
+    // 1. Draw Card Background
+    ctx.clearRect(0, 0, width, height);
+    const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+    bgGrad.addColorStop(0, '#1e293b');
+    bgGrad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = bgGrad;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(10, 10, width - 20, height - 20, 12);
+    else ctx.rect(10, 10, width - 20, height - 20);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 2. Load preview portrait image
+    const imageSrc = this.processedDataUrl || (this.currentImage?.src || this.currentImage) || this.currentImageSrc || PRESET_AUTHOR_PORTRAITS[1]?.imageUrl;
+    let img = this.previewImgCache;
+    if (!img || img.src !== imageSrc) {
+      img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = imageSrc;
+      await new Promise((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      });
+      this.previewImgCache = img;
+    }
+
+    const type = placementObj.type;
+    const pId = placementObj.id;
+
+    // 3. Environmental blend placements
+    if (type === 'blend' && img && img.complete && img.naturalWidth) {
+      ctx.save();
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(10, 10, width - 20, height - 20, 12);
+      else ctx.rect(10, 10, width - 20, height - 20);
+      ctx.clip();
+
+      if (pId === 'half-screen-left' || pId === 'scrim-split-left') {
+        ctx.drawImage(img, 10, 10, (width - 20) / 2, height - 20);
+      } else if (pId === 'half-screen-right' || pId === 'scrim-split-right') {
+        ctx.drawImage(img, width / 2, 10, (width - 20) / 2, height - 20);
+      } else if (pId === 'top-banner-strip') {
+        ctx.drawImage(img, 10, 10, width - 20, 70);
+      } else if (pId === 'bottom-banner-strip') {
+        ctx.drawImage(img, 10, height - 70, width - 20, 60);
+      } else {
+        ctx.drawImage(img, 10, 10, width - 20, height - 20);
+        const scrim = ctx.createLinearGradient(0, 0, 0, height);
+        scrim.addColorStop(0, 'rgba(4,7,13,0.55)');
+        scrim.addColorStop(1, 'rgba(4,7,13,0.92)');
+        ctx.fillStyle = scrim;
+        ctx.fillRect(10, 10, width - 20, height - 20);
+      }
+      ctx.restore();
+    }
+
+    // 4. Draw Mockup Quote Lines
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = '600 13px system-ui, sans-serif';
+
+    let textX = 30;
+    const isLeft = ['cutout-left', 'cutout-edge-left', 'arch-portal-left', 'shadowbox-inset-left', 'avatar-mid-left', 'cutout-left-offset', 'cutout-diagonal-left', 'cutout-side-profile-left', 'avatar-squircle-left'].includes(pId);
+    const isRight = ['cutout-right', 'cutout-edge-right', 'shadowbox-inset-right', 'avatar-mid-right', 'cutout-right-offset', 'cutout-diagonal-right', 'cutout-side-profile-right'].includes(pId);
+
+    if (isLeft) {
+      textX = 145;
+    } else if (isRight) {
+      textX = 30;
+    }
+
+    ctx.fillText('"We suffer more often in', textX, 75);
+    ctx.fillText('imagination than in reality."', textX, 98);
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.9)';
+    ctx.font = '700 11px system-ui, sans-serif';
+    ctx.fillText('— Seneca', textX, 126);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = '400 9px system-ui, sans-serif';
+    ctx.fillText('@stoicwisdom • Philosophy', textX, 142);
+    ctx.restore();
+
+    // 5. Draw Subject Portrait at exact placement coordinates
+    if (img && img.complete && img.naturalWidth && type !== 'blend') {
+      ctx.save();
+      if (type === 'cutout') {
+        let cx = width - 130, cy = 35, cw = 110, ch = 165;
+        if (isLeft) {
+          cx = 25; cy = 35; cw = 110; ch = 165;
+        } else if (pId.includes('bottom') || pId.includes('pedestal')) {
+          cx = width / 2 - 50; cy = 80; cw = 100; ch = 120;
+        } else if (pId.includes('top')) {
+          cx = pId.includes('left') ? 25 : width - 110; cy = 20; cw = 85; ch = 105;
+        } else if (pId.includes('hero') || pId.includes('vertical')) {
+          cx = width / 2 - 45; cy = 30; cw = 90; ch = 150;
+          ctx.globalAlpha = 0.45;
+        }
+        ctx.shadowColor = 'rgba(0,0,0,0.45)';
+        ctx.shadowBlur = 12;
+        ctx.drawImage(img, cx, cy, cw, ch);
+      } else if (type === 'avatar') {
+        let ax = width / 2, ay = 40, ar = 22;
+        if (pId.includes('left')) { ax = 42; ay = 42; }
+        else if (pId.includes('right')) { ax = width - 42; ay = 42; }
+        else if (pId.includes('bottom') || pId.includes('footer') || pId.includes('signature')) {
+          ax = textX + 10; ay = 175; ar = 16;
+        } else if (pId.includes('mid-left')) { ax = 45; ay = 105; ar = 24; }
+        else if (pId.includes('mid-right')) { ax = width - 45; ay = 105; ar = 24; }
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ax, ay, ar, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, ax - ar, ay - ar, ar * 2, ar * 2);
+        ctx.restore();
+
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(ax, ay, ar, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (type === 'frame') {
+        let fx = width - 115, fy = 45, fw = 85, fh = 115;
+        if (isLeft) { fx = 25; fy = 45; }
+        else if (pId.includes('top')) { fx = width / 2 - 40; fy = 20; fw = 80; fh = 80; }
+
+        ctx.save();
+        ctx.beginPath();
+        if (pId.includes('arch')) {
+          const r = fw / 2;
+          ctx.moveTo(fx, fy + fh);
+          ctx.lineTo(fx, fy + r);
+          ctx.arc(fx + r, fy + r, r, Math.PI, 0, false);
+          ctx.lineTo(fx + fw, fy + fh);
+          ctx.closePath();
+        } else if (pId.includes('cameo') || pId.includes('rotunda')) {
+          ctx.arc(fx + fw / 2, fy + fh / 2, Math.min(fw, fh) / 2, 0, Math.PI * 2);
+        } else {
+          if (ctx.roundRect) ctx.roundRect(fx, fy, fw, fh, 8);
+          else ctx.rect(fx, fy, fw, fh);
+        }
+        ctx.clip();
+        ctx.drawImage(img, fx, fy, fw, fh);
+        ctx.restore();
+
+        ctx.strokeStyle = '#eab308';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (pId.includes('arch')) {
+          const r = fw / 2;
+          ctx.moveTo(fx, fy + fh);
+          ctx.lineTo(fx, fy + r);
+          ctx.arc(fx + r, fy + r, r, Math.PI, 0, false);
+          ctx.lineTo(fx + fw, fy + fh);
+          ctx.closePath();
+        } else if (pId.includes('cameo') || pId.includes('rotunda')) {
+          ctx.arc(fx + fw / 2, fy + fh / 2, Math.min(fw, fh) / 2, 0, Math.PI * 2);
+        } else {
+          if (ctx.roundRect) ctx.roundRect(fx, fy, fw, fh, 8);
+          else ctx.rect(fx, fy, fw, fh);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  open(placement, imageUrl) {
+    if (placement) {
+      this.selectedPlacement = placement;
+      const placeGrid = this.modalEl.querySelector('#placementOptionsGrid');
+      const lblPlacement = this.modalEl.querySelector('#lblCurrentPlacementName');
+      if (placeGrid) {
+        placeGrid.querySelectorAll('.option-chip-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.place === placement);
+        });
+      }
+      const found = PORTRAIT_PLACEMENTS.find(p => p.id === placement);
+      if (lblPlacement && found) lblPlacement.textContent = found.label;
+    }
+    if (imageUrl) this.currentImageSrc = imageUrl;
     this.modalEl.classList.add('open');
+    if (this.activeTab === 'placements') {
+      this.renderPlacementPreview();
+    }
   }
 
   close() {

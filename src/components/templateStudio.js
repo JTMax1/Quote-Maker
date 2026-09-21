@@ -56,16 +56,16 @@ export class TemplateStudio {
           <!-- Basic Info -->
           <div class="studio-section">
             <span class="section-label">1. Theme Name & Category</span>
-            <div class="input-row">
+            <div class="studio-form-stack">
               <div class="form-group">
                 <label class="form-label" for="studioThemeName">Template Name</label>
                 <input type="text" class="form-input" id="studioThemeName" value="${this.template.name}" placeholder="e.g. Cyber Velvet" aria-label="Template Name" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="studioCategorySelect">Category</label>
-                <select class="form-input" id="studioCategorySelect" aria-label="Theme Category">
+                <select class="form-input studio-select" id="studioCategorySelect" aria-label="Theme Category">
                   ${PRESET_CATEGORIES.filter(c => c.id !== 'all').map(c => `
-                    <option value="${c.id}" ${this.template.category === c.id ? 'selected' : ''}>${c.icon} ${c.label}</option>
+                    <option value="${c.id}" ${this.template.category === c.id ? 'selected' : ''}>${c.label}</option>
                   `).join('')}
                 </select>
               </div>
@@ -76,7 +76,7 @@ export class TemplateStudio {
           <div class="studio-section">
             <span class="section-label">2. Abstract Lines & Geometric Patterns</span>
             <span style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.35rem; display: block;">Subtle geometric background lines that enhance elegance without overshadowing text:</span>
-            <div class="option-chips-grid" id="abstractPatternGrid" style="grid-template-columns: repeat(3, 1fr);" role="group" aria-label="Geometric pattern style">
+            <div class="option-chips-grid" id="abstractPatternGrid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.45rem;" role="group" aria-label="Geometric pattern style">
               <button class="option-chip-btn ${this.template.abstractPattern === 'orbital-rings' ? 'active' : ''}" data-pattern="orbital-rings">Orbital Rings</button>
               <button class="option-chip-btn ${this.template.abstractPattern === 'fibonacci' ? 'active' : ''}" data-pattern="fibonacci">Golden Spiral</button>
               <button class="option-chip-btn ${this.template.abstractPattern === 'celestial' ? 'active' : ''}" data-pattern="celestial">Star Map</button>
@@ -87,6 +87,16 @@ export class TemplateStudio {
               <button class="option-chip-btn ${this.template.abstractPattern === 'diagonal-hatch' ? 'active' : ''}" data-pattern="diagonal-hatch">Fine Hatching</button>
               <button class="option-chip-btn ${this.template.abstractPattern === 'topography' ? 'active' : ''}" data-pattern="topography">Topography</button>
               <button class="option-chip-btn ${this.template.abstractPattern === 'perspective' ? 'active' : ''}" data-pattern="perspective">Horizon Grid</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'sacred-polygon' ? 'active' : ''}" data-pattern="sacred-polygon">Sacred Polygon</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'cyber-matrix' ? 'active' : ''}" data-pattern="cyber-matrix">Cyber Matrix</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'constellation' ? 'active' : ''}" data-pattern="constellation">Constellation</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'retro-synthwave' ? 'active' : ''}" data-pattern="retro-synthwave">Retro Synthwave</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'voronoi-mesh' ? 'active' : ''}" data-pattern="voronoi-mesh">Voronoi Mesh</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'hypercube' ? 'active' : ''}" data-pattern="hypercube">Hypercube</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'arch-deco' ? 'active' : ''}" data-pattern="arch-deco">Art Deco Arch</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'bauhaus-diagonals' ? 'active' : ''}" data-pattern="bauhaus-diagonals">Bauhaus Dynamic</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'quantum-field' ? 'active' : ''}" data-pattern="quantum-field">Quantum Field</button>
+              <button class="option-chip-btn ${this.template.abstractPattern === 'soundwave-radar' ? 'active' : ''}" data-pattern="soundwave-radar">Soundwave Radar</button>
               <button class="option-chip-btn ${!this.template.abstractPattern ? 'active' : ''}" data-pattern="">None (Clean)</button>
             </div>
           </div>
@@ -164,18 +174,18 @@ export class TemplateStudio {
           <!-- Layout & Portrait Placement -->
           <div class="studio-section">
             <span class="section-label">5. Default Layout & Portrait Placement</span>
-            <div class="input-row">
+            <div class="studio-form-stack">
               <div class="form-group">
                 <label class="form-label" for="studioLayoutSelect">Associated Layout Style</label>
-                <select class="form-input" id="studioLayoutSelect" aria-label="Associated Layout Style">
+                <select class="form-input studio-select" id="studioLayoutSelect" aria-label="Associated Layout Style">
                   ${LAYOUT_STYLES.map(l => `
-                    <option value="${l.id}" ${this.template.layoutId === l.id ? 'selected' : ''}>${l.icon} ${l.name}</option>
+                    <option value="${l.id}" ${this.template.layoutId === l.id ? 'selected' : ''}>${l.name}</option>
                   `).join('')}
                 </select>
               </div>
               <div class="form-group">
                 <label class="form-label" for="studioPlacementSelect">Default Portrait Placement</label>
-                <select class="form-input" id="studioPlacementSelect" aria-label="Default Portrait Placement">
+                <select class="form-input studio-select" id="studioPlacementSelect" aria-label="Default Portrait Placement">
                   ${PORTRAIT_PLACEMENTS.map(p => `
                     <option value="${p.id}" ${this.template.portraitPlacement === p.id ? 'selected' : ''}>${p.label}</option>
                   `).join('')}
@@ -443,6 +453,9 @@ export class TemplateStudio {
             pctx.arc(360, 160, r, 0, Math.PI * 2);
             pctx.stroke();
           }
+          pctx.beginPath();
+          pctx.ellipse(190, 290, 160, 70, Math.PI / 4, 0, Math.PI * 2);
+          pctx.stroke();
         } else if (this.template.abstractPattern === 'fibonacci') {
           let r = 10;
           pctx.beginPath();
@@ -453,7 +466,7 @@ export class TemplateStudio {
           }
           pctx.stroke();
         } else if (this.template.abstractPattern === 'zen-waves') {
-          for (let y = 300; y < 480; y += 30) {
+          for (let y = 280; y < 480; y += 30) {
             pctx.beginPath();
             pctx.moveTo(0, y);
             for (let x = 0; x <= 480; x += 20) {
@@ -469,19 +482,194 @@ export class TemplateStudio {
             pctx.stroke();
           }
         } else if (this.template.abstractPattern === 'diagonal-hatch') {
-          for (let p = -480; p < 960; p += 30) {
+          for (let p = -480; p < 960; p += 26) {
             pctx.beginPath();
             pctx.moveTo(p, 0);
             pctx.lineTo(p + 480, 480);
             pctx.stroke();
           }
         } else if (this.template.abstractPattern === 'mandala') {
-          for (let i = 0; i < 6; i++) {
-            const ang = (i * Math.PI) / 3;
+          const cx = 240, cy = 240;
+          for (let i = 0; i < 8; i++) {
+            const ang = (i * Math.PI) / 4;
             pctx.beginPath();
-            pctx.arc(240 + Math.cos(ang) * 50, 240 + Math.sin(ang) * 50, 80, 0, Math.PI * 2);
+            pctx.arc(cx + Math.cos(ang) * 45, cy + Math.sin(ang) * 45, 70, 0, Math.PI * 2);
             pctx.stroke();
           }
+        } else if (this.template.abstractPattern === 'celestial') {
+          const cx = 360, cy = 120;
+          pctx.beginPath();
+          pctx.arc(cx, cy, 90, 0, Math.PI * 2);
+          pctx.stroke();
+          pctx.beginPath();
+          pctx.arc(cx, cy, 120, 0, Math.PI * 2);
+          pctx.stroke();
+          pctx.beginPath();
+          pctx.moveTo(cx - 150, cy);
+          pctx.lineTo(cx + 150, cy);
+          pctx.moveTo(cx, cy - 150);
+          pctx.lineTo(cx, cy + 150);
+          pctx.stroke();
+        } else if (this.template.abstractPattern === 'isometric') {
+          const spacing = 32;
+          for (let x = -480; x < 960; x += spacing) {
+            pctx.beginPath();
+            pctx.moveTo(x, 0);
+            pctx.lineTo(x + 480 * 0.577, 480);
+            pctx.stroke();
+            pctx.beginPath();
+            pctx.moveTo(x, 0);
+            pctx.lineTo(x - 480 * 0.577, 480);
+            pctx.stroke();
+          }
+        } else if (this.template.abstractPattern === 'topography') {
+          for (let y = 90; y <= 450; y += 40) {
+            pctx.beginPath();
+            pctx.moveTo(0, y);
+            pctx.bezierCurveTo(120, y - 25, 360, y + 25, 480, y);
+            pctx.stroke();
+          }
+        } else if (this.template.abstractPattern === 'perspective') {
+          const vpX = 240, vpY = 220;
+          for (let x = 0; x <= 480; x += 45) {
+            pctx.beginPath();
+            pctx.moveTo(vpX, vpY);
+            pctx.lineTo(x, 480);
+            pctx.stroke();
+          }
+          for (let y = vpY + 20; y <= 480; y += 28) {
+            pctx.beginPath();
+            pctx.moveTo(0, y);
+            pctx.lineTo(480, y);
+            pctx.stroke();
+          }
+        } else if (this.template.abstractPattern === 'sacred-polygon') {
+          const cx = 240, cy = 240;
+          [40, 80, 120, 160].forEach(r => {
+            pctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const ang = (i * Math.PI) / 3;
+              const px = cx + r * Math.cos(ang);
+              const py = cy + r * Math.sin(ang);
+              if (i === 0) pctx.moveTo(px, py);
+              else pctx.lineTo(px, py);
+            }
+            pctx.closePath();
+            pctx.stroke();
+          });
+          pctx.beginPath();
+          pctx.arc(cx, cy, 180, 0, Math.PI * 2);
+          pctx.stroke();
+        } else if (this.template.abstractPattern === 'cyber-matrix') {
+          for (let x = 30; x <= 450; x += 45) {
+            pctx.beginPath();
+            pctx.moveTo(x, 0);
+            pctx.lineTo(x, 480);
+            pctx.stroke();
+            for (let y = 30; y <= 450; y += 45) {
+              pctx.strokeRect(x - 2, y - 2, 4, 4);
+            }
+          }
+        } else if (this.template.abstractPattern === 'constellation') {
+          const nodes = [
+            [80, 70], [160, 130], [280, 90], [390, 60],
+            [120, 260], [220, 210], [340, 280], [420, 200],
+            [90, 390], [200, 420], [310, 370], [400, 410]
+          ];
+          nodes.forEach(([x, y]) => {
+            pctx.beginPath();
+            pctx.arc(x, y, 3.5, 0, Math.PI * 2);
+            pctx.stroke();
+          });
+          pctx.beginPath();
+          nodes.forEach(([x, y], idx) => {
+            if (idx % 2 === 0 && nodes[idx + 1]) {
+              pctx.moveTo(x, y);
+              pctx.lineTo(nodes[idx + 1][0], nodes[idx + 1][1]);
+            }
+          });
+          pctx.stroke();
+        } else if (this.template.abstractPattern === 'retro-synthwave') {
+          const horizonY = 280;
+          for (let x = -200; x <= 680; x += 55) {
+            pctx.beginPath();
+            pctx.moveTo(240, horizonY);
+            pctx.lineTo(x, 480);
+            pctx.stroke();
+          }
+          for (let y = horizonY + 20; y <= 480; y += (y - horizonY) * 0.45 + 10) {
+            pctx.beginPath();
+            pctx.moveTo(0, y);
+            pctx.lineTo(480, y);
+            pctx.stroke();
+          }
+          for (let r = 40; r <= 100; r += 20) {
+            pctx.beginPath();
+            pctx.arc(240, horizonY, r, Math.PI, 0);
+            pctx.stroke();
+          }
+        } else if (this.template.abstractPattern === 'voronoi-mesh') {
+          const points = [[60, 60], [240, 40], [420, 80], [120, 240], [240, 200], [380, 230], [80, 420], [250, 440], [410, 400]];
+          for (let i = 0; i < points.length; i++) {
+            for (let j = i + 1; j < points.length; j++) {
+              const d = Math.hypot(points[i][0] - points[j][0], points[i][1] - points[j][1]);
+              if (d < 190) {
+                pctx.beginPath();
+                pctx.moveTo(points[i][0], points[i][1]);
+                pctx.lineTo(points[j][0], points[j][1]);
+                pctx.stroke();
+              }
+            }
+          }
+        } else if (this.template.abstractPattern === 'hypercube') {
+          const cx = 240, cy = 240, s1 = 80, s2 = 40;
+          pctx.strokeRect(cx - s1, cy - s1, s1 * 2, s1 * 2);
+          pctx.strokeRect(cx - s2, cy - s2, s2 * 2, s2 * 2);
+          pctx.beginPath();
+          pctx.moveTo(cx - s1, cy - s1); pctx.lineTo(cx - s2, cy - s2);
+          pctx.moveTo(cx + s1, cy - s1); pctx.lineTo(cx + s2, cy - s2);
+          pctx.moveTo(cx + s1, cy + s1); pctx.lineTo(cx + s2, cy + s2);
+          pctx.moveTo(cx - s1, cy + s1); pctx.lineTo(cx - s2, cy + s2);
+          pctx.stroke();
+        } else if (this.template.abstractPattern === 'arch-deco') {
+          for (let r = 50; r <= 260; r += 28) {
+            pctx.beginPath();
+            pctx.arc(240, 460, r, Math.PI, 0);
+            pctx.stroke();
+          }
+        } else if (this.template.abstractPattern === 'bauhaus-diagonals') {
+          pctx.beginPath();
+          pctx.moveTo(0, 0); pctx.lineTo(480, 480);
+          pctx.moveTo(0, 240); pctx.lineTo(240, 480);
+          pctx.moveTo(240, 0); pctx.lineTo(480, 240);
+          pctx.stroke();
+          pctx.beginPath();
+          pctx.arc(140, 340, 40, 0, Math.PI * 2);
+          pctx.arc(340, 140, 60, 0, Math.PI * 2);
+          pctx.stroke();
+        } else if (this.template.abstractPattern === 'quantum-field') {
+          pctx.beginPath();
+          for (let t = 0; t < Math.PI * 8; t += 0.05) {
+            const x = 240 + 160 * Math.sin(3 * t);
+            const y = 240 + 160 * Math.sin(4 * t);
+            if (t === 0) pctx.moveTo(x, y);
+            else pctx.lineTo(x, y);
+          }
+          pctx.stroke();
+        } else if (this.template.abstractPattern === 'soundwave-radar') {
+          const cx = 240, cy = 240;
+          for (let r = 40; r <= 220; r += 36) {
+            pctx.beginPath();
+            pctx.arc(cx, cy, r, 0, Math.PI * 2);
+            pctx.stroke();
+          }
+          pctx.beginPath();
+          for (let x = 40; x <= 440; x += 8) {
+            const h = Math.sin(x * 0.08) * 22 * Math.exp(-Math.abs(x - 240) / 120);
+            pctx.moveTo(x, 240 - h);
+            pctx.lineTo(x, 240 + h);
+          }
+          pctx.stroke();
         }
       }
     }

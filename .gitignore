@@ -18,6 +18,7 @@ Thumbs.db
 .idea/
 .claude/
 .gemini/
+scratch/
 
 # Vite & build tool caches
 .vite/

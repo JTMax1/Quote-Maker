@@ -580,6 +580,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .theme-preview-dot {
@@ -588,16 +589,72 @@ input:checked + .slider:before {
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
 .theme-title-text {
   font-size: 0.92rem;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .theme-subtitle-text {
   font-size: 0.75rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Author Portrait & Cutout Status Strip */
+.author-image-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface-elevated);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.author-status-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.author-thumb-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #27272a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--brand-accent);
+  flex-shrink: 0;
+}
+
+.author-status-meta {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.btn-author-change {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Responsive Author Studio Remover Workbench */
@@ -692,6 +749,55 @@ input:checked + .slider:before {
     padding: 0.35rem 0.7rem;
     font-size: 0.75rem;
     min-height: 38px;
+  }
+
+  .editor-layout {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .editor-controls-panel {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    gap: 1rem;
+  }
+
+  .control-card {
+    padding: 1rem 0.75rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    gap: 1rem;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .active-theme-strip {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .active-theme-strip .btn-glass {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .author-image-status-strip {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .btn-author-change {
+    width: 100%;
+    justify-content: center;
   }
 }
 

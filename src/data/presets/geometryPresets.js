@@ -168,5 +168,46 @@ export const GEOMETRY_PRESETS = [
   createAbstractTheme('polar-coordinates', 'Nautical Polar Radians', '#02182b', '#f0f9ff', '#38bdf8', '#7dd3fc', 'Space Mono', 'celestial', 'Concentric radial circles with azimuth angle ticks and radian markers.', {
     layoutId: 'author-hero-top',
     badgeStyle: 'code-block'
+  }),
+
+  // 10 Brand New Abstract Lines & Geometric Presets
+  createAbstractTheme('sacred-hexagons', 'Sacred Polygon Nexus', '#0c0a14', '#f5f3ff', '#a855f7', '#c4b5fd', 'Cinzel', 'sacred-polygon', 'Concentric nested sacred hexagons and golden equilateral triangles.', {
+    layoutId: 'classic-centered',
+    borderStyle: 'fine-frame',
+    borderColor: 'rgba(168, 85, 247, 0.3)'
+  }),
+  createAbstractTheme('cyber-grid-matrix', 'Cyber Matrix Terminal', '#030712', '#22c55e', '#4ade80', '#166534', 'Space Mono', 'cyber-matrix', 'Perspective digital cyber matrix with glowing data tick intersections.', {
+    layoutId: 'code-editor',
+    badgeStyle: 'code-block'
+  }),
+  createAbstractTheme('deep-constellation', 'Stellar Constellation Web', '#020617', '#f8fafc', '#38bdf8', '#94a3b8', 'Outfit', 'constellation', 'Deep space star telemetry nodes connected with stellar coordinate links.', {
+    layoutId: 'modern-clean'
+  }),
+  createAbstractTheme('synthwave-sunset', 'Retro Synthwave Horizon', '#180728', '#ffffff', '#ff71ce', '#f43f5e', 'Syne', 'retro-synthwave', 'Receding neon wireframe floor with setting horizon sun disc arcs.', {
+    layoutId: 'quote-card-glass',
+    cardBackground: 'rgba(24, 7, 40, 0.65)'
+  }),
+  createAbstractTheme('crystalline-voronoi', 'Voronoi Crystal Facets', '#090d16', '#e0f2fe', '#0ea5e9', '#7dd3fc', 'Space Grotesk', 'voronoi-mesh', 'Crystalline polygonal geometric shards with delicate tessellation.', {
+    layoutId: 'split-50'
+  }),
+  createAbstractTheme('4d-hypercube', 'Tesseract 4D Hypercube', '#0a0a0f', '#f4f4f5', '#6366f1', '#a5b4fc', 'Space Mono', 'hypercube', 'Four-dimensional isometric tesseract projection in clean wireframe.', {
+    layoutId: 'offset-editorial',
+    borderStyle: 'fine-frame',
+    borderColor: 'rgba(99, 102, 241, 0.25)'
+  }),
+  createAbstractTheme('art-deco-arch', 'Gilded Art Deco Arches', '#13110d', '#fefce8', '#eab308', '#ca8a04', 'Cinzel', 'arch-deco', 'Concentric stepped fan arches rising with 1920s architectural grandeur.', {
+    layoutId: 'classic-centered'
+  }),
+  createAbstractTheme('bauhaus-construct', 'Bauhaus Dynamic Vectors', '#1e1b18', '#fafaf9', '#ef4444', '#f87171', 'Space Grotesk', 'bauhaus-diagonals', 'Intersecting constructivist 45-degree angle beams and circular accents.', {
+    layoutId: 'left-accent-bar',
+    borderStyle: 'thick-left',
+    borderColor: '#ef4444'
+  }),
+  createAbstractTheme('quantum-lissajous', 'Quantum Harmonograph Field', '#080811', '#ede9fe', '#8b5cf6', '#c4b5fd', 'Outfit', 'quantum-field', 'Lissajous orbital harmonograph interference loops tracing atomic oscillation.', {
+    layoutId: 'author-hero-center'
+  }),
+  createAbstractTheme('sonar-radar', 'Sonar Frequency Pulse', '#021814', '#ecfdf5', '#10b981', '#6ee7b7', 'Space Mono', 'soundwave-radar', 'Concentric circular sonar radar sweep with embedded acoustic waveform pulses.', {
+    layoutId: 'author-hero-top',
+    badgeStyle: 'code-block'
   })
 ];

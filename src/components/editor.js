@@ -18,9 +18,16 @@ import { icon } from '../utils/icons.js';
 export class Editor {
   constructor(containerEl, onOpenPresets, onOpenStudio, onQuotePublished) {
     this.containerEl = containerEl;
-    this.onOpenPresets = onOpenPresets;
-    this.onOpenStudio = onOpenStudio;
-    this.onQuotePublished = onQuotePublished;
+    if (typeof onOpenPresets === 'object' && onOpenPresets !== null) {
+      this.onOpenPresets = onOpenPresets.onOpenPresetPicker || onOpenPresets.onOpenPresets;
+      this.onOpenStudio = onOpenStudio || onOpenPresets.onOpenStudio;
+      this.onQuotePublished = onQuotePublished || onOpenPresets.onShareCommunity || onOpenPresets.onQuotePublished;
+      this.onSaveHistory = onOpenPresets.onSaveHistory;
+    } else {
+      this.onOpenPresets = onOpenPresets;
+      this.onOpenStudio = onOpenStudio;
+      this.onQuotePublished = onQuotePublished;
+    }
 
     this.profile = StorageService.getProfile();
     this.activePreset = this.loadInitialPreset();
@@ -39,14 +46,14 @@ export class Editor {
       showDate: this.profile.showDate ?? true,
       showCategory: this.profile.showCategory ?? true,
       showWatermark: this.profile.showWatermark ?? true,
-      showAuthorImage: true,
-      authorImage: PRESET_AUTHOR_PORTRAITS[1].imageUrl, // Default Seneca cutout!
+      showAuthorImage: false,
+      authorImage: PRESET_AUTHOR_PORTRAITS[1].imageUrl, // Seneca cutout preset available when toggled
       authorImagePlacement: 'cutout-right',
       styles: { ...this.activePreset }
     };
 
     this.exportFormat = 'png';
-    this.mobileViewMode = 'canvas';
+    this.mobileViewMode = 'split';
 
     // Sub-modals
     this.authorImageModal = new AuthorImageModal((imageConfig) => {
@@ -233,18 +240,18 @@ export class Editor {
               </label>
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-elevated); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass);" id="authorImageStatusStrip">
-              <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div id="authorThumbBox" style="width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: #27272a; display: flex; align-items: center; justify-content: center; border: 2px solid var(--brand-accent);">
+            <div class="author-image-status-strip" id="authorImageStatusStrip">
+              <div class="author-status-info">
+                <div id="authorThumbBox" class="author-thumb-box">
                   ${this.state.authorImage ? `<img src="${this.state.authorImage}" alt="Portrait preview" style="width: 100%; height: 100%; object-fit: cover;" />` : icon('user', { size: 20 })}
                 </div>
-                <div>
+                <div class="author-status-meta">
                   <div style="font-size: 0.85rem; font-weight: 700;" id="lblAuthorPhotoStatus">${this.state.authorImage ? 'Portrait Active' : 'No Photo Selected'}</div>
                   <div style="font-size: 0.72rem; color: var(--text-muted);" id="lblAuthorPhotoPos">Placement: ${this.state.authorImagePlacement}</div>
                 </div>
               </div>
 
-              <button class="btn-glass" id="btnOpenAuthorStudio" aria-label="Change portrait and cutout photo" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 600;">
+              <button class="btn-glass btn-author-change" id="btnOpenAuthorStudio" aria-label="Change portrait and cutout photo">
                 <span aria-hidden="true">${icon('scissors', { size: 14 })}</span>
                 <span>Change Portrait & Cutout</span>
               </button>
@@ -376,7 +383,7 @@ export class Editor {
 
     // Author Image Studio Button
     this.containerEl.querySelector('#btnOpenAuthorStudio').addEventListener('click', () => {
-      this.authorImageModal.open();
+      this.authorImageModal.open(this.state.authorImagePlacement, this.state.authorImage);
     });
 
     // Author Image Toggle
@@ -591,7 +598,7 @@ export class Editor {
     });
 
     this.containerEl.querySelector('#btnSaveHistory').addEventListener('click', () => {
-      StorageService.saveToHistory({
+      const saved = StorageService.saveToHistory({
         quote: this.state.quote,
         author: this.state.author,
         category: this.state.category,
@@ -604,6 +611,7 @@ export class Editor {
         presetId: this.activePreset.id,
         styles: { ...this.state.styles }
       });
+      if (this.onSaveHistory) this.onSaveHistory(saved);
       Toast.show('Saved to History gallery!', 'success');
     });
 

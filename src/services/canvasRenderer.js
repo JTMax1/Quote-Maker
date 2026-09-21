@@ -138,39 +138,55 @@ export class CanvasRenderer {
     const isLeftSide = loadedAuthorImg && [
       'cutout-left', 'cutout-edge-left', 'arch-portal-left',
       'bookmark-vertical-strip', 'shadowbox-inset-left', 'avatar-mid-left',
-      'half-screen-left', 'scrim-split-left'
+      'half-screen-left', 'scrim-split-left',
+      'cutout-left-offset', 'cutout-diagonal-left', 'cutout-side-profile-left',
+      'avatar-squircle-left', 'avatar-vertical-meta'
     ].includes(effectivePlacement);
 
     const isRightSide = loadedAuthorImg && [
       'cutout-right', 'cutout-edge-right', 'shadowbox-inset-right',
-      'avatar-mid-right', 'half-screen-right', 'scrim-split-right'
+      'avatar-mid-right', 'half-screen-right', 'scrim-split-right',
+      'cutout-right-offset', 'cutout-diagonal-right', 'cutout-side-profile-right',
+      'frame-skewed-parallelogram'
     ].includes(effectivePlacement);
 
     const isTopPortal = loadedAuthorImg && [
       'avatar-top-center', 'avatar-top-left', 'avatar-top-right',
       'oval-cameo-center', 'hexagon-badge-top', 'diamond-inset-center',
       'arch-portal-center', 'film-cell-inset', 'monogram-seal-top',
-      'avatar-double-ring', 'rounded-card-center'
+      'avatar-double-ring', 'rounded-card-center',
+      'avatar-badge-mid-top', 'avatar-triple-ring', 'avatar-square-bevel',
+      'avatar-top-banner-center', 'avatar-gold-coin', 'avatar-hologram-cyan',
+      'arch-cathedral-center', 'arch-trefoil-badge', 'frame-rotunda-circle',
+      'frame-octagon-bevel', 'frame-film-negative', 'frame-parchment-scroll',
+      'frame-gallery-mat', 'frame-retro-cassette', 'frame-split-circle-dual',
+      'frame-isometric-cube-top', 'frame-golden-ratio-box'
     ].includes(effectivePlacement);
 
     const isTopCorner = loadedAuthorImg && [
-      'stamp-perforated-corner', 'cutout-top-right', 'cutout-top-left'
+      'stamp-perforated-corner', 'cutout-top-right', 'cutout-top-left',
+      'cutout-floating-top', 'avatar-hexagon-corner', 'avatar-corner-pin-left',
+      'avatar-corner-pin-right'
     ].includes(effectivePlacement);
 
     const isBottomPlacement = loadedAuthorImg && [
       'cutout-bottom', 'cutout-bottom-left', 'cutout-bottom-right',
       'cutout-angle-bottom', 'cutout-side-peek', 'polaroid-card-bottom',
-      'pedestal-base-center'
+      'pedestal-base-center', 'cutout-center-bottom-large',
+      'cutout-grounded-pedestal', 'cutout-cinematic-wide'
     ].includes(effectivePlacement);
 
     const isFooterAvatar = loadedAuthorImg && [
       'avatar-bottom-left', 'avatar-bottom-right', 'avatar-bottom-center',
-      'avatar-footer-card'
+      'avatar-footer-card', 'avatar-inline-signature'
     ].includes(effectivePlacement);
 
     const isInlineAvatar = loadedAuthorImg && effectivePlacement === 'avatar-quote-inline';
     const isHeaderAvatar = loadedAuthorImg && effectivePlacement === 'avatar-header-badge';
-    const isCenterHero = loadedAuthorImg && effectivePlacement === 'cutout-hero-center';
+    const isCenterHero = loadedAuthorImg && [
+      'cutout-hero-center', 'cutout-vertical-center', 'cutout-split-peek-bottom',
+      'cutout-monochrome-glow', 'avatar-split-center'
+    ].includes(effectivePlacement);
 
     // 6. Layout-Driven Space Partitioning
     let quoteBoxX = contentX;
@@ -638,6 +654,60 @@ export class CanvasRenderer {
         ctx.restore();
         return;
       }
+
+      if (effectivePlacement && effectivePlacement.startsWith('blend-')) {
+        this.drawBaseCanvasBackground(ctx, width, height, styles, activeLayout);
+        ctx.save();
+        if (effectivePlacement === 'blend-light-leak') {
+          this.drawCoverImage(ctx, loadedAuthorImg, 0, 0, width, height);
+          const leak = ctx.createLinearGradient(0, 0, width, height);
+          leak.addColorStop(0, 'rgba(251, 191, 36, 0.45)');
+          leak.addColorStop(0.5, 'rgba(15, 23, 42, 0.85)');
+          leak.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
+          ctx.fillStyle = leak;
+          ctx.fillRect(0, 0, width, height);
+        } else if (effectivePlacement === 'blend-dark-smoke') {
+          this.drawCoverImage(ctx, loadedAuthorImg, 0, 0, width, height);
+          const smoke = ctx.createRadialGradient(width / 2, height / 2, width * 0.1, width / 2, height / 2, width * 0.7);
+          smoke.addColorStop(0, 'rgba(24, 24, 27, 0.5)');
+          smoke.addColorStop(0.7, 'rgba(9, 9, 11, 0.88)');
+          smoke.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
+          ctx.fillStyle = smoke;
+          ctx.fillRect(0, 0, width, height);
+        } else if (effectivePlacement === 'blend-gradient-mask-top') {
+          this.drawCoverImage(ctx, loadedAuthorImg, 0, 0, width, height * 0.65);
+          const topFade = ctx.createLinearGradient(0, 0, 0, height * 0.65);
+          topFade.addColorStop(0, 'rgba(15, 23, 42, 0.2)');
+          topFade.addColorStop(1, styles.background || '#090a0f');
+          ctx.fillStyle = topFade;
+          ctx.fillRect(0, 0, width, height * 0.65);
+        } else if (effectivePlacement === 'blend-gradient-mask-bottom') {
+          this.drawCoverImage(ctx, loadedAuthorImg, 0, height * 0.35, width, height * 0.65);
+          const btmFade = ctx.createLinearGradient(0, height * 0.35, 0, height);
+          btmFade.addColorStop(0, styles.background || '#090a0f');
+          btmFade.addColorStop(1, 'rgba(15, 23, 42, 0.2)');
+          ctx.fillStyle = btmFade;
+          ctx.fillRect(0, height * 0.35, width, height * 0.65);
+        } else if (effectivePlacement === 'blend-aurora-borealis') {
+          this.drawCoverImage(ctx, loadedAuthorImg, 0, 0, width, height);
+          const aurora = ctx.createLinearGradient(0, 0, width, height);
+          aurora.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+          aurora.addColorStop(0.5, 'rgba(6, 182, 212, 0.45)');
+          aurora.addColorStop(1, 'rgba(4, 7, 13, 0.92)');
+          ctx.fillStyle = aurora;
+          ctx.fillRect(0, 0, width, height);
+        } else {
+          this.drawCoverImage(ctx, loadedAuthorImg, 0, 0, width, height);
+          const generalScrim = ctx.createLinearGradient(0, 0, 0, height);
+          generalScrim.addColorStop(0, 'rgba(4, 7, 13, 0.6)');
+          generalScrim.addColorStop(1, 'rgba(4, 7, 13, 0.92)');
+          ctx.fillStyle = generalScrim;
+          ctx.fillRect(0, 0, width, height);
+        }
+        ctx.restore();
+        ctx.restore();
+        return;
+      }
     }
 
     // Default Canvas Background
@@ -806,6 +876,151 @@ export class CanvasRenderer {
         ctx.lineTo(x, height);
         ctx.stroke();
       }
+      for (let y = vpY + 40; y <= height; y += (y - vpY) * 0.35 + 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+    } else if (pattern === 'sacred-polygon') {
+      const cx = width / 2;
+      const cy = height / 2;
+      const maxR = Math.min(width, height) * 0.42;
+      for (let r = maxR * 0.2; r <= maxR; r += maxR * 0.2) {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const ang = (i * Math.PI) / 3;
+          const px = cx + r * Math.cos(ang);
+          const py = cy + r * Math.sin(ang);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, maxR * 1.05, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (pattern === 'cyber-matrix') {
+      const step = Math.round(width / 14);
+      for (let x = step; x < width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+        for (let y = step; y < height; y += step) {
+          ctx.strokeRect(x - 3, y - 3, 6, 6);
+        }
+      }
+    } else if (pattern === 'constellation') {
+      const nodes = [
+        [width * 0.15, height * 0.12], [width * 0.35, height * 0.25], [width * 0.65, height * 0.18], [width * 0.85, height * 0.14],
+        [width * 0.22, height * 0.52], [width * 0.48, height * 0.42], [width * 0.72, height * 0.58], [width * 0.88, height * 0.45],
+        [width * 0.18, height * 0.82], [width * 0.42, height * 0.88], [width * 0.68, height * 0.78], [width * 0.82, height * 0.85]
+      ];
+      nodes.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      ctx.beginPath();
+      for (let i = 0; i < nodes.length - 1; i += 2) {
+        ctx.moveTo(nodes[i][0], nodes[i][1]);
+        ctx.lineTo(nodes[i + 1][0], nodes[i + 1][1]);
+        if (nodes[i + 2]) {
+          ctx.lineTo(nodes[i + 2][0], nodes[i + 2][1]);
+        }
+      }
+      ctx.stroke();
+    } else if (pattern === 'retro-synthwave') {
+      const horizonY = height * 0.58;
+      for (let x = -width * 0.5; x <= width * 1.5; x += width * 0.12) {
+        ctx.beginPath();
+        ctx.moveTo(width / 2, horizonY);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = horizonY + 20; y <= height; y += (y - horizonY) * 0.45 + 15) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      for (let r = width * 0.1; r <= width * 0.28; r += width * 0.05) {
+        ctx.beginPath();
+        ctx.arc(width / 2, horizonY, r, Math.PI, 0);
+        ctx.stroke();
+      }
+    } else if (pattern === 'voronoi-mesh') {
+      const pts = [
+        [width * 0.1, height * 0.1], [width * 0.5, height * 0.08], [width * 0.9, height * 0.15],
+        [width * 0.25, height * 0.45], [width * 0.5, height * 0.4], [width * 0.8, height * 0.48],
+        [width * 0.15, height * 0.85], [width * 0.52, height * 0.9], [width * 0.88, height * 0.82]
+      ];
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const d = Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]);
+          if (d < width * 0.48) {
+            ctx.beginPath();
+            ctx.moveTo(pts[i][0], pts[i][1]);
+            ctx.lineTo(pts[j][0], pts[j][1]);
+            ctx.stroke();
+          }
+        }
+      }
+    } else if (pattern === 'hypercube') {
+      const cx = width / 2, cy = height / 2;
+      const s1 = Math.min(width, height) * 0.22;
+      const s2 = s1 * 0.5;
+      ctx.strokeRect(cx - s1, cy - s1, s1 * 2, s1 * 2);
+      ctx.strokeRect(cx - s2, cy - s2, s2 * 2, s2 * 2);
+      ctx.beginPath();
+      ctx.moveTo(cx - s1, cy - s1); ctx.lineTo(cx - s2, cy - s2);
+      ctx.moveTo(cx + s1, cy - s1); ctx.lineTo(cx + s2, cy - s2);
+      ctx.moveTo(cx + s1, cy + s1); ctx.lineTo(cx + s2, cy + s2);
+      ctx.moveTo(cx - s1, cy + s1); ctx.lineTo(cx - s2, cy + s2);
+      ctx.stroke();
+    } else if (pattern === 'arch-deco') {
+      const maxR = Math.min(width, height) * 0.65;
+      for (let r = maxR * 0.18; r <= maxR; r += maxR * 0.1) {
+        ctx.beginPath();
+        ctx.arc(width / 2, height * 0.95, r, Math.PI, 0);
+        ctx.stroke();
+      }
+    } else if (pattern === 'bauhaus-diagonals') {
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(width, height);
+      ctx.moveTo(0, height / 2); ctx.lineTo(width / 2, height);
+      ctx.moveTo(width / 2, 0); ctx.lineTo(width, height / 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(width * 0.28, height * 0.7, width * 0.1, 0, Math.PI * 2);
+      ctx.arc(width * 0.72, height * 0.3, width * 0.14, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (pattern === 'quantum-field') {
+      ctx.beginPath();
+      for (let t = 0; t < Math.PI * 8; t += 0.04) {
+        const x = width / 2 + (width * 0.36) * Math.sin(3 * t);
+        const y = height / 2 + (height * 0.36) * Math.sin(4 * t);
+        if (t === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    } else if (pattern === 'soundwave-radar') {
+      const cx = width / 2, cy = height / 2;
+      const maxR = Math.min(width, height) * 0.44;
+      for (let r = maxR * 0.2; r <= maxR; r += maxR * 0.18) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      for (let x = width * 0.08; x <= width * 0.92; x += 14) {
+        const amp = Math.sin(x * 0.035) * (height * 0.08) * Math.exp(-Math.abs(x - cx) / (width * 0.28));
+        ctx.moveTo(x, cy - amp);
+        ctx.lineTo(x, cy + amp);
+      }
+      ctx.stroke();
     }
     ctx.restore();
   }
@@ -1291,6 +1506,23 @@ export class CanvasRenderer {
       ctx.strokeStyle = accentColor;
       ctx.lineWidth = 2.5;
       this.roundRect(ctx, x, y, w, h, 24, false, true);
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 8;
+      ctx.fillStyle = '#18181b';
+      this.roundRect(ctx, x, y, w, h, 16, true, false);
+      ctx.save();
+      ctx.beginPath();
+      this.roundRect(ctx, x, y, w, h, 16, false, false);
+      ctx.clip();
+      this.drawCoverImage(ctx, img, x, y, w, h);
+      ctx.restore();
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2.5;
+      this.roundRect(ctx, x, y, w, h, 16, false, true);
       ctx.restore();
     }
     ctx.restore();

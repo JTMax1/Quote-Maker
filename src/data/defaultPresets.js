@@ -86,7 +86,7 @@ export const CANVAS_FORMATS = [
  * 50 PORTRAIT PLACEMENTS ON CANVAS
  */
 export const PORTRAIT_PLACEMENTS = [
-  // Cutout Placements (1-12)
+  // Cutout Placements (1-25)
   { id: 'cutout-right', label: 'Cutout Right Full', type: 'cutout', desc: 'Author cutout on the right side' },
   { id: 'cutout-left', label: 'Cutout Left Full', type: 'cutout', desc: 'Author cutout on the left side' },
   { id: 'cutout-bottom', label: 'Cutout Bottom Center', type: 'cutout', desc: 'Author cutout rising from bottom center' },
@@ -99,8 +99,21 @@ export const PORTRAIT_PLACEMENTS = [
   { id: 'cutout-hero-center', label: 'Cutout Hero Center', type: 'cutout', desc: 'Prominent center cutout behind quote' },
   { id: 'cutout-angle-bottom', label: 'Cutout Slanted Base', type: 'cutout', desc: 'Angled author cutout at base' },
   { id: 'cutout-side-peek', label: 'Cutout Corner Pop', type: 'cutout', desc: 'Dynamic bottom-corner pop-in' },
+  { id: 'cutout-center-bottom-large', label: 'Cutout Grand Bust Center', type: 'cutout', desc: 'Heroic rising torso anchored at center base' },
+  { id: 'cutout-floating-top', label: 'Cutout Floating Top', type: 'cutout', desc: 'Suspended cutout in upper canvas quadrant' },
+  { id: 'cutout-left-offset', label: 'Cutout Left Indent', type: 'cutout', desc: 'Cutout inset 25% from left margin' },
+  { id: 'cutout-right-offset', label: 'Cutout Right Indent', type: 'cutout', desc: 'Cutout inset 25% from right margin' },
+  { id: 'cutout-diagonal-left', label: 'Cutout Cantilever Left', type: 'cutout', desc: 'Dynamic diagonal posture from lower-left' },
+  { id: 'cutout-diagonal-right', label: 'Cutout Cantilever Right', type: 'cutout', desc: 'Dynamic diagonal posture from lower-right' },
+  { id: 'cutout-cinematic-wide', label: 'Cutout Cinematic Panoramic', type: 'cutout', desc: 'Wide atmospheric torso profile' },
+  { id: 'cutout-vertical-center', label: 'Cutout Column Divider', type: 'cutout', desc: 'Vertical spine cutout splitting quote columns' },
+  { id: 'cutout-split-peek-bottom', label: 'Cutout Quote Arch Peek', type: 'cutout', desc: 'Portrait framing between double quotation marks' },
+  { id: 'cutout-monochrome-glow', label: 'Cutout Radiant Aura', type: 'cutout', desc: 'Silhouette with luminous contour halo' },
+  { id: 'cutout-side-profile-left', label: 'Cutout Profile Inward Left', type: 'cutout', desc: 'Inward gaze profile from left edge' },
+  { id: 'cutout-side-profile-right', label: 'Cutout Profile Inward Right', type: 'cutout', desc: 'Inward gaze profile from right edge' },
+  { id: 'cutout-grounded-pedestal', label: 'Cutout Foundation Torso', type: 'cutout', desc: 'Firmly baseline-grounded author silhouette' },
 
-  // Circular & Squircle Avatars (13-24)
+  // Circular & Squircle Avatars (26-50)
   { id: 'avatar-top-center', label: 'Avatar Top Center', type: 'avatar', desc: 'Round avatar badge crowned at top' },
   { id: 'avatar-top-left', label: 'Avatar Top Left', type: 'avatar', desc: 'Round avatar positioned top-left' },
   { id: 'avatar-top-right', label: 'Avatar Top Right', type: 'avatar', desc: 'Round avatar positioned top-right' },
@@ -113,8 +126,21 @@ export const PORTRAIT_PLACEMENTS = [
   { id: 'avatar-header-badge', label: 'Avatar Pill Header', type: 'avatar', desc: 'Avatar embedded in header metadata pill' },
   { id: 'avatar-footer-card', label: 'Avatar Floating Card', type: 'avatar', desc: 'Avatar inside footer glass card' },
   { id: 'avatar-double-ring', label: 'Avatar Gold Double Ring', type: 'avatar', desc: 'Avatar framed in concentric luxury rings' },
+  { id: 'avatar-badge-mid-top', label: 'Avatar Crowned Crest', type: 'avatar', desc: 'Large centered avatar medallion with metallic ring' },
+  { id: 'avatar-triple-ring', label: 'Avatar Orbital Trinity', type: 'avatar', desc: 'Three concentric gyroscopic vector rings' },
+  { id: 'avatar-square-bevel', label: 'Avatar Brutalist Bevel', type: 'avatar', desc: 'Neo-brutalist square portrait avatar' },
+  { id: 'avatar-hexagon-corner', label: 'Avatar Hex Shield Corner', type: 'avatar', desc: 'Hexagonal author token in upper corner' },
+  { id: 'avatar-squircle-left', label: 'Avatar Squircle Bio', type: 'avatar', desc: 'Smooth squircle badge aligned with quotation text' },
+  { id: 'avatar-inline-signature', label: 'Avatar Inline Signature', type: 'avatar', desc: 'Micro avatar icon right beside signature' },
+  { id: 'avatar-top-banner-center', label: 'Avatar Rule Break Center', type: 'avatar', desc: 'Avatar interrupting top decorative rule' },
+  { id: 'avatar-gold-coin', label: 'Avatar Gilded Medallion', type: 'avatar', desc: 'Antique coin relief frame' },
+  { id: 'avatar-hologram-cyan', label: 'Avatar Cyber Hologram', type: 'avatar', desc: 'Glowing holographic perimeter ring' },
+  { id: 'avatar-split-center', label: 'Avatar Bipartite Axis', type: 'avatar', desc: 'Avatar floating at the partition axis of split canvas' },
+  { id: 'avatar-corner-pin-left', label: 'Avatar Stamp Pin Left', type: 'avatar', desc: 'Minimalist pin badge in extreme upper-left' },
+  { id: 'avatar-corner-pin-right', label: 'Avatar Stamp Pin Right', type: 'avatar', desc: 'Minimalist pin badge in extreme upper-right' },
+  { id: 'avatar-vertical-meta', label: 'Avatar Track Vertical', type: 'avatar', desc: 'Integrated into vertical sidebar metadata rail' },
 
-  // Geometric Shapes & Architectural Portals (25-38)
+  // Geometric Shapes & Architectural Portals (51-76)
   { id: 'oval-cameo-center', label: 'Oval Cameo Center', type: 'frame', desc: 'Classical Victorian oval cameo' },
   { id: 'hexagon-badge-top', label: 'Hexagon Badge Top', type: 'frame', desc: 'Modern geometric hexagon badge' },
   { id: 'diamond-inset-center', label: 'Diamond Inset Center', type: 'frame', desc: 'Diamond rhombus rotated portal' },
@@ -129,8 +155,20 @@ export const PORTRAIT_PLACEMENTS = [
   { id: 'shadowbox-inset-right', label: 'Shadowbox Card Right', type: 'frame', desc: 'Card with hard offset shadow' },
   { id: 'shadowbox-inset-left', label: 'Shadowbox Card Left', type: 'frame', desc: 'Left card with drop shadow' },
   { id: 'rounded-card-center', label: 'Floating Squircle Center', type: 'frame', desc: 'Centered floating rounded card' },
+  { id: 'arch-cathedral-center', label: 'Gothic Cathedral Arch', type: 'frame', desc: 'Pointed lancet cathedral arch aperture' },
+  { id: 'arch-trefoil-badge', label: 'Trefoil Architectural Rosette', type: 'frame', desc: 'Triple-lobed gothic window medallion' },
+  { id: 'frame-rotunda-circle', label: 'Rotunda Ring Portico', type: 'frame', desc: 'Greek temple rotunda concentric circle' },
+  { id: 'frame-octagon-bevel', label: 'Octagonal Prism Prism', type: 'frame', desc: 'Chamfered eight-sided polygon frame' },
+  { id: 'frame-film-negative', label: 'Film Negative Filmstrip', type: 'frame', desc: 'Filmstrip border with edge timing marks' },
+  { id: 'frame-parchment-scroll', label: 'Deckled Parchment Cartouche', type: 'frame', desc: 'Rag-paper deckled edge ornamental plaque' },
+  { id: 'frame-gallery-mat', label: 'Gallery Bevel Matting', type: 'frame', desc: 'Exhibition white mat with hairline border' },
+  { id: 'frame-skewed-parallelogram', label: 'Dynamic Slanted Rhomboid', type: 'frame', desc: 'Speed-slanted editorial parallelogram card' },
+  { id: 'frame-retro-cassette', label: 'Cassette Label Window', type: 'frame', desc: 'Vintage cassette spool window cutout' },
+  { id: 'frame-split-circle-dual', label: 'Twin Semicircle Aperture', type: 'frame', desc: 'Segmented dual semicircle lens' },
+  { id: 'frame-isometric-cube-top', label: 'Isometric Isometric Rhombus', type: 'frame', desc: '3D top isometric cube projection frame' },
+  { id: 'frame-golden-ratio-box', label: 'Golden Rectangle Inset', type: 'frame', desc: '1.618 golden proportion photo container' },
 
-  // Environmental & Full-Bleed Blends (39-50)
+  // Environmental & Full-Bleed Blends (77-100)
   { id: 'scrim', label: 'Full Scrim Underlay', type: 'blend', desc: 'Full-bleed image under dark vignette' },
   { id: 'scrim-radial', label: 'Radial Spotlight Scrim', type: 'blend', desc: 'Center highlight with dark edges' },
   { id: 'scrim-split-left', label: 'Split Scrim Left', type: 'blend', desc: 'Photo under left half with dark right' },
@@ -142,7 +180,19 @@ export const PORTRAIT_PLACEMENTS = [
   { id: 'top-banner-strip', label: 'Top Banner Landscape', type: 'blend', desc: 'Upper horizontal landscape strip' },
   { id: 'bottom-banner-strip', label: 'Bottom Banner Landscape', type: 'blend', desc: 'Lower horizontal landscape strip' },
   { id: 'soft-vignette-center', label: 'Soft Fog Vignette', type: 'blend', desc: 'Subtle feathered central photo' },
-  { id: 'duotone-underlay', label: 'Duotone Graphic Blend', type: 'blend', desc: 'Stylized 2-color photo underlay' }
+  { id: 'duotone-underlay', label: 'Duotone Graphic Blend', type: 'blend', desc: 'Stylized 2-color photo underlay' },
+  { id: 'blend-light-leak', label: 'Cinematic Light Leak', type: 'blend', desc: 'Warm horizontal golden flare wash across subject' },
+  { id: 'blend-dark-smoke', label: 'Charcoal Vapor Dissolve', type: 'blend', desc: 'Atmospheric charcoal smoke dissolving photo edges' },
+  { id: 'blend-cyber-glitch', label: 'Chromatic Glitch Shift', type: 'blend', desc: 'Digital RGB displacement channel scanline' },
+  { id: 'blend-gradient-mask-top', label: 'Cascade Top Fade', type: 'blend', desc: 'Soft gradient descending into dark card' },
+  { id: 'blend-gradient-mask-bottom', label: 'Ascending Horizon Fade', type: 'blend', desc: 'Soft gradient rising from bottom card boundary' },
+  { id: 'blend-diagonal-gradient', label: 'Angular Oblique Wash', type: 'blend', desc: '45-degree angle linear illumination gradient' },
+  { id: 'blend-radial-glow-center', label: 'Luminous Solar Core', type: 'blend', desc: 'Intense spotlight focus around author head' },
+  { id: 'blend-monochrome-high-contrast', label: 'Noir High-Contrast', type: 'blend', desc: 'Graphic black and white dramatic portrait' },
+  { id: 'blend-sepia-vintage', label: 'Antique Archival Sepia', type: 'blend', desc: 'Warm daguerreotype tone photo underlay' },
+  { id: 'blend-prism-rainbow', label: 'Prism Spectral Refract', type: 'blend', desc: 'Subtle rainbow dispersion over portrait' },
+  { id: 'blend-newspaper-halftone', label: 'Halftone Print Screen', type: 'blend', desc: 'Editorial newspaper screen dot texture' },
+  { id: 'blend-aurora-borealis', label: 'Celestial Aurora Wave', type: 'blend', desc: 'Bioluminescent green-teal cosmic gradient' }
 ];
 
 /**
