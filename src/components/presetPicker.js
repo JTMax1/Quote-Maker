@@ -7,6 +7,7 @@ import { PRESET_CATEGORIES } from '../data/defaultPresets.js';
 import { StorageService } from '../services/storageService.js';
 import { Toast } from './toast.js';
 import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
+import { icon } from '../utils/icons.js';
 
 export class PresetPicker {
   constructor(containerEl, onSelectPreset) {
@@ -32,7 +33,7 @@ export class PresetPicker {
           <div class="category-filter-bar" id="presetCategoryBar">
             ${PRESET_CATEGORIES.map(cat => `
               <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}">
-                <span>${cat.icon}</span>
+                <span>${icon(cat.icon || 'sparkles', { size: 14 })}</span>
                 <span>${cat.label}</span>
               </button>
             `).join('')}
@@ -40,7 +41,10 @@ export class PresetPicker {
 
           <div style="min-width: 240px; position: relative;">
             <label for="presetSearchInput" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Search presets</label>
-            <input type="search" class="form-input" id="presetSearchInput" placeholder="🔍 Search themes or fonts..." aria-label="Search themes, styles, or fonts" style="width: 100%; border-radius: 9999px;" />
+            <div style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
+              ${icon('search', { size: 15 })}
+            </div>
+            <input type="search" class="form-input" id="presetSearchInput" placeholder="Search themes, styles, or fonts..." aria-label="Search themes, styles, or fonts" style="width: 100%; border-radius: 9999px; padding-left: 2.3rem;" />
           </div>
         </div>
 
@@ -95,7 +99,9 @@ export class PresetPicker {
       const displayQuery = escapeHtml(this.searchQuery);
       grid.innerHTML = `
         <div class="empty-state-card" style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1.5rem; background: var(--bg-surface-elevated); border: 1px dashed var(--border-glass-strong); border-radius: var(--radius-xl); margin: 1rem 0;">
-          <div style="font-size: 2.8rem; margin-bottom: 0.75rem;" aria-hidden="true">🔍</div>
+          <div style="margin-bottom: 0.75rem; color: var(--text-muted); display: flex; justify-content: center;" aria-hidden="true">
+            ${icon('search', { size: 42 })}
+          </div>
           <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">
             ${displayQuery ? `No themes matching "${displayQuery}"` : 'No themes in this category'}
           </h3>
@@ -104,7 +110,7 @@ export class PresetPicker {
           </p>
           <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
             <button class="btn-primary" id="btnClearPresetSearch" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; border-radius: var(--radius-full);">
-              <span>✕</span>
+              <span>${icon('x', { size: 14 })}</span>
               <span>Clear Search & Reset</span>
             </button>
           </div>

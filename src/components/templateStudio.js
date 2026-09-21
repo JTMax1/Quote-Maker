@@ -8,6 +8,7 @@ import { FONT_FAMILIES, PRESET_CATEGORIES, LAYOUT_STYLES, PORTRAIT_PLACEMENTS } 
 import { StorageService } from '../services/storageService.js';
 import { Toast } from './toast.js';
 import confetti from 'canvas-confetti';
+import { icon } from '../utils/icons.js';
 
 export class TemplateStudio {
   constructor(containerEl, onTemplatePublished) {
@@ -198,8 +199,8 @@ export class TemplateStudio {
           </div>
 
           <!-- Publish Action Button -->
-          <button class="btn-primary" id="btnPublishTemplate" style="width: 100%; justify-content: center; padding: 0.85rem; margin-top: 0.5rem; font-size: 1rem;">
-            <span>✨</span>
+          <button class="btn-primary" id="btnPublishTemplate" style="width: 100%; justify-content: center; padding: 0.85rem; margin-top: 0.5rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>${icon('sparkles', { size: 16 })}</span>
             <span>Publish Template to Presets</span>
           </button>
         </div>

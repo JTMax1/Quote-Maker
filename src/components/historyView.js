@@ -7,6 +7,7 @@ import { StorageService } from '../services/storageService.js';
 import { ShareService } from '../services/shareService.js';
 import { Toast } from './toast.js';
 import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
+import { icon } from '../utils/icons.js';
 
 export class HistoryView {
   constructor(containerEl, onRemixQuote, onGoToEditor) {
@@ -33,11 +34,13 @@ export class HistoryView {
             </div>
           </div>
           <div class="history-empty-state">
-            <div class="empty-icon">🎨</div>
+            <div class="empty-icon" style="color: var(--text-muted); display: flex; justify-content: center;">
+              ${icon('clock', { size: 48 })}
+            </div>
             <div class="empty-title">No Quotes in Your History Yet</div>
             <p class="empty-desc">Whenever you download, copy, or save a quote from the creator, it will automatically appear here for easy re-downloading and community publishing.</p>
-            <button class="btn-primary" id="btnHistoryStart" style="margin-top: 0.5rem;">
-              Forge Your First Quote 🚀
+            <button class="btn-primary" id="btnHistoryStart" style="margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+              ${icon('penTool', { size: 16 })} <span>Forge Your First Quote</span>
             </button>
           </div>
         </div>
@@ -81,18 +84,18 @@ export class HistoryView {
                 <div class="history-card-actions">
                   <div style="display: flex; gap: 0.4rem;">
                     <button class="history-action-btn btn-redownload" data-id="${safeId}" title="Re-download" aria-label="Re-download quote ${safeAuthor}">
-                      <span>⬇</span> Download
+                      <span>${icon('download', { size: 13 })}</span> <span>Download</span>
                     </button>
                     <button class="history-action-btn btn-remix-hist" data-id="${safeId}" title="Load in Editor" aria-label="Edit quote in canvas editor">
-                      <span>✏️</span> Edit
+                      <span>${icon('penTool', { size: 13 })}</span> <span>Edit</span>
                     </button>
                   </div>
                   <div style="display: flex; gap: 0.4rem;">
                     <button class="history-action-btn btn-publish-hist" data-id="${safeId}" title="Publish to Community" aria-label="Publish to community showcase">
-                      <span>🌐</span>
+                      <span>${icon('globe', { size: 14 })}</span>
                     </button>
                     <button class="history-action-btn btn-delete" data-id="${safeId}" title="Delete" aria-label="Delete quote from history">
-                      <span>🗑</span>
+                      <span>${icon('trash', { size: 14 })}</span>
                     </button>
                   </div>
                 </div>
@@ -130,7 +133,7 @@ export class HistoryView {
       } else if (target.classList.contains('btn-publish-hist')) {
         const profile = StorageService.getProfile();
         StorageService.publishToCommunity(item, profile);
-        Toast.show('Published to Community Showcase! 🌟', 'success');
+        Toast.show('Published to Community Showcase!', 'success');
       } else if (target.classList.contains('btn-delete')) {
         const card = grid.querySelector(`.history-card[data-id="${id}"]`);
         if (!card) return;

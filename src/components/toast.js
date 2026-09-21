@@ -3,17 +3,22 @@
  * action buttons (e.g., Undo), and manual dismissal.
  */
 
+import { icon } from '../utils/icons.js';
+
 export class Toast {
   static container = null;
 
   static init() {
     if (!this.container) {
-      this.container = document.createElement('div');
-      this.container.className = 'toast-container';
-      this.container.setAttribute('role', 'region');
-      this.container.setAttribute('aria-label', 'Notifications');
-      this.container.setAttribute('aria-live', 'polite');
-      document.body.appendChild(this.container);
+      this.container = document.getElementById('toastContainer');
+      if (!this.container) {
+        this.container = document.createElement('div');
+        this.container.id = 'toastContainer';
+        this.container.className = 'toast-container';
+        this.container.setAttribute('role', 'region');
+        this.container.setAttribute('aria-label', 'Notifications');
+        document.body.appendChild(this.container);
+      }
     }
   }
 
@@ -21,7 +26,7 @@ export class Toast {
     this.init();
 
     // Support legacy signature: show(msg, type, durationNumber)
-    let duration = 3500;
+    let duration = 3000;
     let actionText = null;
     let onAction = null;
     let dismissible = true;
@@ -42,17 +47,17 @@ export class Toast {
     toast.className = `toast-item toast-${type}`;
     toast.setAttribute('role', 'status');
 
-    const icons = {
-      success: '✓',
-      error: '✕',
-      info: 'ℹ',
-      warning: '⚠'
+    const iconNames = {
+      success: 'checkCircle',
+      error: 'xCircle',
+      info: 'info',
+      warning: 'alert'
     };
 
     const iconSpan = document.createElement('span');
     iconSpan.className = 'toast-icon';
     iconSpan.setAttribute('aria-hidden', 'true');
-    iconSpan.textContent = icons[type] || 'ℹ';
+    iconSpan.innerHTML = icon(iconNames[type] || 'info', { size: 16 });
 
     const msgSpan = document.createElement('span');
     msgSpan.className = 'toast-message';
@@ -89,7 +94,7 @@ export class Toast {
     if (dismissible) {
       const closeBtn = document.createElement('button');
       closeBtn.className = 'toast-close-btn';
-      closeBtn.innerHTML = '✕';
+      closeBtn.innerHTML = icon('x', { size: 13 });
       closeBtn.setAttribute('aria-label', 'Dismiss notification');
       closeBtn.addEventListener('click', dismiss);
       toast.appendChild(closeBtn);

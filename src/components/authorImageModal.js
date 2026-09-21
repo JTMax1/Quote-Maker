@@ -11,6 +11,7 @@ import { BgRemoverService } from '../services/bgRemoverService.js';
 import { dbService } from '../services/dbService.js';
 import { Toast } from './toast.js';
 import { escapeHtml } from '../utils/security.js';
+import { icon } from '../utils/icons.js';
 
 export class AuthorImageModal {
   constructor(onApplyAuthorImage) {
@@ -44,20 +45,22 @@ export class AuthorImageModal {
         <!-- Header -->
         <div class="stepper-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.85rem;">
           <div>
-            <h2 style="font-size: 1.25rem; font-weight: 700; font-family: var(--font-display);">Author Portrait Studio</h2>
-            <p style="font-size: 0.82rem; color: var(--text-secondary);">Isolate subject portraits and select from 50 precise canvas layouts.</p>
+            <h2 style="font-size: 1.25rem; font-weight: 700; font-family: var(--font-display); margin: 0;">Author Portrait Studio</h2>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">Isolate subject portraits and select from 50 precise canvas layouts.</p>
           </div>
-          <button class="btn-glass" id="btnCloseAuthorModal" style="padding: 0.4rem 0.8rem;" aria-label="Close author studio">✕</button>
+          <button class="btn-glass modal-close-btn" id="btnCloseAuthorModal" style="padding: 0.4rem 0.65rem;" aria-label="Close author studio">
+            ${icon('x', { size: 16 })}
+          </button>
         </div>
 
         <!-- Modal Sub-Tabs (P2-2: Eliminates nested scroll touch-traps) -->
         <div style="display: flex; gap: 0.5rem; padding: 0.75rem 1.5rem 0.25rem 1.5rem; border-bottom: 1px solid var(--border-glass); background: var(--bg-surface-elevated);" role="tablist" aria-label="Author Studio Sections">
           <button class="tab-btn ${this.activeTab === 'remover' ? 'active' : ''}" id="tabBtnRemover" role="tab" aria-selected="${this.activeTab === 'remover'}" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
-            <span>✂️</span>
+            <span>${icon('scissors', { size: 14 })}</span>
             <span>Background Remover</span>
           </button>
           <button class="tab-btn ${this.activeTab === 'placements' ? 'active' : ''}" id="tabBtnPlacements" role="tab" aria-selected="${this.activeTab === 'placements'}" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
-            <span>🎨</span>
+            <span>${icon('layout', { size: 14 })}</span>
             <span>50 Canvas Placements</span>
             <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.68rem; margin-left: 0.25rem;">50</span>
           </button>
@@ -69,12 +72,12 @@ export class AuthorImageModal {
           <div id="authorTabPaneRemover" style="display: ${this.activeTab === 'remover' ? 'flex' : 'none'}; flex-direction: column; gap: 1.25rem;">
             <!-- Top Section: Upload Author Photo -->
             <div class="format-card" id="uploadDropZone" style="align-items: center; text-align: center; border-style: dashed; padding: 1.5rem; justify-content: center; cursor: pointer; background: var(--bg-surface-elevated); border: 2px dashed var(--border-glass); border-radius: var(--radius-md); transition: all 0.2s ease;">
-              <span style="font-size: 2.2rem; margin-bottom: 0.35rem;" aria-hidden="true">📸</span>
+              <span style="display: flex; justify-content: center; margin-bottom: 0.35rem; color: var(--brand-accent);" aria-hidden="true">${icon('camera', { size: 36 })}</span>
               <div style="font-size: 1rem; font-weight: 700;">Upload Author Portrait or Subject Photo</div>
               <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Drag & drop image here, or browse files (PNG, JPG, WebP)</div>
               <input type="file" id="authorFileInput" accept="image/*" style="display: none;" aria-label="Upload author photo" />
               <button class="btn-glass" id="btnTriggerUpload" style="margin-top: 0.75rem; font-size: 0.82rem; padding: 0.45rem 1.1rem;" aria-label="Browse image files">
-                📁 Browse Image File
+                ${icon('upload', { size: 14 })} Browse Image File
               </button>
             </div>
 
@@ -83,8 +86,8 @@ export class AuthorImageModal {
               <!-- Interactive Canvas Preview -->
               <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: repeating-conic-gradient(#27272a 0% 25%, #18181b 0% 50%) 50% / 16px 16px; border-radius: var(--radius-sm); min-height: 220px; max-height: 240px; overflow: hidden; border: 1px solid var(--border-glass); position: relative;">
                 <canvas id="bgRemoverPreviewCanvas" style="max-width: 100%; max-height: 220px; object-fit: contain; cursor: crosshair;" title="Click anywhere on canvas to sample background color!"></canvas>
-                <div style="position: absolute; bottom: 6px; left: 6px; font-size: 0.68rem; background: rgba(0,0,0,0.7); padding: 0.2rem 0.5rem; border-radius: 4px; color: #cbd5e1;">
-                  💡 Click canvas backdrop to eye-drop color
+                <div style="position: absolute; bottom: 6px; left: 6px; font-size: 0.68rem; background: rgba(0,0,0,0.7); padding: 0.2rem 0.5rem; border-radius: 4px; color: #cbd5e1; display: flex; align-items: center; gap: 0.3rem;">
+                  ${icon('info', { size: 12 })} Click canvas backdrop to eye-drop color
                 </div>
               </div>
 
@@ -109,11 +112,11 @@ export class AuthorImageModal {
 
                 <div style="display: flex; gap: 0.5rem;">
                   <button class="btn-accent" id="btnExecuteBgRemove" style="flex: 1; justify-content: center; font-size: 0.85rem; padding: 0.55rem 1rem;" aria-label="Execute background removal">
-                    <span>✂️</span>
+                    <span>${icon('scissors', { size: 14 })}</span>
                     <span>Remove Background</span>
                   </button>
                   <button class="btn-glass" id="btnResetPhoto" style="font-size: 0.85rem; padding: 0.55rem 0.85rem;" title="Reset original photo" aria-label="Reset original photo">
-                    <span>↺</span>
+                    <span>${icon('rotateCcw', { size: 14 })}</span>
                   </button>
                 </div>
               </div>
@@ -145,12 +148,12 @@ export class AuthorImageModal {
         <!-- Footer -->
         <div class="stepper-footer" style="border-top: 1px solid var(--border-glass); padding: 1rem 1.5rem;">
           <button class="btn-glass" id="btnClearAuthorImage" aria-label="Clear active author portrait">
-            Remove Photo
+            ${icon('trash', { size: 14 })} Remove Photo
           </button>
           <div style="display: flex; gap: 0.75rem;">
             <button class="btn-glass" id="btnCancelAuthorModal" aria-label="Cancel portrait modal">Cancel</button>
             <button class="btn-primary" id="btnApplyAuthorImage" aria-label="Apply portrait and placement settings">
-              Apply Portrait & Placement ✨
+              ${icon('check', { size: 16 })} Apply Portrait & Placement
             </button>
           </div>
         </div>

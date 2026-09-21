@@ -13,6 +13,7 @@ import { AuthorImageModal } from './authorImageModal.js';
 import { LayoutPicker } from './layoutPicker.js';
 import { Toast } from './toast.js';
 import { escapeHtml } from '../utils/security.js';
+import { icon } from '../utils/icons.js';
 
 export class Editor {
   constructor(containerEl, onOpenPresets, onOpenStudio, onQuotePublished) {
@@ -113,15 +114,15 @@ export class Editor {
       <!-- Mobile Segmented View Switcher -->
       <div class="mobile-editor-switcher" id="mobileEditorSwitcher" role="tablist" aria-label="Mobile Layout View Toggle">
         <button class="switcher-btn ${this.mobileViewMode === 'canvas' ? 'active' : ''}" data-mode="canvas" role="tab" aria-selected="${this.mobileViewMode === 'canvas'}">
-          <span aria-hidden="true">🖼</span>
+          <span aria-hidden="true">${icon('image', { size: 14 })}</span>
           <span>Preview</span>
         </button>
         <button class="switcher-btn ${this.mobileViewMode === 'controls' ? 'active' : ''}" data-mode="controls" role="tab" aria-selected="${this.mobileViewMode === 'controls'}">
-          <span aria-hidden="true">✍️</span>
+          <span aria-hidden="true">${icon('sliders', { size: 14 })}</span>
           <span>Controls</span>
         </button>
         <button class="switcher-btn ${this.mobileViewMode === 'split' ? 'active' : ''}" data-mode="split" role="tab" aria-selected="${this.mobileViewMode === 'split'}">
-          <span aria-hidden="true">↕</span>
+          <span aria-hidden="true">${icon('columns', { size: 14 })}</span>
           <span>Split</span>
         </button>
       </div>
@@ -134,7 +135,7 @@ export class Editor {
             <div class="ratio-switcher" id="ratioSwitcher" role="radiogroup" aria-label="Canvas Aspect Ratio">
               ${CANVAS_FORMATS.map(f => `
                 <button class="ratio-chip ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}" role="radio" aria-checked="${this.state.ratio === f.id}" aria-label="${f.label} ratio">
-                  <span class="ratio-icon" aria-hidden="true">📐</span>
+                  <span class="ratio-icon" aria-hidden="true">${icon(f.icon || 'square', { size: 14 })}</span>
                   <span>${f.label}</span>
                 </button>
               `).join('')}
@@ -142,7 +143,7 @@ export class Editor {
 
             <!-- 50 Layouts Trigger Pill -->
             <button class="btn-glass" id="btnOpenLayouts" aria-label="Choose from 50 Canvas Layouts" style="padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600;">
-              <span aria-hidden="true">🔀</span>
+              <span aria-hidden="true">${icon('layout', { size: 14 })}</span>
               <span id="lblActiveLayout">Layout: ${currentLayout.name}</span>
               <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.7rem;">50 Canvas Layouts</span>
             </button>
@@ -160,11 +161,11 @@ export class Editor {
             <!-- Split Download Button with Format Dropdown -->
             <div class="download-split-group">
               <button class="btn-primary" id="btnDownload" aria-label="Download High-Res Image in ${this.exportFormat.toUpperCase()} format">
-                <span aria-hidden="true">⬇</span>
+                <span aria-hidden="true">${icon('download', { size: 14 })}</span>
                 <span id="lblDownloadText">Download (${this.exportFormat.toUpperCase()} 2x)</span>
               </button>
               <button class="btn-dropdown-trigger" id="btnExportFormatToggle" aria-label="Select download file format" aria-haspopup="true" aria-expanded="false">
-                <span aria-hidden="true">▾</span>
+                <span aria-hidden="true">${icon('chevronDown', { size: 14 })}</span>
               </button>
               <div class="export-format-menu" id="exportFormatMenu" role="menu" hidden>
                 <button class="format-menu-item ${this.exportFormat === 'png' ? 'active' : ''}" data-format="png" role="menuitem">
@@ -183,19 +184,19 @@ export class Editor {
             </div>
 
             <button class="btn-accent" id="btnCopy" aria-label="Copy rendered quote image to clipboard">
-              <span aria-hidden="true">📋</span>
+              <span aria-hidden="true">${icon('copy', { size: 14 })}</span>
               <span>Copy Image</span>
             </button>
             <button class="btn-glass" id="btnShare" aria-label="Share quote image via system share">
-              <span aria-hidden="true">↗</span>
+              <span aria-hidden="true">${icon('share', { size: 14 })}</span>
               <span>Share</span>
             </button>
             <button class="btn-glass" id="btnSaveHistory" aria-label="Save quote to history">
-              <span aria-hidden="true">💾</span>
+              <span aria-hidden="true">${icon('hardDrive', { size: 14 })}</span>
               <span>Save</span>
             </button>
             <button class="btn-glass" id="btnPublish" aria-label="Publish quote to community feed">
-              <span aria-hidden="true">🌐</span>
+              <span aria-hidden="true">${icon('globe', { size: 14 })}</span>
               <span>Publish to Community</span>
             </button>
           </div>
@@ -223,7 +224,7 @@ export class Editor {
           <div class="control-card">
             <div class="control-card-header">
               <span class="card-title">
-                <span aria-hidden="true">👤</span>
+                <span aria-hidden="true">${icon('user', { size: 15 })}</span>
                 <span>Author Portrait & Cutout</span>
               </span>
               <label class="switch" for="toggleAuthorImage">
@@ -235,7 +236,7 @@ export class Editor {
             <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-elevated); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass);" id="authorImageStatusStrip">
               <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <div id="authorThumbBox" style="width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: #27272a; display: flex; align-items: center; justify-content: center; border: 2px solid var(--brand-accent);">
-                  ${this.state.authorImage ? `<img src="${this.state.authorImage}" alt="Portrait preview" style="width: 100%; height: 100%; object-fit: cover;" />` : '👤'}
+                  ${this.state.authorImage ? `<img src="${this.state.authorImage}" alt="Portrait preview" style="width: 100%; height: 100%; object-fit: cover;" />` : icon('user', { size: 20 })}
                 </div>
                 <div>
                   <div style="font-size: 0.85rem; font-weight: 700;" id="lblAuthorPhotoStatus">${this.state.authorImage ? 'Portrait Active' : 'No Photo Selected'}</div>
@@ -244,7 +245,7 @@ export class Editor {
               </div>
 
               <button class="btn-glass" id="btnOpenAuthorStudio" aria-label="Change portrait and cutout photo" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; font-weight: 600;">
-                <span aria-hidden="true">✂️</span>
+                <span aria-hidden="true">${icon('scissors', { size: 14 })}</span>
                 <span>Change Portrait & Cutout</span>
               </button>
             </div>
@@ -254,11 +255,11 @@ export class Editor {
           <div class="control-card">
             <div class="control-card-header">
               <span class="card-title">
-                <span aria-hidden="true">💬</span>
+                <span aria-hidden="true">${icon('quote', { size: 15 })}</span>
                 <span>Quote Content</span>
               </span>
               <button class="inspire-btn" id="btnInspire" aria-label="Load a random inspiration quote">
-                <span aria-hidden="true">🎲</span>
+                <span aria-hidden="true">${icon('dices', { size: 14 })}</span>
                 <span>Random Quote</span>
               </button>
             </div>
@@ -274,7 +275,7 @@ export class Editor {
           <div class="control-card">
             <div class="control-card-header">
               <span class="card-title">
-                <span>⚙️</span>
+                <span>${icon('settings', { size: 15 })}</span>
                 <span>Details & Metadata</span>
               </span>
             </div>
@@ -518,7 +519,7 @@ export class Editor {
       floatingBtn.id = 'btnFloatingShowPreview';
       floatingBtn.className = 'floating-preview-trigger';
       floatingBtn.setAttribute('aria-label', 'View preview canvas');
-      floatingBtn.innerHTML = '<span aria-hidden="true">🖼</span><span>View Canvas</span>';
+      floatingBtn.innerHTML = `<span aria-hidden="true">${icon('image', { size: 14 })}</span><span>View Canvas</span>`;
       document.body.appendChild(floatingBtn);
       floatingBtn.addEventListener('click', () => {
         setMobileMode('canvas');
@@ -624,7 +625,7 @@ export class Editor {
         this.profile
       );
       if (published) {
-        Toast.show('Published quote to Community Feed! 🌟', 'success');
+        Toast.show('Published quote to Community Feed!', 'success');
         if (this.onQuotePublished) this.onQuotePublished(published);
       }
     });
@@ -640,7 +641,7 @@ export class Editor {
     if (thumbBox) {
       thumbBox.innerHTML = this.state.authorImage && this.state.showAuthorImage 
         ? `<img src="${this.state.authorImage}" style="width: 100%; height: 100%; object-fit: cover;" />`
-        : '👤';
+        : icon('user', { size: 20 });
     }
     if (statusText) {
       statusText.textContent = this.state.showAuthorImage && this.state.authorImage ? 'Portrait Active' : 'No Photo Active';

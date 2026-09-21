@@ -8,6 +8,7 @@ import { StorageService } from '../services/storageService.js';
 import { ShareService } from '../services/shareService.js';
 import { Toast } from './toast.js';
 import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
+import { icon } from '../utils/icons.js';
 
 export class CommunityView {
   constructor(containerEl, onRemixStyle) {
@@ -154,14 +155,14 @@ export class CommunityView {
 
             <div class="community-actions">
               <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${safeId}" title="Like" aria-label="Like quote by ${safeAuthor}">
-                <span>♥</span>
+                <span>${icon('heart', { size: 14 })}</span>
                 <span class="like-count">${item.likes || 0}</span>
               </button>
               <button class="history-action-btn btn-comm-download" data-id="${safeId}" title="Download Graphic" aria-label="Download graphic quote">
-                <span>⬇</span>
+                <span>${icon('download', { size: 14 })}</span>
               </button>
               <button class="btn-remix" data-id="${safeId}" title="Remix style into editor" aria-label="Remix style into editor">
-                <span>⚡</span>
+                <span>${icon('zap', { size: 14 })}</span>
                 <span>Remix</span>
               </button>
             </div>

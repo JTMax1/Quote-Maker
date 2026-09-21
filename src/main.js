@@ -1,6 +1,6 @@
 /**
  * QuoteForge Application Entry Point
- * Orchestrates navigation, views, onboarding, and reactive state.
+ * Orchestrates navigation, views, profile settings, and reactive state.
  */
 
 import './styles/base.css';
@@ -14,7 +14,6 @@ import './styles/template-studio.css';
 import './styles/toast.css';
 
 import { StorageService } from './services/storageService.js';
-import { OnboardingModal } from './components/onboarding.js';
 import { ProfileSettingsModal } from './components/profileSettingsModal.js';
 import { Editor } from './components/editor.js';
 import { PresetPicker } from './components/presetPicker.js';
@@ -22,7 +21,7 @@ import { HistoryView } from './components/historyView.js';
 import { CommunityView } from './components/communityView.js';
 import { TemplateStudio } from './components/templateStudio.js';
 import { Toast } from './components/toast.js';
-
+import { icon } from './utils/icons.js';
 import { escapeHtml } from './utils/security.js';
 
 class App {
@@ -36,7 +35,6 @@ class App {
     this.renderAppShell();
     this.initComponents();
     this.bindGlobalEvents();
-    this.checkOnboarding();
     this.initServiceWorker();
   }
 
@@ -51,7 +49,7 @@ class App {
       <header class="app-header" role="banner">
         <div class="header-container">
           <div class="brand">
-            <div class="brand-icon" aria-hidden="true">❝</div>
+            <div class="brand-icon" aria-hidden="true">${icon('sparkles', { size: 18 })}</div>
             <span class="brand-text">QuoteForge</span>
             <span class="brand-badge">Studio</span>
           </div>
@@ -59,23 +57,23 @@ class App {
           <!-- Navigation Tabs -->
           <nav class="nav-tabs" id="appNavTabs" aria-label="Main Navigation">
             <button class="tab-btn active" data-tab="editor" aria-label="Create Quote Editor">
-              <span aria-hidden="true">✍️</span>
+              <span aria-hidden="true">${icon('penTool', { size: 15 })}</span>
               <span>Create Quote</span>
             </button>
             <button class="tab-btn" data-tab="presets" aria-label="Browse Presets Catalog">
-              <span aria-hidden="true">🎨</span>
+              <span aria-hidden="true">${icon('palette', { size: 15 })}</span>
               <span>Presets</span>
             </button>
             <button class="tab-btn" data-tab="history" aria-label="View Saved History">
-              <span aria-hidden="true">🕰</span>
+              <span aria-hidden="true">${icon('clock', { size: 15 })}</span>
               <span>History</span>
             </button>
             <button class="tab-btn" data-tab="community" aria-label="Community Showcase Feed">
-              <span aria-hidden="true">🌐</span>
+              <span aria-hidden="true">${icon('globe', { size: 15 })}</span>
               <span>Community</span>
             </button>
             <button class="tab-btn" data-tab="studio" aria-label="Template Studio Creator">
-              <span aria-hidden="true">📐</span>
+              <span aria-hidden="true">${icon('sliders', { size: 15 })}</span>
               <span>Template Studio</span>
             </button>
           </nav>
@@ -84,38 +82,38 @@ class App {
           <div class="header-actions">
             <div class="desktop-actions">
               <button class="btn-glass btn-header-action" id="btnExportBackup" title="Export Quotes & Themes Backup (JSON)" aria-label="Export backup">
-                <span aria-hidden="true">💾</span>
+                <span aria-hidden="true">${icon('download', { size: 14 })}</span>
                 <span>Backup</span>
               </button>
               <button class="btn-glass btn-header-action" id="btnImportBackup" title="Restore Quotes & Themes Backup (JSON)" aria-label="Restore backup">
-                <span aria-hidden="true">📂</span>
+                <span aria-hidden="true">${icon('upload', { size: 14 })}</span>
                 <span>Restore</span>
               </button>
             </div>
 
-            <button class="profile-chip" id="btnProfilePreset" title="Edit Signature Profile" aria-label="Edit signature profile preset">
+            <button class="profile-chip" id="btnProfilePreset" title="Edit Signature Profile & Defaults" aria-label="Edit signature profile preset and defaults">
               <div class="avatar-initial" id="headerAvatar" aria-hidden="true">${initial}</div>
               <span class="profile-chip-name" id="headerProfileName">${escapeHtml(profile.name || 'My Preset')}</span>
-              <span class="profile-gear-icon" aria-hidden="true">⚙️</span>
+              <span class="profile-gear-icon" aria-hidden="true">${icon('settings', { size: 13 })}</span>
             </button>
 
             <!-- Mobile Overflow Menu -->
             <div class="mobile-more-wrapper mobile-only">
               <button class="btn-glass btn-icon-only" id="btnMobileOverflow" aria-label="Open more options" aria-expanded="false" aria-haspopup="true">
-                <span aria-hidden="true">⋮</span>
+                <span aria-hidden="true">${icon('moreVertical', { size: 18 })}</span>
               </button>
               <div class="mobile-overflow-dropdown" id="mobileOverflowMenu" role="menu" hidden>
+                <button class="overflow-menu-item" id="btnMobileOpenProfile" role="menuitem">
+                  <span aria-hidden="true">${icon('settings', { size: 15 })}</span>
+                  <span>Signature & Settings</span>
+                </button>
                 <button class="overflow-menu-item" id="btnMobileExportBackup" role="menuitem">
-                  <span aria-hidden="true">💾</span>
+                  <span aria-hidden="true">${icon('download', { size: 15 })}</span>
                   <span>Export Backup (JSON)</span>
                 </button>
                 <button class="overflow-menu-item" id="btnMobileImportBackup" role="menuitem">
-                  <span aria-hidden="true">📂</span>
+                  <span aria-hidden="true">${icon('upload', { size: 15 })}</span>
                   <span>Restore Backup (JSON)</span>
-                </button>
-                <button class="overflow-menu-item" id="btnMobileOpenOnboarding" role="menuitem">
-                  <span aria-hidden="true">✨</span>
-                  <span>Quick Setup Tour</span>
                 </button>
               </div>
             </div>
@@ -142,80 +140,63 @@ class App {
         <!-- Template Studio View -->
         <section class="view-panel" id="view-studio"></section>
       </main>
+
+      <!-- Footer / Status Toast Container -->
+      <div id="toastContainer" class="toast-container" role="region" aria-label="Notifications"></div>
     `;
   }
 
   initComponents() {
+    // 1. Editor (Core Canvas & Controls)
     const editorContainer = document.getElementById('view-editor');
+    this.components.editor = new Editor(editorContainer, {
+      onSaveHistory: (item) => {
+        if (this.components.history) this.components.history.refreshHistory();
+      },
+      onShareCommunity: (item) => {
+        if (this.components.community) this.components.community.refreshQuotes();
+        this.switchTab('community');
+      },
+      onOpenPresetPicker: () => {
+        this.switchTab('presets');
+      },
+      onOpenStudio: () => {
+        this.switchTab('studio');
+      }
+    });
+
+    // 2. Preset Library View
     const presetsContainer = document.getElementById('view-presets');
+    this.components.presets = new PresetPicker(presetsContainer, (selectedPreset) => {
+      this.components.editor.applyPreset(selectedPreset);
+      this.switchTab('editor');
+    });
+
+    // 3. History View
     const historyContainer = document.getElementById('view-history');
-    const communityContainer = document.getElementById('view-community');
-    const studioContainer = document.getElementById('view-studio');
-
-    // 1. Live Editor Component
-    this.components.editor = new Editor(
-      editorContainer,
-      // onOpenPresets
-      () => this.switchTab('presets'),
-      // onOpenStudio
-      () => this.switchTab('studio'),
-      // onQuotePublished
-      () => {
-        if (this.components.community) this.components.community.refresh();
-      }
-    );
-
-    // 2. Preset Picker Component
-    this.components.presets = new PresetPicker(
-      presetsContainer,
-      // onSelectPreset
-      (preset) => {
-        this.components.editor.applyPreset(preset);
-        this.switchTab('editor');
-      }
-    );
-
-    // 3. History Gallery Component
     this.components.history = new HistoryView(
       historyContainer,
-      // onRemixQuote
-      (quoteItem) => {
-        this.components.editor.state.quote = quoteItem.quote;
-        this.components.editor.state.author = quoteItem.author;
-        this.components.editor.state.category = quoteItem.category || this.components.editor.state.category;
-        this.components.editor.state.handle = quoteItem.handle || this.components.editor.state.handle;
-        this.components.editor.state.ratio = quoteItem.ratio || '1:1';
-        if (quoteItem.styles) {
-          this.components.editor.state.styles = { ...quoteItem.styles };
-        }
-        this.components.editor.syncFormValues();
-        this.components.editor.scheduleRender();
+      // onLoadHistoryItem
+      (historyItem) => {
+        this.components.editor.loadState(historyItem.canvasState);
         this.switchTab('editor');
       },
-      // onGoToEditor
-      () => this.switchTab('editor')
-    );
-
-    // 4. Community Showcase Component
-    this.components.community = new CommunityView(
-      communityContainer,
-      // onRemixStyle
-      (communityItem) => {
-        this.components.editor.state.quote = communityItem.quote;
-        this.components.editor.state.author = communityItem.author;
-        this.components.editor.state.category = communityItem.category;
-        this.components.editor.state.handle = communityItem.handle;
-        this.components.editor.state.ratio = communityItem.ratio || '1:1';
-        if (communityItem.customStyles) {
-          this.components.editor.state.styles = { ...communityItem.customStyles };
-        }
-        this.components.editor.syncFormValues();
-        this.components.editor.scheduleRender();
-        this.switchTab('editor');
+      // onShareCommunity
+      (historyItem) => {
+        if (this.components.community) this.components.community.refreshQuotes();
+        this.switchTab('community');
       }
     );
 
-    // 5. Template Studio Component
+    // 4. Community Feed View
+    const communityContainer = document.getElementById('view-community');
+    this.components.community = new CommunityView(communityContainer, (quoteItem) => {
+      this.components.editor.loadState(quoteItem.canvasState);
+      this.switchTab('editor');
+    });
+
+    // 5. Custom Template Studio View
+    const studioContainer = document.getElementById('view-studio');
     this.components.studio = new TemplateStudio(
       studioContainer,
       // onTemplatePublished
@@ -226,13 +207,7 @@ class App {
       }
     );
 
-    // 6. Onboarding Modal (First time setup)
-    this.components.onboarding = new OnboardingModal((updatedProfile) => {
-      this.components.editor.updateProfile(updatedProfile);
-      this.updateHeaderProfile(updatedProfile);
-    });
-
-    // 7. Profile Settings Modal (Direct profile editing)
+    // 6. Profile Settings Modal (Direct profile and default template editing)
     this.components.profileSettings = new ProfileSettingsModal((updatedProfile) => {
       this.components.editor.updateProfile(updatedProfile);
       this.updateHeaderProfile(updatedProfile);
@@ -287,12 +262,12 @@ class App {
       });
     }
 
-    // Mobile Onboarding button
-    const btnMobileTour = document.getElementById('btnMobileOpenOnboarding');
-    if (btnMobileTour) {
-      btnMobileTour.addEventListener('click', () => {
+    // Mobile Profile Settings button
+    const btnMobileProfile = document.getElementById('btnMobileOpenProfile');
+    if (btnMobileProfile) {
+      btnMobileProfile.addEventListener('click', () => {
         if (mobileOverflowMenu) mobileOverflowMenu.hidden = true;
-        this.components.onboarding.open();
+        this.components.profileSettings.open();
       });
     }
 
@@ -303,13 +278,12 @@ class App {
       const blob = new Blob([jsonStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 10);
       link.href = url;
-      link.download = `quoteforge-backup-${Date.now()}.json`;
-      document.body.appendChild(link);
+      link.download = `QuoteForge-Backup-${timestamp}.json`;
       link.click();
-      document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      Toast.show('Exported QuoteForge backup JSON!', 'success');
+      Toast.show('Backup JSON exported successfully!', 'success');
     };
 
     const btnExport = document.getElementById('btnExportBackup');
@@ -318,77 +292,91 @@ class App {
     const btnMobileExport = document.getElementById('btnMobileExportBackup');
     if (btnMobileExport) btnMobileExport.addEventListener('click', handleExportBackup);
 
-    // Import / Restore Backup JSON Helper
+    // Import Backup JSON Helper
     const inputRestore = document.getElementById('inputRestoreJson');
-    const handleImportClick = () => {
+    const triggerImport = () => {
       if (mobileOverflowMenu) mobileOverflowMenu.hidden = true;
       if (inputRestore) inputRestore.click();
     };
 
     const btnImport = document.getElementById('btnImportBackup');
-    if (btnImport) btnImport.addEventListener('click', handleImportClick);
+    if (btnImport) btnImport.addEventListener('click', triggerImport);
 
     const btnMobileImport = document.getElementById('btnMobileImportBackup');
-    if (btnMobileImport) btnMobileImport.addEventListener('click', handleImportClick);
+    if (btnMobileImport) btnMobileImport.addEventListener('click', triggerImport);
 
     if (inputRestore) {
-      inputRestore.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+      inputRestore.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
         if (!file) return;
 
-        try {
-          const text = await file.text();
-          const result = StorageService.importBackupJSON(text);
-          if (result.success) {
-            Toast.show(`Restored backup with ${result.count} quotes!`, 'success');
-            // Refresh views with restored data
-            const updatedProfile = StorageService.getProfile();
-            this.updateHeaderProfile(updatedProfile);
-            if (this.components.editor) this.components.editor.updateProfile(updatedProfile);
-            if (this.components.history) this.components.history.refresh();
-            if (this.components.presets) this.components.presets.renderCards();
-          } else {
-            Toast.show(result.error || 'Failed to parse backup JSON', 'error');
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const parsed = JSON.parse(event.target.result);
+            const success = StorageService.importBackupJSON(parsed);
+            if (success) {
+              Toast.show('Backup data restored successfully! Reloading...', 'success');
+              setTimeout(() => window.location.reload(), 1200);
+            } else {
+              Toast.show('Invalid backup file format.', 'error');
+            }
+          } catch (err) {
+            console.error('Import parse error:', err);
+            Toast.show('Failed to parse JSON file.', 'error');
           }
-        } catch (err) {
-          Toast.show('Error reading backup file', 'error');
-        }
+        };
+        reader.readAsText(file);
+        // Reset file input so user can import the same file again if desired
         inputRestore.value = '';
       });
     }
-  }
 
-  initServiceWorker() {
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch((err) => {
-          console.warn('Service Worker registration failed:', err);
-        });
-      });
+    // Hash navigation (deep linking)
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && ['editor', 'presets', 'history', 'community', 'studio'].includes(hash)) {
+        this.switchTab(hash);
+      }
+    });
+
+    // Handle initial hash if any
+    const initialHash = window.location.hash.replace('#', '');
+    if (initialHash && ['editor', 'presets', 'history', 'community', 'studio'].includes(initialHash)) {
+      this.switchTab(initialHash);
     }
   }
 
   switchTab(tabName) {
+    if (this.currentTab === tabName) return;
     this.currentTab = tabName;
 
-    // Update active tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabName);
+    // Update nav tab buttons
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(btn => {
+      const isMatch = btn.dataset.tab === tabName;
+      btn.classList.toggle('active', isMatch);
+      btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
     });
 
-    // Update active view panels
-    document.querySelectorAll('.view-panel').forEach(panel => {
+    // Update view panels
+    const panels = document.querySelectorAll('.view-panel');
+    panels.forEach(panel => {
       panel.classList.toggle('active', panel.id === `view-${tabName}`);
     });
 
-    // Specific refresh hooks
+    // Trigger tab-specific refresh if needed
     if (tabName === 'history' && this.components.history) {
-      this.components.history.refresh();
+      this.components.history.refreshHistory();
     } else if (tabName === 'community' && this.components.community) {
-      this.components.community.refresh();
+      this.components.community.refreshQuotes();
     } else if (tabName === 'editor' && this.components.editor) {
       this.components.editor.scheduleRender();
     }
+
+    // Scroll back to top on tab switch
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.location.hash = tabName;
   }
 
   updateHeaderProfile(profile) {
@@ -399,14 +387,8 @@ class App {
     if (nameEl) nameEl.textContent = profile.name || 'My Preset';
   }
 
-  checkOnboarding() {
-    const profile = StorageService.getProfile();
-    if (!profile.onboarded) {
-      // Auto open onboarding modal for new users!
-      setTimeout(() => {
-        this.components.onboarding.open();
-      }, 350);
-    }
+  initServiceWorker() {
+    // Optional PWA Service Worker registration placeholder
   }
 }
 

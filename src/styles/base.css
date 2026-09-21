@@ -145,6 +145,24 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Unified SVG Vector Icon Styling */
+.lucide-icon {
+  display: inline-block;
+  vertical-align: -0.18em;
+  flex-shrink: 0;
+  stroke-width: 2px;
+  stroke: currentColor;
+}
+
+button .lucide-icon {
+  vertical-align: -0.15em;
+}
+
+button:hover .lucide-icon {
+  transform: scale(1.05);
+  transition: transform var(--transition-fast);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

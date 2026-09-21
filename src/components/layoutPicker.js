@@ -6,6 +6,7 @@
 import { LAYOUT_CATEGORIES, LAYOUT_STYLES } from '../data/defaultPresets.js';
 import { Toast } from './toast.js';
 import { escapeHtml } from '../utils/security.js';
+import { icon } from '../utils/icons.js';
 
 export class LayoutPicker {
   constructor(onSelectLayout) {
@@ -30,14 +31,21 @@ export class LayoutPicker {
     this.modalEl.setAttribute('aria-label', '50 Quote Layout Rearrangements');
 
     this.modalEl.innerHTML = `
-      <div class="onboarding-card" style="max-width: 960px; max-height: 85vh;">
+      <div class="onboarding-card modal-card" style="max-width: 960px; max-height: 85vh;">
         <!-- Header -->
         <div class="stepper-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h2 style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-display);">50 Quote Layout Rearrangements</h2>
-            <p style="font-size: 0.85rem; color: var(--text-secondary);">Select how quote text, author portraits, headers, and frames are structured.</p>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--bg-surface); border: 1px solid var(--border-glass-strong); display: flex; align-items: center; justify-content: center; color: var(--brand-primary);">
+              ${icon('layout', { size: 20 })}
+            </div>
+            <div>
+              <h2 style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-display); margin: 0;">50 Quote Layout Rearrangements</h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">Select how quote text, author portraits, headers, and frames are structured.</p>
+            </div>
           </div>
-          <button class="btn-glass" id="btnCloseLayoutPicker" style="padding: 0.4rem 0.8rem;" aria-label="Close layout selector">✕</button>
+          <button class="btn-glass modal-close-btn" id="btnCloseLayoutPicker" style="padding: 0.4rem 0.65rem;" aria-label="Close layout selector">
+            ${icon('x', { size: 16 })}
+          </button>
         </div>
 
         <!-- Filter Bar -->
@@ -49,7 +57,12 @@ export class LayoutPicker {
               </button>
             `).join('')}
           </div>
-          <input type="text" class="form-input" id="layoutSearchInput" placeholder="🔍 Search layouts..." aria-label="Search layouts" style="width: 200px; border-radius: 9999px; padding: 0.4rem 0.8rem;" />
+          <div style="position: relative;">
+            <div style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
+              ${icon('search', { size: 14 })}
+            </div>
+            <input type="text" class="form-input" id="layoutSearchInput" placeholder="Search layouts..." aria-label="Search layouts" style="width: 210px; border-radius: 9999px; padding: 0.4rem 0.8rem 0.4rem 2rem;" />
+          </div>
         </div>
 
         <!-- Layout Cards Grid -->
@@ -124,7 +137,9 @@ export class LayoutPicker {
       return `
         <div class="preset-card ${isActive ? 'active-theme' : ''}" data-id="${safeId}" style="padding: 1.1rem; gap: 0.5rem; justify-content: space-between;">
           <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-size: 1.6rem;" aria-hidden="true">${layout.icon || '📐'}</span>
+            <span style="width: 38px; height: 38px; border-radius: var(--radius-sm); background: var(--bg-surface-elevated); border: 1px solid var(--border-glass); display: flex; align-items: center; justify-content: center; color: var(--brand-primary); flex-shrink: 0;" aria-hidden="true">
+              ${icon(layout.icon || 'layout', { size: 20 })}
+            </span>
             <div>
               <div style="font-size: 0.95rem; font-weight: 700;">${safeName}</div>
               <span class="brand-badge" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">${safeCategory}</span>
@@ -133,8 +148,8 @@ export class LayoutPicker {
           <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; margin: 0.25rem 0;">
             ${safeDesc}
           </p>
-          <button class="btn-apply-theme" data-id="${safeId}" aria-label="Apply ${safeName} layout" style="align-self: flex-start; margin-top: 0.25rem;">
-            ${isActive ? 'Active Layout' : 'Apply Layout'}
+          <button class="btn-apply-theme" data-id="${safeId}" aria-label="Apply ${safeName} layout" style="align-self: flex-start; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+            ${isActive ? icon('check', { size: 14 }) + ' <span>Active Layout</span>' : '<span>Apply Layout</span>'}
           </button>
         </div>
       `;
