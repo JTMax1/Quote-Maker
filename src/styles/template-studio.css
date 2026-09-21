@@ -12,7 +12,29 @@
 
 @media (max-width: 1100px) {
   .studio-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .studio-preview-pane {
+    order: -1;
+    position: sticky;
+    top: 60px;
+    z-index: 10;
+    width: 100%;
+    background: var(--bg-page);
+    padding: 0.75rem 0;
+  }
+  .studio-canvas-mockup {
+    max-width: 320px;
+    padding: 1.5rem;
+  }
+  .studio-quote-text {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+  }
+  .studio-author-text {
+    font-size: 0.85rem;
   }
 }
 

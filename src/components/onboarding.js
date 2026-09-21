@@ -35,6 +35,9 @@ export class OnboardingModal {
     this.modalEl = document.createElement('div');
     this.modalEl.id = 'onboardingModal';
     this.modalEl.className = 'modal-backdrop';
+    this.modalEl.setAttribute('role', 'dialog');
+    this.modalEl.setAttribute('aria-modal', 'true');
+    this.modalEl.setAttribute('aria-label', 'QuoteForge Setup Wizard');
 
     this.modalEl.innerHTML = `
       <div class="onboarding-card">
@@ -90,6 +93,18 @@ export class OnboardingModal {
     const backBtn = this.modalEl.querySelector('#onboardingBackBtn');
     const nextBtn = this.modalEl.querySelector('#onboardingNextBtn');
     const skipBtn = this.modalEl.querySelector('#onboardingSkipBtn');
+
+    // Backdrop click dismiss
+    this.modalEl.addEventListener('click', (e) => {
+      if (e.target === this.modalEl) this.close();
+    });
+
+    // Escape key dismiss
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.modalEl.classList.contains('open')) {
+        this.close();
+      }
+    });
 
     backBtn.addEventListener('click', () => {
       if (this.currentStep > 1) {
@@ -150,11 +165,11 @@ export class OnboardingModal {
         </div>
         <div class="input-row">
           <div class="form-group">
-            <label class="form-label">Author Name</label>
+            <label class="form-label" for="obAuthorInput">Author Name</label>
             <input type="text" class="form-input" id="obAuthorInput" value="${this.tempAuthor}" placeholder="e.g. Marcus Aurelius" />
           </div>
           <div class="form-group">
-            <label class="form-label">Handle / Subtitle</label>
+            <label class="form-label" for="obHandleInput">Handle / Subtitle</label>
             <input type="text" class="form-input" id="obHandleInput" value="${this.tempHandle}" placeholder="e.g. @stoic_quotes" />
           </div>
         </div>

@@ -26,10 +26,16 @@ export class Toast {
       warning: '⚠'
     };
 
-    toast.innerHTML = `
-      <span class="toast-icon">${icons[type] || 'ℹ'}</span>
-      <span class="toast-message">${message}</span>
-    `;
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'toast-icon';
+    iconSpan.textContent = icons[type] || 'ℹ';
+
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'toast-message';
+    msgSpan.textContent = message;
+
+    toast.appendChild(iconSpan);
+    toast.appendChild(msgSpan);
 
     this.container.appendChild(toast);
 

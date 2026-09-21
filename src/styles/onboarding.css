@@ -238,3 +238,61 @@
   align-items: center;
   justify-content: space-between;
 }
+
+/* Mobile Responsive Optimization for Modals & Wizard */
+@media (max-width: 640px) {
+  .modal-backdrop {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .onboarding-card {
+    max-height: 94vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .stepper-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .step-indicators {
+    gap: 0.25rem;
+  }
+
+  .step-item {
+    font-size: 0.72rem;
+  }
+
+  .step-num {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+
+  .step-body {
+    padding: 1rem 1.25rem;
+    min-height: auto;
+    gap: 1rem;
+  }
+
+  .format-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .onboarding-presets-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .stepper-footer {
+    padding: 0.85rem 1.25rem;
+    gap: 0.5rem;
+  }
+
+  .stepper-footer button {
+    font-size: 0.82rem;
+    padding: 0.5rem 0.85rem;
+  }
+}

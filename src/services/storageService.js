@@ -6,6 +6,7 @@
 
 import { INITIAL_COMMUNITY_QUOTES } from '../data/sampleCommunity.js';
 import { DEFAULT_PRESETS } from '../data/defaultPresets.js';
+import { dbService } from './dbService.js';
 
 const STORAGE_KEYS = {
   PROFILE: 'quoteforge_user_profile',
@@ -64,15 +65,37 @@ export class StorageService {
   static saveToHistory(quoteItem) {
     try {
       const history = this.getHistory();
-      // Ensure unique id and timestamp
+      const itemId = quoteItem.id || 'hist_' + Date.now();
+      
+      // If authorImage is a large binary string/data URL or blob, offload to IndexedDB
+      if (quoteItem.authorImage && (quoteItem.authorImage.startsWith('data:') || quoteItem.authorImage.startsWith('blob:'))) {
+        dbService.saveImage('img_' + itemId, quoteItem.authorImage).catch(() => {});
+      }
+
       const itemWithMeta = {
         ...quoteItem,
-        id: quoteItem.id || 'hist_' + Date.now(),
+        id: itemId,
         createdAt: quoteItem.createdAt || new Date().toISOString()
       };
+
+      // Strip large base64 data URLs from localStorage copy to avoid 5MB quota exhaustion
+      const storageCopy = { ...itemWithMeta };
+      if (storageCopy.authorImage && storageCopy.authorImage.startsWith('data:') && storageCopy.authorImage.length > 5000) {
+        storageCopy.authorImageRef = 'img_' + itemId;
+        delete storageCopy.authorImage;
+      }
+
       // Prepend to show latest first
-      const updated = [itemWithMeta, ...history.filter(h => h.id !== itemWithMeta.id)];
-      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(updated.slice(0, 100)));
+      const updated = [storageCopy, ...history.filter(h => h.id !== itemId)];
+
+      try {
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(updated.slice(0, 100)));
+      } catch (quotaErr) {
+        // Quota exceeded: gracefully prune older history to 30 items and retry
+        console.warn('LocalStorage quota warning. Pruning older history to 30 items...');
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(updated.slice(0, 30)));
+      }
+
       return itemWithMeta;
     } catch (e) {
       console.error('Failed to save quote to history:', e);
@@ -84,6 +107,7 @@ export class StorageService {
     try {
       const history = this.getHistory().filter(item => item.id !== id);
       localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+      dbService.deleteImage('img_' + id).catch(() => {});
       return history;
     } catch (e) {
       console.error('Failed to delete history item:', e);
@@ -213,6 +237,55 @@ export class StorageService {
       localStorage.setItem(STORAGE_KEYS.COMMUNITY, JSON.stringify(updated));
     } catch (e) {
       console.error(e);
+    }
+  }
+
+  /**
+   * Export complete user data (profile, history, custom templates) as JSON string
+   */
+  static exportBackupJSON() {
+    const backupData = {
+      app: 'QuoteForge',
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      profile: this.getProfile(),
+      history: this.getHistory(),
+      customTemplates: this.getCustomTemplates(),
+      likedQuotes: this.getLikedQuotes()
+    };
+    return JSON.stringify(backupData, null, 2);
+  }
+
+  /**
+   * Import user data from a valid JSON backup string
+   */
+  static importBackupJSON(jsonStr) {
+    try {
+      const data = JSON.parse(jsonStr);
+      if (!data || data.app !== 'QuoteForge') {
+        throw new Error('Invalid QuoteForge backup file format');
+      }
+
+      if (data.profile && typeof data.profile === 'object') {
+        this.saveProfile(data.profile);
+      }
+
+      if (Array.isArray(data.customTemplates)) {
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_TEMPLATES, JSON.stringify(data.customTemplates));
+      }
+
+      if (Array.isArray(data.history)) {
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(data.history));
+      }
+
+      if (Array.isArray(data.likedQuotes)) {
+        localStorage.setItem(STORAGE_KEYS.LIKED_QUOTES, JSON.stringify(data.likedQuotes));
+      }
+
+      return { success: true, count: (data.history || []).length };
+    } catch (err) {
+      console.error('Failed to restore backup:', err);
+      return { success: false, error: err.message };
     }
   }
 }

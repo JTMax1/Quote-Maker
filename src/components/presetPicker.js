@@ -6,6 +6,7 @@
 import { PRESET_CATEGORIES } from '../data/defaultPresets.js';
 import { StorageService } from '../services/storageService.js';
 import { Toast } from './toast.js';
+import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
 
 export class PresetPicker {
   constructor(containerEl, onSelectPreset) {
@@ -102,20 +103,26 @@ export class PresetPicker {
     grid.innerHTML = filtered.map(preset => {
       const isActive = this.activePresetId === preset.id;
       const bgStyle = preset.gradient || preset.background || '#1e293b';
+      const color = sanitizeStyleValue(preset.textColor, '#ffffff');
+      const accent = sanitizeStyleValue(preset.accentColor, color);
+      const font = sanitizeStyleValue(preset.fontFamily, 'Playfair Display');
+      const safeId = escapeHtml(preset.id);
+      const safeName = escapeHtml(preset.name);
+      const safeCategory = escapeHtml(preset.category);
       const sampleQuote = "“Simplicity is the ultimate sophistication.”";
 
       return `
-        <div class="preset-card ${isActive ? 'active-theme' : ''}" data-id="${preset.id}">
-          <div class="preset-preview-box" style="background: ${bgStyle}; color: ${preset.textColor}; font-family: '${preset.fontFamily}', sans-serif;">
+        <div class="preset-card ${isActive ? 'active-theme' : ''}" data-id="${safeId}">
+          <div class="preset-preview-box" style="background: ${bgStyle}; color: ${color}; font-family: '${font}', sans-serif;">
             <div class="preset-quote-sample">${sampleQuote}</div>
-            <div class="preset-author-sample" style="color: ${preset.accentColor || preset.textColor}">— Leonardo da Vinci</div>
+            <div class="preset-author-sample" style="color: ${accent}">— Leonardo da Vinci</div>
           </div>
           <div class="preset-card-footer">
             <div class="preset-name-wrap">
-              <span class="preset-card-title">${preset.name} ${preset.isCustom ? '★' : ''}</span>
-              <span class="preset-card-font">${preset.fontFamily} • ${preset.category}</span>
+              <span class="preset-card-title">${safeName} ${preset.isCustom ? '★' : ''}</span>
+              <span class="preset-card-font">${font} • ${safeCategory}</span>
             </div>
-            <button class="btn-apply-theme" data-id="${preset.id}">
+            <button class="btn-apply-theme" data-id="${safeId}" aria-label="Select ${safeName} theme">
               ${isActive ? 'Active' : 'Select'}
             </button>
           </div>
@@ -123,10 +130,10 @@ export class PresetPicker {
       `;
     }).join('');
 
-    // Attach click events
-    grid.querySelectorAll('.preset-card, .btn-apply-theme').forEach(el => {
-      el.addEventListener('click', (e) => {
-        const id = el.dataset.id;
+    // Attach click events once per card (prevents double-firing from child button bubbling)
+    grid.querySelectorAll('.preset-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
         if (id) {
           const selected = allPresets.find(p => p.id === id);
           if (selected) {

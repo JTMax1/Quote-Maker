@@ -12,6 +12,7 @@ import { ShareService } from '../services/shareService.js';
 import { AuthorImageModal } from './authorImageModal.js';
 import { LayoutPicker } from './layoutPicker.js';
 import { Toast } from './toast.js';
+import { escapeHtml } from '../utils/security.js';
 
 export class Editor {
   constructor(containerEl, onOpenPresets, onOpenStudio, onQuotePublished) {
@@ -222,7 +223,7 @@ export class Editor {
             </div>
 
             <div class="quote-textarea-wrap">
-              <textarea class="quote-textarea" id="quoteTextInput" rows="4" placeholder="Type or paste your quote here...">${this.state.quote}</textarea>
+              <textarea class="quote-textarea" id="quoteTextInput" rows="4" placeholder="Type or paste your quote here..." aria-label="Quote Content Textarea">${escapeHtml(this.state.quote)}</textarea>
               <div class="input-char-count" id="quoteCharCount">${this.state.quote.length} chars</div>
             </div>
           </div>
@@ -238,23 +239,23 @@ export class Editor {
 
             <div class="input-row">
               <div class="form-group">
-                <label class="form-label">Author</label>
-                <input type="text" class="form-input" id="inputAuthor" value="${this.state.author}" placeholder="Author Name" />
+                <label class="form-label" for="inputAuthor">Author</label>
+                <input type="text" class="form-input" id="inputAuthor" value="${escapeHtml(this.state.author)}" placeholder="Author Name" />
               </div>
               <div class="form-group">
-                <label class="form-label">Handle / Role</label>
-                <input type="text" class="form-input" id="inputHandle" value="${this.state.handle}" placeholder="@handle" />
+                <label class="form-label" for="inputHandle">Handle / Role</label>
+                <input type="text" class="form-input" id="inputHandle" value="${escapeHtml(this.state.handle)}" placeholder="@handle" />
               </div>
             </div>
 
             <div class="input-row">
               <div class="form-group">
-                <label class="form-label">Topic / Category</label>
-                <input type="text" class="form-input" id="inputCategory" value="${this.state.category}" placeholder="e.g. Wisdom" />
+                <label class="form-label" for="inputCategory">Topic / Category</label>
+                <input type="text" class="form-input" id="inputCategory" value="${escapeHtml(this.state.category)}" placeholder="e.g. Wisdom" />
               </div>
               <div class="form-group">
-                <label class="form-label">Date</label>
-                <input type="text" class="form-input" id="inputDate" value="${this.state.date}" placeholder="e.g. Sep 2026" />
+                <label class="form-label" for="inputDate">Date</label>
+                <input type="text" class="form-input" id="inputDate" value="${escapeHtml(this.state.date)}" placeholder="e.g. Sep 2026" />
               </div>
             </div>
 
@@ -265,8 +266,8 @@ export class Editor {
                   <span class="toggle-label">Author & Handle</span>
                   <span class="toggle-desc">Show signature name</span>
                 </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleAuthor" ${this.state.showAuthor ? 'checked' : ''} />
+                <label class="switch" for="toggleAuthor">
+                  <input type="checkbox" id="toggleAuthor" aria-label="Toggle author and handle display" ${this.state.showAuthor ? 'checked' : ''} />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -276,8 +277,8 @@ export class Editor {
                   <span class="toggle-label">Date Stamp</span>
                   <span class="toggle-desc">Show date in header</span>
                 </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleDate" ${this.state.showDate ? 'checked' : ''} />
+                <label class="switch" for="toggleDate">
+                  <input type="checkbox" id="toggleDate" aria-label="Toggle date display" ${this.state.showDate ? 'checked' : ''} />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -287,8 +288,8 @@ export class Editor {
                   <span class="toggle-label">Category Badge</span>
                   <span class="toggle-desc">Show topic badge pill</span>
                 </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleCategory" ${this.state.showCategory ? 'checked' : ''} />
+                <label class="switch" for="toggleCategory">
+                  <input type="checkbox" id="toggleCategory" aria-label="Toggle category badge display" ${this.state.showCategory ? 'checked' : ''} />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -298,8 +299,8 @@ export class Editor {
                   <span class="toggle-label">Watermark</span>
                   <span class="toggle-desc">Subtle QuoteForge brand mark</span>
                 </div>
-                <label class="switch">
-                  <input type="checkbox" id="toggleWatermark" ${this.state.showWatermark ? 'checked' : ''} />
+                <label class="switch" for="toggleWatermark">
+                  <input type="checkbox" id="toggleWatermark" aria-label="Toggle watermark brand mark" ${this.state.showWatermark ? 'checked' : ''} />
                   <span class="slider"></span>
                 </label>
               </div>

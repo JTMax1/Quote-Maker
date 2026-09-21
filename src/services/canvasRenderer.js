@@ -11,6 +11,15 @@ import { CANVAS_FORMATS, LAYOUT_STYLES, PORTRAIT_PLACEMENTS } from '../data/defa
 
 export class CanvasRenderer {
   static imageCache = new Map();
+  static MAX_CACHE_SIZE = 30;
+
+  static setCachedImage(src, img) {
+    if (this.imageCache.size >= this.MAX_CACHE_SIZE) {
+      const firstKey = this.imageCache.keys().next().value;
+      this.imageCache.delete(firstKey);
+    }
+    this.imageCache.set(src, img);
+  }
 
   static async ensureFontsLoaded(fontFamilies = []) {
     if (!document.fonts) return;
@@ -26,13 +35,19 @@ export class CanvasRenderer {
 
   static async loadImageAsync(src) {
     if (!src) return null;
-    if (this.imageCache.has(src)) return this.imageCache.get(src);
+    if (this.imageCache.has(src)) {
+      const img = this.imageCache.get(src);
+      // Refresh key for LRU order
+      this.imageCache.delete(src);
+      this.imageCache.set(src, img);
+      return img;
+    }
 
     return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        this.imageCache.set(src, img);
+        this.setCachedImage(src, img);
         resolve(img);
       };
       img.onerror = () => resolve(null);
@@ -40,7 +55,7 @@ export class CanvasRenderer {
     });
   }
 
-  static async renderToCanvas(data, targetCanvas = null) {
+  static async renderToCanvas(data, targetCanvas = null, scale = 1) {
     const {
       quote = "Your quote here...",
       author = "Author Name",
@@ -86,9 +101,12 @@ export class CanvasRenderer {
     }
 
     const canvas = targetCanvas || document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
     const ctx = canvas.getContext('2d');
+    if (scale !== 1) {
+      ctx.scale(scale, scale);
+    }
 
     // 1. Draw Canvas Background (supports all 12 blend placements + abstract patterns)
     this.drawBackground(ctx, width, height, styles, activeLayout, loadedAuthorImg, effectivePlacement);
@@ -1601,6 +1619,15 @@ export class CanvasRenderer {
       fontSize -= 3;
     }
 
+    // Safety guard: If text exceeds maxHeight even at minFontSize, clamp lines cleanly with ellipsis
+    const maxAllowedLines = Math.max(1, Math.floor(maxHeight / calculatedLineHeight));
+    if (lines.length > maxAllowedLines) {
+      lines = lines.slice(0, maxAllowedLines);
+      if (lines.length > 0) {
+        lines[lines.length - 1] = lines[lines.length - 1].replace(/[.,;:!?\s]*$/, '…');
+      }
+    }
+
     ctx.font = `600 ${fontSize}px "${fontFamily}", sans-serif`;
     ctx.fillStyle = textColor;
     ctx.textAlign = textAlign;
@@ -1748,21 +1775,34 @@ export class CanvasRenderer {
   }
 
   static wrapText(ctx, text, maxWidth) {
-    const words = text.split(/\s+/);
+    if (!text) return [];
+    // Split by explicit newline characters to preserve user stanzas and poem breaks
+    const paragraphs = String(text).split('\n');
     const lines = [];
-    let currentLine = '';
 
-    for (let i = 0; i < words.length; i++) {
-      const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = words[i];
-      } else {
-        currentLine = testLine;
+    for (let p = 0; p < paragraphs.length; p++) {
+      const paragraph = paragraphs[p].trim();
+      if (!paragraph) {
+        // Empty line preserves intentional line break
+        lines.push('');
+        continue;
       }
+
+      const words = paragraph.split(/\s+/);
+      let currentLine = '';
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = words[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
     }
-    if (currentLine) lines.push(currentLine);
     return lines;
   }
 
@@ -1782,15 +1822,15 @@ export class CanvasRenderer {
     if (stroke) ctx.stroke();
   }
 
-  static async exportBlob(data, format = 'image/png', quality = 0.95) {
-    const canvas = await this.renderToCanvas(data);
+  static async exportBlob(data, format = 'image/png', quality = 0.95, scale = 1) {
+    const canvas = await this.renderToCanvas(data, null, scale);
     return new Promise(resolve => {
       canvas.toBlob(blob => resolve(blob), format, quality);
     });
   }
 
-  static async exportDataURL(data, format = 'image/png', quality = 0.95) {
-    const canvas = await this.renderToCanvas(data);
+  static async exportDataURL(data, format = 'image/png', quality = 0.95, scale = 1) {
+    const canvas = await this.renderToCanvas(data, null, scale);
     return canvas.toDataURL(format, quality);
   }
 }

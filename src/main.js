@@ -22,6 +22,8 @@ import { CommunityView } from './components/communityView.js';
 import { TemplateStudio } from './components/templateStudio.js';
 import { Toast } from './components/toast.js';
 
+import { escapeHtml } from './utils/security.js';
+
 class App {
   constructor() {
     this.currentTab = 'editor';
@@ -34,42 +36,44 @@ class App {
     this.initComponents();
     this.bindGlobalEvents();
     this.checkOnboarding();
+    this.initServiceWorker();
   }
 
   renderAppShell() {
     const appEl = document.getElementById('app');
     const profile = StorageService.getProfile();
-    const initial = (profile.name || 'C')[0].toUpperCase();
+    const safeName = profile.name || 'C';
+    const initial = escapeHtml(safeName[0].toUpperCase());
 
     appEl.innerHTML = `
       <!-- Header -->
       <header class="app-header">
         <div class="header-container">
           <div class="brand">
-            <div class="brand-icon">❝</div>
+            <div class="brand-icon" aria-hidden="true">❝</div>
             <span class="brand-text">QuoteForge</span>
             <span class="brand-badge">Studio</span>
           </div>
 
           <!-- Navigation Tabs -->
-          <nav class="nav-tabs" id="appNavTabs">
-            <button class="tab-btn active" data-tab="editor">
+          <nav class="nav-tabs" id="appNavTabs" aria-label="Main Navigation">
+            <button class="tab-btn active" data-tab="editor" aria-label="Create Quote Editor">
               <span>✍️</span>
               <span>Create Quote</span>
             </button>
-            <button class="tab-btn" data-tab="presets">
+            <button class="tab-btn" data-tab="presets" aria-label="Browse Presets Catalog">
               <span>🎨</span>
               <span>Presets</span>
             </button>
-            <button class="tab-btn" data-tab="history">
+            <button class="tab-btn" data-tab="history" aria-label="View Saved History">
               <span>🕰</span>
               <span>History</span>
             </button>
-            <button class="tab-btn" data-tab="community">
+            <button class="tab-btn" data-tab="community" aria-label="Community Showcase Feed">
               <span>🌐</span>
               <span>Community</span>
             </button>
-            <button class="tab-btn" data-tab="studio">
+            <button class="tab-btn" data-tab="studio" aria-label="Template Studio Creator">
               <span>📐</span>
               <span>Template Studio</span>
             </button>
@@ -77,10 +81,20 @@ class App {
 
           <!-- Header Actions -->
           <div class="header-actions">
-            <button class="profile-chip" id="btnProfilePreset" title="Edit Signature Preset">
+            <button class="btn-glass" id="btnExportBackup" title="Export Quotes & Themes Backup (JSON)" aria-label="Export backup" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; border-radius: var(--radius-full);">
+              <span>💾</span>
+              <span class="desktop-only" style="margin-left: 0.25rem;">Backup</span>
+            </button>
+            <button class="btn-glass" id="btnImportBackup" title="Restore Quotes & Themes Backup (JSON)" aria-label="Restore backup" style="padding: 0.35rem 0.65rem; font-size: 0.78rem; border-radius: var(--radius-full);">
+              <span>📂</span>
+              <span class="desktop-only" style="margin-left: 0.25rem;">Restore</span>
+            </button>
+            <input type="file" id="inputRestoreJson" accept=".json,application/json" style="display: none;" aria-label="Upload backup JSON file" />
+
+            <button class="profile-chip" id="btnProfilePreset" title="Edit Signature Preset" aria-label="Edit signature profile preset">
               <div class="avatar-initial" id="headerAvatar">${initial}</div>
-              <span style="font-weight: 600;" id="headerProfileName">${profile.name || 'My Preset'}</span>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">⚙️</span>
+              <span style="font-weight: 600;" id="headerProfileName">${escapeHtml(profile.name || 'My Preset')}</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);" aria-hidden="true">⚙️</span>
             </button>
           </div>
         </div>
@@ -206,9 +220,72 @@ class App {
 
     // Profile & Preset Button
     const btnProfile = document.getElementById('btnProfilePreset');
-    btnProfile.addEventListener('click', () => {
-      this.components.onboarding.open();
-    });
+    if (btnProfile) {
+      btnProfile.addEventListener('click', () => {
+        this.components.onboarding.open();
+      });
+    }
+
+    // Export Backup JSON
+    const btnExport = document.getElementById('btnExportBackup');
+    if (btnExport) {
+      btnExport.addEventListener('click', () => {
+        const jsonStr = StorageService.exportBackupJSON();
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `quoteforge-backup-${Date.now()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        Toast.show('Exported QuoteForge backup JSON!', 'success');
+      });
+    }
+
+    // Import / Restore Backup JSON
+    const btnImport = document.getElementById('btnImportBackup');
+    const inputRestore = document.getElementById('inputRestoreJson');
+    if (btnImport && inputRestore) {
+      btnImport.addEventListener('click', () => {
+        inputRestore.click();
+      });
+
+      inputRestore.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const result = StorageService.importBackupJSON(text);
+          if (result.success) {
+            Toast.show(`Restored backup with ${result.count} quotes!`, 'success');
+            // Refresh views with restored data
+            const updatedProfile = StorageService.getProfile();
+            this.updateHeaderProfile(updatedProfile);
+            if (this.components.editor) this.components.editor.updateProfile(updatedProfile);
+            if (this.components.history) this.components.history.refresh();
+            if (this.components.presets) this.components.presets.renderCards();
+          } else {
+            Toast.show(result.error || 'Failed to parse backup JSON', 'error');
+          }
+        } catch (err) {
+          Toast.show('Error reading backup file', 'error');
+        }
+        inputRestore.value = '';
+      });
+    }
+  }
+
+  initServiceWorker() {
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.warn('Service Worker registration failed:', err);
+        });
+      });
+    }
   }
 
   switchTab(tabName) {

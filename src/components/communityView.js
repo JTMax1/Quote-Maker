@@ -7,6 +7,7 @@ import { COMMUNITY_CATEGORIES } from '../data/sampleCommunity.js';
 import { StorageService } from '../services/storageService.js';
 import { ShareService } from '../services/shareService.js';
 import { Toast } from './toast.js';
+import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
 
 export class CommunityView {
   constructor(containerEl, onRemixStyle) {
@@ -125,34 +126,41 @@ export class CommunityView {
     grid.innerHTML = filtered.map(item => {
       const styles = item.customStyles || {};
       const bg = styles.gradient || styles.background || '#18181b';
-      const color = styles.textColor || '#ffffff';
-      const font = styles.fontFamily || 'Playfair Display';
+      const color = sanitizeStyleValue(styles.textColor, '#ffffff');
+      const accent = sanitizeStyleValue(styles.accentColor, color);
+      const font = sanitizeStyleValue(styles.fontFamily, 'Playfair Display');
       const isLiked = likedIds.includes(item.id);
-      const initial = (item.creatorName || item.author || 'A')[0].toUpperCase();
+      const rawCreator = item.creatorName || item.author || 'A';
+      const initial = escapeHtml(rawCreator[0].toUpperCase());
+      const safeId = escapeHtml(item.id);
+      const safeCategory = escapeHtml(item.category || 'Wisdom');
+      const safeQuote = escapeHtml(item.quote);
+      const safeAuthor = escapeHtml(item.author || 'Anonymous');
+      const safeCreator = escapeHtml(item.creatorName || item.handle || 'Creator');
 
       return `
-        <div class="community-card" data-id="${item.id}">
+        <div class="community-card" data-id="${safeId}">
           <div class="community-preview" style="background: ${bg}; color: ${color}; font-family: '${font}', sans-serif;">
-            <span class="community-category-pill">${item.category || 'Wisdom'}</span>
-            <div class="community-quote-text">“${item.quote}”</div>
-            <div class="community-author-text" style="color: ${styles.accentColor || color}">— ${item.author}</div>
+            <span class="community-category-pill">${safeCategory}</span>
+            <div class="community-quote-text">“${safeQuote}”</div>
+            <div class="community-author-text" style="color: ${accent}">— ${safeAuthor}</div>
           </div>
 
           <div class="community-card-footer">
             <div class="creator-info">
               <div class="creator-avatar">${initial}</div>
-              <span class="creator-name">${item.creatorName || item.handle || 'Creator'}</span>
+              <span class="creator-name">${safeCreator}</span>
             </div>
 
             <div class="community-actions">
-              <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${item.id}" title="Like">
+              <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${safeId}" title="Like" aria-label="Like quote by ${safeAuthor}">
                 <span>♥</span>
-                <span class="like-count">${item.likes}</span>
+                <span class="like-count">${item.likes || 0}</span>
               </button>
-              <button class="history-action-btn btn-comm-download" data-id="${item.id}" title="Download Graphic">
+              <button class="history-action-btn btn-comm-download" data-id="${safeId}" title="Download Graphic" aria-label="Download graphic quote">
                 <span>⬇</span>
               </button>
-              <button class="btn-remix" data-id="${item.id}" title="Remix style into editor">
+              <button class="btn-remix" data-id="${safeId}" title="Remix style into editor" aria-label="Remix style into editor">
                 <span>⚡</span>
                 <span>Remix</span>
               </button>

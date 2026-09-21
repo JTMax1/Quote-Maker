@@ -6,6 +6,7 @@
 import { StorageService } from '../services/storageService.js';
 import { ShareService } from '../services/shareService.js';
 import { Toast } from './toast.js';
+import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
 
 export class HistoryView {
   constructor(containerEl, onRemixQuote, onGoToEditor) {
@@ -61,31 +62,36 @@ export class HistoryView {
           ${historyItems.map(item => {
             const styles = item.styles || {};
             const bg = styles.gradient || styles.background || '#18181b';
-            const color = styles.textColor || '#ffffff';
-            const font = styles.fontFamily || 'Playfair Display';
+            const color = sanitizeStyleValue(styles.textColor, '#ffffff');
+            const accent = sanitizeStyleValue(styles.accentColor, color);
+            const font = sanitizeStyleValue(styles.fontFamily, 'Playfair Display');
+            const safeQuote = escapeHtml(item.quote);
+            const safeAuthor = escapeHtml(item.author || 'Anonymous');
+            const safeRatio = escapeHtml(item.ratio || '1:1');
+            const safeId = escapeHtml(item.id);
 
             return `
-              <div class="history-card" data-id="${item.id}">
+              <div class="history-card" data-id="${safeId}">
                 <div class="history-preview" style="background: ${bg}; color: ${color}; font-family: '${font}', sans-serif;">
-                  <span class="history-badge-ratio">${item.ratio || '1:1'}</span>
-                  <div class="history-quote-text">“${item.quote}”</div>
-                  <div class="history-quote-author" style="color: ${styles.accentColor || color}">— ${item.author || 'Anonymous'}</div>
+                  <span class="history-badge-ratio">${safeRatio}</span>
+                  <div class="history-quote-text">“${safeQuote}”</div>
+                  <div class="history-quote-author" style="color: ${accent}">— ${safeAuthor}</div>
                 </div>
 
                 <div class="history-card-actions">
                   <div style="display: flex; gap: 0.4rem;">
-                    <button class="history-action-btn btn-redownload" data-id="${item.id}" title="Re-download">
+                    <button class="history-action-btn btn-redownload" data-id="${safeId}" title="Re-download" aria-label="Re-download quote ${safeAuthor}">
                       <span>⬇</span> Download
                     </button>
-                    <button class="history-action-btn btn-remix-hist" data-id="${item.id}" title="Load in Editor">
+                    <button class="history-action-btn btn-remix-hist" data-id="${safeId}" title="Load in Editor" aria-label="Edit quote in canvas editor">
                       <span>✏️</span> Edit
                     </button>
                   </div>
                   <div style="display: flex; gap: 0.4rem;">
-                    <button class="history-action-btn btn-publish-hist" data-id="${item.id}" title="Publish to Community">
+                    <button class="history-action-btn btn-publish-hist" data-id="${safeId}" title="Publish to Community" aria-label="Publish to community showcase">
                       <span>🌐</span>
                     </button>
-                    <button class="history-action-btn btn-delete" data-id="${item.id}" title="Delete">
+                    <button class="history-action-btn btn-delete" data-id="${safeId}" title="Delete" aria-label="Delete quote from history">
                       <span>🗑</span>
                     </button>
                   </div>

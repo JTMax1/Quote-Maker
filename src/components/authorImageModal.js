@@ -8,7 +8,9 @@
 
 import { PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
 import { BgRemoverService } from '../services/bgRemoverService.js';
+import { dbService } from '../services/dbService.js';
 import { Toast } from './toast.js';
+import { escapeHtml } from '../utils/security.js';
 
 export class AuthorImageModal {
   constructor(onApplyAuthorImage) {
@@ -31,33 +33,36 @@ export class AuthorImageModal {
     this.modalEl = document.createElement('div');
     this.modalEl.id = 'authorImageModal';
     this.modalEl.className = 'modal-backdrop';
+    this.modalEl.setAttribute('role', 'dialog');
+    this.modalEl.setAttribute('aria-modal', 'true');
+    this.modalEl.setAttribute('aria-label', 'Author Portrait & Background Remover Studio');
 
     this.modalEl.innerHTML = `
-      <div class="onboarding-card" style="max-width: 920px; max-height: 90vh;">
+      <div class="onboarding-card author-modal-card" style="max-width: 920px; max-height: 90vh;">
         <!-- Header -->
         <div class="stepper-header" style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <h2 style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-display);">Author Portrait & Background Remover Studio</h2>
             <p style="font-size: 0.82rem; color: var(--text-secondary);">Remove backgrounds with edge-preserving flood fill or select from 50 canvas placements.</p>
           </div>
-          <button class="btn-glass" id="btnCloseAuthorModal" style="padding: 0.4rem 0.8rem;">✕</button>
+          <button class="btn-glass" id="btnCloseAuthorModal" style="padding: 0.4rem 0.8rem;" aria-label="Close author studio">✕</button>
         </div>
 
         <!-- Body -->
         <div class="step-body" style="overflow-y: auto; max-height: 580px; gap: 1.5rem; padding: 1.5rem;">
           <!-- Top Section: Upload Author Photo -->
           <div class="format-card" id="uploadDropZone" style="align-items: center; text-align: center; border-style: dashed; padding: 1.5rem; justify-content: center; cursor: pointer; background: var(--bg-surface-elevated); border: 2px dashed var(--border-glass); border-radius: var(--radius-md); transition: all 0.2s ease;">
-            <span style="font-size: 2.2rem; margin-bottom: 0.35rem;">📸</span>
+            <span style="font-size: 2.2rem; margin-bottom: 0.35rem;" aria-hidden="true">📸</span>
             <div style="font-size: 1rem; font-weight: 700;">Upload Author Portrait or Subject Photo</div>
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">Drag & drop image here, or browse files (PNG, JPG, WebP)</div>
-            <input type="file" id="authorFileInput" accept="image/*" style="display: none;" />
-            <button class="btn-glass" id="btnTriggerUpload" style="margin-top: 0.75rem; font-size: 0.82rem; padding: 0.45rem 1.1rem;">
+            <input type="file" id="authorFileInput" accept="image/*" style="display: none;" aria-label="Upload author photo" />
+            <button class="btn-glass" id="btnTriggerUpload" style="margin-top: 0.75rem; font-size: 0.82rem; padding: 0.45rem 1.1rem;" aria-label="Browse image files">
               📁 Browse Image File
             </button>
           </div>
 
-          <!-- Middle Section: Intelligent Background Remover -->
-          <div style="display: grid; grid-template-columns: 280px 1fr; gap: 1.25rem; background: var(--bg-surface-elevated); border-radius: var(--radius-md); padding: 1.25rem; border: 1px solid var(--border-glass);">
+          <!-- Middle Section: Intelligent Background Remover (Responsive Grid) -->
+          <div class="remover-workbench-grid" style="background: var(--bg-surface-elevated); border-radius: var(--radius-md); padding: 1.25rem; border: 1px solid var(--border-glass);">
             <!-- Interactive Canvas Preview -->
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: repeating-conic-gradient(#27272a 0% 25%, #18181b 0% 50%) 50% / 16px 16px; border-radius: var(--radius-sm); min-height: 220px; max-height: 240px; overflow: hidden; border: 1px solid var(--border-glass); position: relative;">
               <canvas id="bgRemoverPreviewCanvas" style="max-width: 100%; max-height: 220px; object-fit: contain; cursor: crosshair;" title="Click anywhere to sample background color!"></canvas>
@@ -139,6 +144,18 @@ export class AuthorImageModal {
     this.modalEl.querySelector('#btnCloseAuthorModal').addEventListener('click', () => this.close());
     this.modalEl.querySelector('#btnCancelAuthorModal').addEventListener('click', () => this.close());
 
+    // Backdrop click dismiss
+    this.modalEl.addEventListener('click', (e) => {
+      if (e.target === this.modalEl) this.close();
+    });
+
+    // Escape key dismiss
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.modalEl.classList.contains('open')) {
+        this.close();
+      }
+    });
+
     // File Upload
     const fileInput = this.modalEl.querySelector('#authorFileInput');
     const triggerUpload = this.modalEl.querySelector('#btnTriggerUpload');
@@ -191,15 +208,21 @@ export class AuthorImageModal {
       }
     });
 
-    // Eye-dropper click on preview canvas
+    // Eye-dropper click on preview canvas with true coordinate scaling
     const canvas = this.modalEl.querySelector('#bgRemoverPreviewCanvas');
     canvas.addEventListener('click', (e) => {
       if (!this.currentImage) return;
       const rect = canvas.getBoundingClientRect();
-      const x = Math.floor(e.clientX - rect.left);
-      const y = Math.floor(e.clientY - rect.top);
+      const scaleX = canvas.width / (rect.width || 280);
+      const scaleY = canvas.height / (rect.height || 220);
+      const x = Math.max(0, Math.min(canvas.width - 1, Math.floor((e.clientX - rect.left) * scaleX)));
+      const y = Math.max(0, Math.min(canvas.height - 1, Math.floor((e.clientY - rect.top) * scaleY)));
       const ctx = canvas.getContext('2d');
       const pixel = ctx.getImageData(x, y, 1, 1).data;
+      if (pixel[3] < 15) {
+        Toast.show('Clicked outside photo area; please click on the background backdrop.', 'info');
+        return;
+      }
       this.pickedColor = { r: pixel[0], g: pixel[1], b: pixel[2] };
       Toast.show(`Sampled background color rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})!`, 'info');
       this.executeBackgroundRemoval();
@@ -270,6 +293,10 @@ export class AuthorImageModal {
     // Apply button
     this.modalEl.querySelector('#btnApplyAuthorImage').addEventListener('click', () => {
       const finalImage = this.processedDataUrl || (this.currentImage ? (this.currentImage.src || this.currentImage) : null);
+
+      if (finalImage) {
+        dbService.saveImage('author_portrait_active', finalImage).catch(() => {});
+      }
 
       if (this.onApplyAuthorImage) {
         this.onApplyAuthorImage({

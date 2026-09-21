@@ -9,11 +9,11 @@ export class ShareService {
   /**
    * Download rendered quote as PNG or WebP
    */
-  static async downloadImage(quoteData, format = 'png') {
+  static async downloadImage(quoteData, format = 'png', scale = 2) {
     try {
-      Toast.show('Generating high-res image...', 'info');
+      Toast.show('Generating 2x high-res image...', 'info');
       const mimeType = format === 'webp' ? 'image/webp' : 'image/png';
-      const blob = await CanvasRenderer.exportBlob(quoteData, mimeType);
+      const blob = await CanvasRenderer.exportBlob(quoteData, mimeType, 0.95, scale);
 
       if (!blob) {
         Toast.show('Failed to generate image', 'error');
