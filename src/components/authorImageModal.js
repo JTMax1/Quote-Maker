@@ -292,13 +292,17 @@ export class AuthorImageModal {
     }
     Toast.show('Running edge-safe background removal...', 'info');
     try {
+      if (this.lastResult) {
+        BgRemoverService.revokeResult(this.lastResult);
+      }
       const result = await BgRemoverService.removeBackground(this.currentImage, {
         tolerance: this.tolerance,
         feather: this.feather,
         pickedColor: this.pickedColor
       });
-      this.processedDataUrl = result.dataUrl;
-      const img = await BgRemoverService.loadImage(result.dataUrl);
+      this.lastResult = result;
+      this.processedDataUrl = result.objectUrl || result.dataUrl;
+      const img = await BgRemoverService.loadImage(this.processedDataUrl);
       this.drawPreview(img);
       Toast.show('Background removed! Subject protected.', 'success');
     } catch (err) {
