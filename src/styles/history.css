@@ -1,0 +1,150 @@
+/* ==========================================================================
+   QuoteForge Quote History & Archive Styles
+   ========================================================================== */
+
+.history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.history-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.history-title-wrap h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+.history-title-wrap p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.history-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.history-card:hover {
+  border-color: var(--border-glass-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.history-preview {
+  min-height: 200px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.history-quote-text {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.history-quote-author {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.history-badge-ratio {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.history-card-actions {
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-surface-elevated);
+  border-top: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.history-action-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.history-action-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
+}
+
+.history-action-btn.btn-delete:hover {
+  color: var(--brand-rose);
+  border-color: var(--brand-rose);
+}
+
+/* Empty State */
+.history-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-glass-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.empty-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 420px;
+}

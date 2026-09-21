@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Production build outputs
+dist/
+dist-ssr/
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+*.local
+.vscode/
+.idea/
+.claude/
+.gemini/
+
+# Vite & build tool caches
+.vite/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

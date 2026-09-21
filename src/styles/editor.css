@@ -1,0 +1,407 @@
+/* ==========================================================================
+   QuoteForge Live Canvas Editor Styles
+   ========================================================================== */
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Canvas Stage Area */
+.canvas-stage-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* Format & Aspect Ratio Switcher */
+.ratio-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-surface);
+  padding: 0.35rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.ratio-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.ratio-chip:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-elevated);
+}
+
+.ratio-chip.active {
+  background: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--brand-primary-glow);
+}
+
+.ratio-icon {
+  font-size: 0.9rem;
+}
+
+/* Responsive Canvas Frame Container */
+.canvas-viewport-card {
+  width: 100%;
+  min-height: 520px;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.canvas-frame {
+  position: relative;
+  max-width: 520px;
+  max-height: 580px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-bounce);
+}
+
+/* High-DPI Output Canvas element */
+#previewCanvas {
+  max-width: 100%;
+  max-height: 540px;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  object-fit: contain;
+  transition: transform var(--transition-normal);
+}
+
+#previewCanvas:hover {
+  transform: scale(1.01);
+}
+
+/* Quick Action Bar under Canvas */
+.canvas-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px var(--brand-primary-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--brand-primary-glow);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--brand-accent) 0%, #0891b2 100%);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px var(--brand-accent-glow);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--brand-accent-glow);
+}
+
+.btn-glass {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-glass:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-glass-strong);
+  transform: translateY(-2px);
+}
+
+/* Controls Side Panel */
+.editor-controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.control-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.control-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-primary);
+}
+
+.inspire-btn {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--brand-primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.inspire-btn:hover {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+/* Quote Input Box */
+.quote-textarea-wrap {
+  position: relative;
+}
+
+.quote-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+
+.quote-textarea:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.quote-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.input-char-count {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Compact input row */
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+
+.form-input:focus {
+  border-color: var(--brand-primary);
+}
+
+/* Toggle Switches */
+.toggles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.toggle-item:last-child {
+  border-bottom: none;
+}
+
+.toggle-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggle-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toggle-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Modern iOS-style Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass-strong);
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-secondary);
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+  background-color: #ffffff;
+}
+
+/* Active Theme Card Pill */
+.active-theme-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-surface-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.theme-pill-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-preview-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-title-text {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.theme-subtitle-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

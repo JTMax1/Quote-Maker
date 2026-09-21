@@ -1,0 +1,156 @@
+/* ==========================================================================
+   QuoteForge Preset Template Library Styles
+   Hundreds of Style Variations with Live Theme Cards
+   ========================================================================== */
+
+.presets-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.presets-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Category Filter Chips */
+.category-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  max-width: 100%;
+}
+
+.category-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.category-chip:hover {
+  border-color: var(--border-glass-strong);
+  color: var(--text-primary);
+}
+
+.category-chip.active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 10px var(--brand-primary-glow);
+}
+
+/* Preset Cards Grid */
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1.5rem;
+}
+
+.preset-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.preset-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-glass-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.preset-card.active-theme {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--brand-primary);
+}
+
+/* Preset Visual Preview Box */
+.preset-preview-box {
+  height: 180px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.preset-quote-sample {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  max-width: 90%;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.preset-author-sample {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  opacity: 0.85;
+}
+
+/* Preset Card Info Footer */
+.preset-card-footer {
+  padding: 1rem 1.25rem;
+  background: var(--bg-surface-elevated);
+  border-top: 1px solid var(--border-glass);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preset-name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.preset-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.preset-card-font {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.btn-apply-theme {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass-strong);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+}
+
+.btn-apply-theme:hover {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+}

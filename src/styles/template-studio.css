@@ -1,0 +1,176 @@
+/* ==========================================================================
+   QuoteForge Template Studio Styles
+   Design & Publish Custom Theme Templates
+   ========================================================================== */
+
+.studio-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .studio-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.studio-controls-pane {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.studio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.section-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Color Picker Row */
+.color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.color-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.color-input-item label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.color-swatch-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border-glass-strong);
+  cursor: pointer;
+  background: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+.color-swatch-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-swatch-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+/* Gradient Preset Swatches */
+.gradient-swatches-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.gradient-swatch-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-glass);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.gradient-swatch-btn:hover {
+  transform: scale(1.1);
+  border-color: #ffffff;
+}
+
+/* Border Styles Selector */
+.option-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.option-chip-btn {
+  padding: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.option-chip-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-glass-strong);
+}
+
+.option-chip-btn.active {
+  background: var(--brand-primary);
+  color: #ffffff;
+  border-color: var(--brand-primary);
+}
+
+/* Studio Preview Pane */
+.studio-preview-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  position: sticky;
+  top: 90px;
+}
+
+.studio-canvas-mockup {
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  transition: all var(--transition-normal);
+}
+
+.studio-quote-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+}
+
+.studio-author-text {
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
