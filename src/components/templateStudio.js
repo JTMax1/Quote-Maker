@@ -5,7 +5,8 @@
  * full Typography & Google Fonts Studio integration, and Watermark & Branding Suite.
  */
 
-import { FONT_FAMILIES, PRESET_CATEGORIES, LAYOUT_STYLES, PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
+import { FONT_FAMILIES, PRESET_CATEGORIES, LAYOUT_STYLES, PORTRAIT_PLACEMENTS, CANVAS_FORMATS } from '../data/defaultPresets.js';
+import { PRESET_AUTHOR_PORTRAITS } from '../data/authorCutouts.js';
 import { StorageService } from '../services/storageService.js';
 import { Toast } from './toast.js';
 import confetti from 'canvas-confetti';
@@ -14,11 +15,15 @@ import { FontLoaderService } from '../services/fontLoaderService.js';
 import { FontPickerModal } from './fontPickerModal.js';
 import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS } from '../services/brandingService.js';
 import { escapeHtml } from '../utils/security.js';
+import { CanvasRenderer } from '../services/canvasRenderer.js';
 
 export class TemplateStudio {
   constructor(containerEl, onTemplatePublished) {
     this.containerEl = containerEl;
     this.onTemplatePublished = onTemplatePublished;
+    this.currentPreviewRatio = '1:1';
+    this.sampleAuthorImage = PRESET_AUTHOR_PORTRAITS[1]?.imageUrl || PRESET_AUTHOR_PORTRAITS[0]?.imageUrl;
+    this.renderDebounceTimer = null;
 
     this.template = {
       name: 'Geometric Cyber Velvet',
@@ -90,7 +95,7 @@ export class TemplateStudio {
     this.containerEl.innerHTML = `
       <div class="studio-layout">
         <!-- Controls Pane -->
-        <div class="studio-controls-pane" style="max-height: 85vh; overflow-y: auto; padding-right: 0.5rem;">
+        <div class="studio-controls-pane">
           <div style="border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
             <h2 style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-display); margin-bottom: 0.25rem;">Theme Template Studio</h2>
             <p style="font-size: 0.85rem; color: var(--text-secondary);">Craft custom aesthetic themes with abstract geometry, curated typography, and custom branding, then publish to Presets.</p>
@@ -150,24 +155,71 @@ export class TemplateStudio {
             <div class="color-picker-grid">
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorBg" value="${this.template.background}" aria-label="Background Color" />
-                <label for="colorBg">Background</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                  <label for="colorBg">Background</label>
+                  <span class="color-hex-tag" id="hexBg">${this.template.background}</span>
+                </div>
               </div>
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorText" value="${this.template.textColor}" aria-label="Quote Text Color" />
-                <label for="colorText">Text</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                  <label for="colorText">Text</label>
+                  <span class="color-hex-tag" id="hexText">${this.template.textColor}</span>
+                </div>
               </div>
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorAccent" value="${this.template.accentColor}" aria-label="Accent Color" />
-                <label for="colorAccent">Accent</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                  <label for="colorAccent">Accent</label>
+                  <span class="color-hex-tag" id="hexAccent">${this.template.accentColor}</span>
+                </div>
               </div>
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorMeta" value="${this.template.metaColor}" aria-label="Secondary Meta Color" />
-                <label for="colorMeta">Secondary</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                  <label for="colorMeta">Secondary</label>
+                  <span class="color-hex-tag" id="hexMeta">${this.template.metaColor}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Curated Aesthetic Color Palettes -->
+            <div style="margin-top: 0.65rem;">
+              <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Curated Aesthetic Color Schemes:</span>
+              <div class="curated-palettes-row" id="curatedPalettesRow" role="group" aria-label="Curated color schemes">
+                <button type="button" class="palette-preset-chip" data-bg="#0a0d14" data-text="#ffffff" data-accent="#38bdf8" data-meta="#94a3b8" title="Cyber Velvet">
+                  <span class="palette-chip-dot" style="background: #38bdf8;"></span>
+                  <span>Cyber Velvet</span>
+                </button>
+                <button type="button" class="palette-preset-chip" data-bg="#0f172a" data-text="#f8fafc" data-accent="#f59e0b" data-meta="#94a3b8" title="Midnight Amber">
+                  <span class="palette-chip-dot" style="background: #f59e0b;"></span>
+                  <span>Midnight Amber</span>
+                </button>
+                <button type="button" class="palette-preset-chip" data-bg="#18181b" data-text="#fafafa" data-accent="#a855f7" data-meta="#a1a1aa" title="Deep Amethyst">
+                  <span class="palette-chip-dot" style="background: #a855f7;"></span>
+                  <span>Deep Amethyst</span>
+                </button>
+                <button type="button" class="palette-preset-chip" data-bg="#064e3b" data-text="#ecfdf5" data-accent="#34d399" data-meta="#a7f3d0" title="Emerald Luxe">
+                  <span class="palette-chip-dot" style="background: #34d399;"></span>
+                  <span>Emerald Luxe</span>
+                </button>
+                <button type="button" class="palette-preset-chip" data-bg="#1c1917" data-text="#fef3c7" data-accent="#fbbf24" data-meta="#d6d3d1" title="Warm Editorial">
+                  <span class="palette-chip-dot" style="background: #fbbf24;"></span>
+                  <span>Warm Editorial</span>
+                </button>
+                <button type="button" class="palette-preset-chip" data-bg="#450a0a" data-text="#fff1f2" data-accent="#f43f5e" data-meta="#fecdd3" title="Crimson Noir">
+                  <span class="palette-chip-dot" style="background: #f43f5e;"></span>
+                  <span>Crimson Noir</span>
+                </button>
+                <button type="button" class="palette-preset-chip" data-bg="#f8fafc" data-text="#0f172a" data-accent="#2563eb" data-meta="#64748b" title="Pure Modern">
+                  <span class="palette-chip-dot" style="background: #2563eb;"></span>
+                  <span>Pure Modern</span>
+                </button>
               </div>
             </div>
 
             <!-- Gradient Presets Quick Swatches -->
-            <div style="margin-top: 0.5rem;">
+            <div style="margin-top: 0.65rem;">
               <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 0.4rem;">Or Choose Background Gradient:</span>
               <div class="gradient-swatches-row" id="gradientSwatches" role="group" aria-label="Gradient color presets">
                 <button type="button" class="gradient-swatch-btn" data-grad="" style="background: ${this.template.background};" title="Solid" aria-label="Solid background"></button>
@@ -407,28 +459,21 @@ export class TemplateStudio {
 
         <!-- Studio Preview Pane -->
         <div class="studio-preview-pane">
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
-            Live Template Preview
+          <div class="studio-preview-header">
+            <span class="studio-preview-title">
+              <span class="studio-preview-dot"></span>
+              Live Canvas Engine Preview
+            </span>
+            <div class="studio-ratio-switcher" id="studioRatioSwitcher" role="radiogroup" aria-label="Aspect ratio">
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '1:1' ? 'active' : ''}" data-ratio="1:1" role="radio" aria-checked="${this.currentPreviewRatio === '1:1'}">1:1 Square</button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '9:16' ? 'active' : ''}" data-ratio="9:16" role="radio" aria-checked="${this.currentPreviewRatio === '9:16'}">9:16 Story</button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '4:5' ? 'active' : ''}" data-ratio="4:5" role="radio" aria-checked="${this.currentPreviewRatio === '4:5'}">4:5 Post</button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '16:9' ? 'active' : ''}" data-ratio="16:9" role="radio" aria-checked="${this.currentPreviewRatio === '16:9'}">16:9 Wide</button>
+            </div>
           </div>
 
-          <div class="studio-canvas-mockup" id="studioMockup" style="background: ${this.template.gradient || this.template.background}; color: ${this.template.textColor}; position: relative; overflow: hidden;">
-            <!-- Abstract Geometry Preview Canvas Overlay -->
-            <canvas id="mockupPatternCanvas" width="480" height="480" style="position: absolute; inset: 0; pointer-events: none; z-index: 1;"></canvas>
-
-            <!-- Live Watermark Overlay inside Canvas Mockup -->
-            <div class="studio-watermark-overlay" id="mockupWatermarkOverlay" data-pos="${this.template.brandingPosition || 'bottom-right'}"></div>
-
-            <!-- Content -->
-            <div style="position: relative; z-index: 2; width: 100%;" id="mockupContentBox">
-              <div id="mockupQuoteMarkTop" style="font-size: 2.5rem; line-height: 1; opacity: 0.5; margin-bottom: 0.25rem;">“</div>
-              <div class="studio-quote-text" id="mockupQuoteText">
-                Creativity is intelligence having fun.
-              </div>
-              <div id="mockupQuoteMarkBottom" style="font-size: 2.5rem; line-height: 1; opacity: 0.5; display: none;">”</div>
-              <div class="studio-author-text" id="mockupAuthorText" style="color: ${this.template.accentColor}; margin-top: 0.75rem;">
-                — Albert Einstein
-              </div>
-            </div>
+          <div class="studio-canvas-container" id="studioCanvasContainer">
+            <canvas id="studioLiveCanvas"></canvas>
           </div>
         </div>
       </div>
@@ -454,11 +499,51 @@ export class TemplateStudio {
     });
     layoutSelect?.addEventListener('change', (e) => {
       this.template.layoutId = e.target.value;
-      this.updateMockup();
+      const selectedLayout = LAYOUT_STYLES.find(l => l.id === e.target.value);
+      if (selectedLayout && selectedLayout.portraitPlacement) {
+        this.template.portraitPlacement = selectedLayout.portraitPlacement;
+        if (placementSelect) {
+          placementSelect.value = selectedLayout.portraitPlacement;
+        }
+      }
+      this.scheduleRender();
     });
     placementSelect?.addEventListener('change', (e) => {
       this.template.portraitPlacement = e.target.value;
-      this.updateMockup();
+      this.scheduleRender();
+    });
+
+    // Preview Aspect Ratio Switcher
+    const ratioSwitcher = this.containerEl.querySelector('#studioRatioSwitcher');
+    ratioSwitcher?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.studio-ratio-btn');
+      if (!btn) return;
+      ratioSwitcher.querySelectorAll('.studio-ratio-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      this.currentPreviewRatio = btn.dataset.ratio || '1:1';
+      this.scheduleRender();
+    });
+
+    // Curated Aesthetic Palettes
+    const curatedRow = this.containerEl.querySelector('#curatedPalettesRow');
+    curatedRow?.addEventListener('click', (e) => {
+      const chip = e.target.closest('.palette-preset-chip');
+      if (!chip) return;
+      curatedRow.querySelectorAll('.palette-preset-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      this.template.background = chip.dataset.bg;
+      this.template.textColor = chip.dataset.text;
+      this.template.accentColor = chip.dataset.accent;
+      this.template.borderColor = chip.dataset.accent;
+      this.template.metaColor = chip.dataset.meta;
+      this.template.gradient = null;
+      this.updateColorInputs();
+      this.scheduleRender();
+      Toast.show(`Applied ${chip.title} color scheme`, 'info');
     });
 
     // Abstract Pattern Selection
@@ -469,7 +554,7 @@ export class TemplateStudio {
       patternGrid.querySelectorAll('.option-chip-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       this.template.abstractPattern = btn.dataset.pattern || null;
-      this.updateMockup();
+      this.scheduleRender();
     });
 
     // Colors
@@ -481,20 +566,28 @@ export class TemplateStudio {
     colorBg?.addEventListener('input', (e) => {
       this.template.background = e.target.value;
       this.template.gradient = null;
-      this.updateMockup();
+      const hex = this.containerEl.querySelector('#hexBg');
+      if (hex) hex.textContent = e.target.value;
+      this.scheduleRender();
     });
     colorText?.addEventListener('input', (e) => {
       this.template.textColor = e.target.value;
-      this.updateMockup();
+      const hex = this.containerEl.querySelector('#hexText');
+      if (hex) hex.textContent = e.target.value;
+      this.scheduleRender();
     });
     colorAccent?.addEventListener('input', (e) => {
       this.template.accentColor = e.target.value;
       this.template.borderColor = e.target.value;
-      this.updateMockup();
+      const hex = this.containerEl.querySelector('#hexAccent');
+      if (hex) hex.textContent = e.target.value;
+      this.scheduleRender();
     });
     colorMeta?.addEventListener('input', (e) => {
       this.template.metaColor = e.target.value;
-      this.updateMockup();
+      const hex = this.containerEl.querySelector('#hexMeta');
+      if (hex) hex.textContent = e.target.value;
+      this.scheduleRender();
     });
 
     // Gradient swatches
@@ -502,8 +595,10 @@ export class TemplateStudio {
     gradSwatches?.addEventListener('click', (e) => {
       const btn = e.target.closest('.gradient-swatch-btn');
       if (!btn) return;
+      gradSwatches.querySelectorAll('.gradient-swatch-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       this.template.gradient = btn.dataset.grad || null;
-      this.updateMockup();
+      this.scheduleRender();
     });
 
     // Typography Studio controls
@@ -789,367 +884,96 @@ export class TemplateStudio {
     }
   }
 
-  updateWatermarkMockup() {
-    const overlay = this.containerEl.querySelector('#mockupWatermarkOverlay');
-    if (!overlay) return;
+  updateColorInputs() {
+    const colorBg = this.containerEl.querySelector('#colorBg');
+    const colorText = this.containerEl.querySelector('#colorText');
+    const colorAccent = this.containerEl.querySelector('#colorAccent');
+    const colorMeta = this.containerEl.querySelector('#colorMeta');
 
-    if (!this.template.showWatermark) {
-      overlay.style.display = 'none';
-      return;
+    const hexBg = this.containerEl.querySelector('#hexBg');
+    const hexText = this.containerEl.querySelector('#hexText');
+    const hexAccent = this.containerEl.querySelector('#hexAccent');
+    const hexMeta = this.containerEl.querySelector('#hexMeta');
+
+    if (colorBg && this.template.background) colorBg.value = this.template.background;
+    if (colorText && this.template.textColor) colorText.value = this.template.textColor;
+    if (colorAccent && this.template.accentColor) colorAccent.value = this.template.accentColor;
+    if (colorMeta && this.template.metaColor) colorMeta.value = this.template.metaColor;
+
+    if (hexBg) hexBg.textContent = this.template.background;
+    if (hexText) hexText.textContent = this.template.textColor;
+    if (hexAccent) hexAccent.textContent = this.template.accentColor;
+    if (hexMeta) hexMeta.textContent = this.template.metaColor;
+  }
+
+  scheduleRender() {
+    if (this.renderDebounceTimer) {
+      clearTimeout(this.renderDebounceTimer);
     }
+    this.renderDebounceTimer = setTimeout(() => {
+      this.executeRender();
+    }, 16);
+  }
 
-    overlay.style.display = 'flex';
-    overlay.dataset.pos = this.template.brandingPosition || 'bottom-right';
-    overlay.style.opacity = this.template.brandingOpacity ?? 0.85;
+  async executeRender() {
+    const canvas = this.containerEl.querySelector('#studioLiveCanvas');
+    if (!canvas) return;
 
-    const style = this.template.brandingStyle || 'pill-badge';
-    const watermarkText = this.template.watermark || 'QuoteForge';
-    const handleText = this.template.brandingHandle || '@quoteforge';
-    const logoUrl = this.template.brandingLogo;
-    const accentColor = this.template.accentColor || 'var(--brand-primary)';
+    const renderData = {
+      quote: "Creativity is intelligence having fun.",
+      author: "Albert Einstein",
+      handle: this.template.brandingHandle || "@quoteforge",
+      category: "Wisdom",
+      date: "Sep 2026",
+      watermark: this.template.watermark || "QuoteForge Studio",
+      showAuthor: true,
+      showDate: true,
+      showCategory: true,
+      showWatermark: !!this.template.showWatermark,
+      brandingStyle: this.template.brandingStyle || 'pill-badge',
+      brandingPosition: this.template.brandingPosition || 'bottom-right',
+      brandingOpacity: this.template.brandingOpacity ?? 0.85,
+      brandingLogo: this.template.brandingLogo || null,
+      brandingHandle: this.template.brandingHandle || '@quoteforge',
+      showAuthorImage: this.template.portraitPlacement && this.template.portraitPlacement !== 'none',
+      authorImage: this.sampleAuthorImage,
+      authorImagePlacement: this.template.portraitPlacement || 'cutout-right',
+      layoutId: this.template.layoutId || 'classic-centered',
+      ratio: this.currentPreviewRatio || '1:1',
+      styles: {
+        background: this.template.background || '#0a0d14',
+        textColor: this.template.textColor || '#ffffff',
+        accentColor: this.template.accentColor || '#38bdf8',
+        metaColor: this.template.metaColor || '#94a3b8',
+        cardBackground: this.template.cardBackground || 'rgba(255, 255, 255, 0.06)',
+        borderStyle: this.template.borderStyle || 'neon-glow',
+        borderColor: this.template.borderColor || this.template.accentColor || '#38bdf8',
+        fontFamily: this.template.fontFamily || 'Space Grotesk',
+        authorFontFamily: this.template.authorFontFamily || 'Plus Jakarta Sans',
+        textAlign: this.template.textAlign || 'center',
+        fontWeight: this.template.fontWeight || 600,
+        quoteMarkStyle: this.template.quoteMarkStyle || 'classic',
+        cardStyle: this.template.cardStyle || 'glass',
+        abstractPattern: this.template.abstractPattern || null,
+        gradient: this.template.gradient || null,
+        badgeStyle: this.template.badgeStyle || 'neon-pill',
+        letterSpacing: this.template.letterSpacing || '0.02em',
+        lineHeight: this.template.lineHeight || 1.45
+      }
+    };
 
-    if (style === 'pill-badge') {
-      const displayText = handleText || watermarkText;
-      overlay.innerHTML = `
-        <div class="studio-watermark-badge">
-          ${logoUrl ? `<img src="${logoUrl}" class="studio-watermark-badge-logo" alt="Logo" />` : `<span style="color: ${accentColor};">${icon('sparkles', { size: 12 })}</span>`}
-          <span class="studio-watermark-badge-text" style="color: ${this.template.textColor};">${escapeHtml(displayText)}</span>
-        </div>
-      `;
-    } else if (style === 'logo-handle') {
-      overlay.innerHTML = `
-        <div class="studio-watermark-badge">
-          ${logoUrl ? `<img src="${logoUrl}" class="studio-watermark-badge-logo" alt="Logo" />` : `<span style="color: ${accentColor};">${icon('shield', { size: 12 })}</span>`}
-          <span class="studio-watermark-badge-text" style="color: ${this.template.textColor};">${escapeHtml(handleText || watermarkText)}</span>
-        </div>
-      `;
-    } else if (style === 'logo-emblem') {
-      overlay.innerHTML = `
-        <div class="studio-watermark-badge" style="padding: 0.35rem 0.5rem;">
-          ${logoUrl ? `<img src="${logoUrl}" class="studio-watermark-badge-logo" style="width: 20px; height: 20px;" alt="Logo" />` : `<span style="color: ${accentColor}; font-weight: 800; font-size: 0.85rem;">QF</span>`}
-        </div>
-      `;
-    } else {
-      // subtle-text
-      overlay.innerHTML = `
-        <span class="studio-watermark-subtle" style="color: ${this.template.textColor}; opacity: 0.85;">${escapeHtml(watermarkText)}</span>
-      `;
+    try {
+      await CanvasRenderer.renderToCanvas(renderData, canvas, 1);
+    } catch (err) {
+      console.warn('Template Studio live preview render error:', err);
     }
   }
 
   updateMockup() {
-    const mockup = this.containerEl.querySelector('#studioMockup');
-    const quote = this.containerEl.querySelector('#mockupQuoteText');
-    const author = this.containerEl.querySelector('#mockupAuthorText');
-    const qmTop = this.containerEl.querySelector('#mockupQuoteMarkTop');
-    const qmBottom = this.containerEl.querySelector('#mockupQuoteMarkBottom');
-    const patternCanvas = this.containerEl.querySelector('#mockupPatternCanvas');
+    this.scheduleRender();
+  }
 
-    if (!mockup) return;
-
-    const quoteStack = FontLoaderService.getFallbackStack(this.template.fontFamily || 'Space Grotesk');
-    const authorStack = FontLoaderService.getFallbackStack(this.template.authorFontFamily || 'Plus Jakarta Sans');
-
-    mockup.style.background = this.template.gradient || this.template.background;
-    mockup.style.color = this.template.textColor;
-
-    if (quote) {
-      quote.style.fontFamily = quoteStack;
-      quote.style.fontWeight = this.template.fontWeight || 600;
-      quote.style.textAlign = this.template.textAlign || 'center';
-    }
-
-    if (author) {
-      author.style.fontFamily = authorStack;
-      author.style.color = this.template.accentColor;
-      author.style.textAlign = this.template.textAlign || 'center';
-    }
-
-    // Quote Marks live reactivity
-    if (qmTop) {
-      if (this.template.quoteMarkStyle === 'classic') {
-        qmTop.style.display = 'block';
-        qmTop.textContent = '“';
-        qmTop.style.color = this.template.accentColor;
-        qmTop.style.fontFamily = 'Playfair Display, serif';
-      } else if (this.template.quoteMarkStyle === 'modern-brackets') {
-        qmTop.style.display = 'block';
-        qmTop.textContent = '//';
-        qmTop.style.color = this.template.accentColor;
-        qmTop.style.fontFamily = 'Space Mono, monospace';
-      } else if (this.template.quoteMarkStyle === 'minimal-dash') {
-        qmTop.style.display = 'block';
-        qmTop.textContent = '—';
-        qmTop.style.color = this.template.accentColor;
-      } else if (this.template.quoteMarkStyle === 'decorative-stars') {
-        qmTop.style.display = 'block';
-        qmTop.textContent = '✦  ✦  ✦';
-        qmTop.style.fontSize = '1.2rem';
-        qmTop.style.color = this.template.accentColor;
-      } else {
-        qmTop.style.display = 'none';
-      }
-    }
-
-    // Border preview
-    if (this.template.borderStyle === 'double') {
-      mockup.style.border = `4px double ${this.template.borderColor || 'rgba(255,255,255,0.3)'}`;
-      mockup.style.boxShadow = 'none';
-    } else if (this.template.borderStyle === 'neon-glow') {
-      mockup.style.border = `2px solid ${this.template.accentColor}`;
-      mockup.style.boxShadow = `0 0 30px ${this.template.accentColor}44`;
-    } else if (this.template.borderStyle === 'brutalist-solid') {
-      mockup.style.border = `4px solid #000000`;
-      mockup.style.boxShadow = `12px 12px 0px #000000`;
-    } else if (this.template.borderStyle === 'polaroid') {
-      mockup.style.border = `12px solid #ffffff`;
-      mockup.style.boxShadow = `0 20px 40px rgba(0,0,0,0.2)`;
-    } else if (this.template.borderStyle === 'none') {
-      mockup.style.border = 'none';
-      mockup.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.6)';
-    } else {
-      mockup.style.border = `1px solid rgba(255,255,255,0.15)`;
-      mockup.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.6)';
-    }
-
-    // Update live watermark overlay on mockup
-    this.updateWatermarkMockup();
-
-
-    // Draw pattern on mockup overlay canvas
-    if (patternCanvas) {
-      const pctx = patternCanvas.getContext('2d');
-      pctx.clearRect(0, 0, 480, 480);
-      if (this.template.abstractPattern) {
-        pctx.strokeStyle = this.template.accentColor || '#6366f1';
-        pctx.lineWidth = 1.4;
-        pctx.globalAlpha = 0.22;
-
-        if (this.template.abstractPattern === 'orbital-rings') {
-          for (let r = 50; r <= 220; r += 45) {
-            pctx.beginPath();
-            pctx.arc(360, 160, r, 0, Math.PI * 2);
-            pctx.stroke();
-          }
-          pctx.beginPath();
-          pctx.ellipse(190, 290, 160, 70, Math.PI / 4, 0, Math.PI * 2);
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'fibonacci') {
-          let r = 10;
-          pctx.beginPath();
-          pctx.moveTo(260, 240);
-          for (let a = 0; a < Math.PI * 4; a += 0.1) {
-            r = 10 * Math.exp(0.18 * a);
-            pctx.lineTo(260 + r * Math.cos(a), 240 + r * Math.sin(a));
-          }
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'zen-waves') {
-          for (let y = 280; y < 480; y += 30) {
-            pctx.beginPath();
-            pctx.moveTo(0, y);
-            for (let x = 0; x <= 480; x += 20) {
-              pctx.lineTo(x, y + Math.sin(x * 0.03) * 12);
-            }
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'sunburst') {
-          for (let a = 0; a < Math.PI; a += Math.PI / 12) {
-            pctx.beginPath();
-            pctx.moveTo(240, 0);
-            pctx.lineTo(240 + Math.cos(a) * 500, Math.sin(a) * 500);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'diagonal-hatch') {
-          for (let p = -480; p < 960; p += 26) {
-            pctx.beginPath();
-            pctx.moveTo(p, 0);
-            pctx.lineTo(p + 480, 480);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'mandala') {
-          const cx = 240, cy = 240;
-          for (let i = 0; i < 8; i++) {
-            const ang = (i * Math.PI) / 4;
-            pctx.beginPath();
-            pctx.arc(cx + Math.cos(ang) * 45, cy + Math.sin(ang) * 45, 70, 0, Math.PI * 2);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'celestial') {
-          const cx = 360, cy = 120;
-          pctx.beginPath();
-          pctx.arc(cx, cy, 90, 0, Math.PI * 2);
-          pctx.stroke();
-          pctx.beginPath();
-          pctx.arc(cx, cy, 120, 0, Math.PI * 2);
-          pctx.stroke();
-          pctx.beginPath();
-          pctx.moveTo(cx - 150, cy);
-          pctx.lineTo(cx + 150, cy);
-          pctx.moveTo(cx, cy - 150);
-          pctx.lineTo(cx, cy + 150);
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'isometric') {
-          const spacing = 32;
-          for (let x = -480; x < 960; x += spacing) {
-            pctx.beginPath();
-            pctx.moveTo(x, 0);
-            pctx.lineTo(x + 480 * 0.577, 480);
-            pctx.stroke();
-            pctx.beginPath();
-            pctx.moveTo(x, 0);
-            pctx.lineTo(x - 480 * 0.577, 480);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'topography') {
-          for (let y = 90; y <= 450; y += 40) {
-            pctx.beginPath();
-            pctx.moveTo(0, y);
-            pctx.bezierCurveTo(120, y - 25, 360, y + 25, 480, y);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'perspective') {
-          const vpX = 240, vpY = 220;
-          for (let x = 0; x <= 480; x += 45) {
-            pctx.beginPath();
-            pctx.moveTo(vpX, vpY);
-            pctx.lineTo(x, 480);
-            pctx.stroke();
-          }
-          for (let y = vpY + 20; y <= 480; y += 28) {
-            pctx.beginPath();
-            pctx.moveTo(0, y);
-            pctx.lineTo(480, y);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'sacred-polygon') {
-          const cx = 240, cy = 240;
-          [40, 80, 120, 160].forEach(r => {
-            pctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const ang = (i * Math.PI) / 3;
-              const px = cx + r * Math.cos(ang);
-              const py = cy + r * Math.sin(ang);
-              if (i === 0) pctx.moveTo(px, py);
-              else pctx.lineTo(px, py);
-            }
-            pctx.closePath();
-            pctx.stroke();
-          });
-          pctx.beginPath();
-          pctx.arc(cx, cy, 180, 0, Math.PI * 2);
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'cyber-matrix') {
-          for (let x = 30; x <= 450; x += 45) {
-            pctx.beginPath();
-            pctx.moveTo(x, 0);
-            pctx.lineTo(x, 480);
-            pctx.stroke();
-            for (let y = 30; y <= 450; y += 45) {
-              pctx.strokeRect(x - 2, y - 2, 4, 4);
-            }
-          }
-        } else if (this.template.abstractPattern === 'constellation') {
-          const nodes = [
-            [80, 70], [160, 130], [280, 90], [390, 60],
-            [120, 260], [220, 210], [340, 280], [420, 200],
-            [90, 390], [200, 420], [310, 370], [400, 410]
-          ];
-          nodes.forEach(([x, y]) => {
-            pctx.beginPath();
-            pctx.arc(x, y, 3.5, 0, Math.PI * 2);
-            pctx.stroke();
-          });
-          pctx.beginPath();
-          nodes.forEach(([x, y], idx) => {
-            if (idx % 2 === 0 && nodes[idx + 1]) {
-              pctx.moveTo(x, y);
-              pctx.lineTo(nodes[idx + 1][0], nodes[idx + 1][1]);
-            }
-          });
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'retro-synthwave') {
-          const horizonY = 280;
-          for (let x = -200; x <= 680; x += 55) {
-            pctx.beginPath();
-            pctx.moveTo(240, horizonY);
-            pctx.lineTo(x, 480);
-            pctx.stroke();
-          }
-          for (let y = horizonY + 20; y <= 480; y += (y - horizonY) * 0.45 + 10) {
-            pctx.beginPath();
-            pctx.moveTo(0, y);
-            pctx.lineTo(480, y);
-            pctx.stroke();
-          }
-          for (let r = 40; r <= 100; r += 20) {
-            pctx.beginPath();
-            pctx.arc(240, horizonY, r, Math.PI, 0);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'voronoi-mesh') {
-          const points = [[60, 60], [240, 40], [420, 80], [120, 240], [240, 200], [380, 230], [80, 420], [250, 440], [410, 400]];
-          for (let i = 0; i < points.length; i++) {
-            for (let j = i + 1; j < points.length; j++) {
-              const d = Math.hypot(points[i][0] - points[j][0], points[i][1] - points[j][1]);
-              if (d < 190) {
-                pctx.beginPath();
-                pctx.moveTo(points[i][0], points[i][1]);
-                pctx.lineTo(points[j][0], points[j][1]);
-                pctx.stroke();
-              }
-            }
-          }
-        } else if (this.template.abstractPattern === 'hypercube') {
-          const cx = 240, cy = 240, s1 = 80, s2 = 40;
-          pctx.strokeRect(cx - s1, cy - s1, s1 * 2, s1 * 2);
-          pctx.strokeRect(cx - s2, cy - s2, s2 * 2, s2 * 2);
-          pctx.beginPath();
-          pctx.moveTo(cx - s1, cy - s1); pctx.lineTo(cx - s2, cy - s2);
-          pctx.moveTo(cx + s1, cy - s1); pctx.lineTo(cx + s2, cy - s2);
-          pctx.moveTo(cx + s1, cy + s1); pctx.lineTo(cx + s2, cy + s2);
-          pctx.moveTo(cx - s1, cy + s1); pctx.lineTo(cx - s2, cy + s2);
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'arch-deco') {
-          for (let r = 50; r <= 260; r += 28) {
-            pctx.beginPath();
-            pctx.arc(240, 460, r, Math.PI, 0);
-            pctx.stroke();
-          }
-        } else if (this.template.abstractPattern === 'bauhaus-diagonals') {
-          pctx.beginPath();
-          pctx.moveTo(0, 0); pctx.lineTo(480, 480);
-          pctx.moveTo(0, 240); pctx.lineTo(240, 480);
-          pctx.moveTo(240, 0); pctx.lineTo(480, 240);
-          pctx.stroke();
-          pctx.beginPath();
-          pctx.arc(140, 340, 40, 0, Math.PI * 2);
-          pctx.arc(340, 140, 60, 0, Math.PI * 2);
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'quantum-field') {
-          pctx.beginPath();
-          for (let t = 0; t < Math.PI * 8; t += 0.05) {
-            const x = 240 + 160 * Math.sin(3 * t);
-            const y = 240 + 160 * Math.sin(4 * t);
-            if (t === 0) pctx.moveTo(x, y);
-            else pctx.lineTo(x, y);
-          }
-          pctx.stroke();
-        } else if (this.template.abstractPattern === 'soundwave-radar') {
-          const cx = 240, cy = 240;
-          for (let r = 40; r <= 220; r += 36) {
-            pctx.beginPath();
-            pctx.arc(cx, cy, r, 0, Math.PI * 2);
-            pctx.stroke();
-          }
-          pctx.beginPath();
-          for (let x = 40; x <= 440; x += 8) {
-            const h = Math.sin(x * 0.08) * 22 * Math.exp(-Math.abs(x - 240) / 120);
-            pctx.moveTo(x, 240 - h);
-            pctx.lineTo(x, 240 + h);
-          }
-          pctx.stroke();
-        }
-      }
-    }
+  updateWatermarkMockup() {
+    this.scheduleRender();
   }
 }

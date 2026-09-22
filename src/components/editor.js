@@ -129,6 +129,9 @@ export class Editor {
     if (preset.layoutId) {
       this.state.layoutId = preset.layoutId;
     }
+    if (preset.portraitPlacement) {
+      this.state.authorImagePlacement = preset.portraitPlacement;
+    }
     if (preset.fontFamily) {
       this.state.styles.fontFamily = preset.fontFamily;
     }
