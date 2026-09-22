@@ -26,6 +26,7 @@ export class FontPickerModal {
     this.observer = null;
 
     this.modalEl = null;
+    FontLoaderService.ensureCatalogLoaded();
     this.render();
   }
 
@@ -143,6 +144,10 @@ export class FontPickerModal {
 
     // Mode 1: Curated Font Pairings
     if (this.selectedCategory === 'pairings') {
+      const pairingPreview = this.previewWithQuote && this.currentQuoteText
+        ? (this.currentQuoteText.length > 70 ? this.currentQuoteText.slice(0, 68) + '…' : this.currentQuoteText)
+        : null;
+
       grid.innerHTML = FONT_PAIRINGS.map(p => `
         <div class="pairing-card" 
              data-pairing-id="${p.id}"
@@ -151,15 +156,18 @@ export class FontPickerModal {
              aria-label="Apply ${p.name} font pairing"
              style="background: var(--bg-surface-elevated); border: 1px solid var(--border-glass-strong); border-radius: var(--radius-md); padding: 1.1rem; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem; transition: all var(--transition-fast); grid-column: span 1;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--brand-primary);">${escapeHtml(p.name)}</div>
-            <span class="tab-badge" style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.18); color: var(--brand-primary);">PAIRING</span>
+            <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+              <span style="font-weight: 700; font-size: 0.95rem; color: var(--brand-primary);">${escapeHtml(p.name)}</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">(${escapeHtml(p.quoteFont)} + ${escapeHtml(p.authorFont)})</span>
+            </div>
+            <span class="tab-badge" style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.18); color: var(--brand-primary); flex-shrink: 0;">PAIRING</span>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 0.4rem; background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
-            <div style="font-family: ${FontLoaderService.getFallbackStack(p.quoteFont)}; font-size: 1.2rem; font-weight: 600; color: var(--text-primary); line-height: 1.3;">
-              “${escapeHtml(this.currentQuoteText ? (this.currentQuoteText.length > 60 ? this.currentQuoteText.slice(0, 58) + '…' : this.currentQuoteText) : 'Great things never came from comfort zones.')}”
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+            <div style="font-family: ${FontLoaderService.getFallbackStack(p.quoteFont)}; font-size: 1.25rem; font-weight: 600; color: var(--text-primary); line-height: 1.35; word-break: break-word;">
+              “${escapeHtml(pairingPreview || 'Great things never came from comfort zones.')}”
             </div>
-            <div style="font-family: ${FontLoaderService.getFallbackStack(p.authorFont)}; font-size: 0.82rem; font-weight: 600; color: var(--brand-accent);">
+            <div style="font-family: ${FontLoaderService.getFallbackStack(p.authorFont)}; font-size: 0.88rem; font-weight: 600; color: var(--brand-accent);">
               — Seneca (@stoicwisdom)
             </div>
           </div>
@@ -218,25 +226,32 @@ export class FontPickerModal {
       const fallbackStack = FontLoaderService.getFallbackStack(f.family);
       const displayText = previewText || f.sample;
 
+      // Match exact registered weights so browser never skips custom font
+      const titleWeight = f.weights.includes(600) ? 600 : (f.weights.includes(700) ? 700 : f.weights[0]);
+      const specimenWeight = f.weights.includes(400) ? 400 : (f.weights.includes(500) ? 500 : f.weights[0]);
+
       return `
         <div class="font-sample-card ${isSelected ? 'selected' : ''}" 
              data-family="${escapeHtml(f.family)}"
              tabindex="0"
              role="button"
              aria-label="Select ${escapeHtml(f.family)} font"
-             style="background: var(--bg-surface-elevated); border: 1px solid ${isSelected ? 'var(--brand-primary)' : 'var(--border-glass)'}; border-radius: var(--radius-md); padding: 1rem; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem; transition: all var(--transition-fast); box-shadow: ${isSelected ? '0 0 0 1px var(--brand-primary), 0 4px 14px rgba(99, 102, 241, 0.25)' : 'none'};">
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <span style="font-size: 0.9rem; font-weight: 700; color: ${isSelected ? 'var(--brand-primary)' : 'var(--text-primary)'};">${escapeHtml(f.family)}</span>
-            <span class="tab-badge" style="font-size: 0.65rem; text-transform: uppercase; padding: 0.15rem 0.45rem;">${escapeHtml(f.category)}</span>
+             style="background: var(--bg-surface-elevated); border: 1px solid ${isSelected ? 'var(--brand-primary)' : 'var(--border-glass)'}; border-radius: var(--radius-md); padding: 1.1rem; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem; transition: all var(--transition-fast); box-shadow: ${isSelected ? '0 0 0 1px var(--brand-primary), 0 4px 14px rgba(99, 102, 241, 0.25)' : 'none'};">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem;">
+            <span class="font-card-title-preview" 
+                  style="font-family: ${fallbackStack}; font-weight: ${titleWeight}; font-size: 1.1rem; color: ${isSelected ? 'var(--brand-primary)' : 'var(--text-primary)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.01em;">
+              ${escapeHtml(f.family)}
+            </span>
+            <span class="tab-badge" style="font-size: 0.65rem; text-transform: uppercase; padding: 0.15rem 0.45rem; flex-shrink: 0;">${escapeHtml(f.category)}</span>
           </div>
           
           <div class="font-preview-specimen" 
-               style="font-family: ${fallbackStack}; font-size: 1.22rem; line-height: 1.35; color: var(--text-secondary); min-height: 52px; display: flex; align-items: center; overflow: hidden; text-overflow: ellipsis;">
+               style="font-family: ${fallbackStack}; font-weight: ${specimenWeight}; font-size: 1.25rem; line-height: 1.4; color: var(--text-secondary); min-height: 56px; display: flex; align-items: center; word-break: break-word;">
             “${escapeHtml(displayText)}”
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem;">
-            <span style="font-size: 0.7rem; color: var(--text-muted);">${f.weights.length} weights</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted);">${f.weights.length} weights (${f.weights.join(', ')})</span>
             <span style="font-size: 0.76rem; font-weight: 600; color: ${isSelected ? 'var(--brand-primary)' : 'var(--text-muted)'}; display: flex; align-items: center; gap: 0.25rem;">
               ${isSelected ? icon('check', { size: 12 }) + ' Active' : 'Apply'}
             </span>
@@ -244,6 +259,14 @@ export class FontPickerModal {
         </div>
       `;
     }).join('');
+
+    // Preload font binaries for displayed cards
+    filtered.forEach(f => {
+      const weight = f.weights.includes(400) ? 400 : f.weights[0];
+      if (document.fonts && document.fonts.load) {
+        document.fonts.load(`${weight} 16px "${f.family}"`).catch(() => {});
+      }
+    });
 
     // Attach IntersectionObserver for lazy on-demand network loading
     grid.querySelectorAll('.font-sample-card').forEach(card => {
@@ -352,7 +375,10 @@ export class FontPickerModal {
   open(activeFont = 'Plus Jakarta Sans', target = 'quote', quoteText = '', initialCategory = null) {
     this.activeFont = activeFont;
     this.currentTarget = target;
-    if (quoteText) this.currentQuoteText = quoteText;
+    if (quoteText && quoteText.trim() !== '') {
+      this.currentQuoteText = quoteText;
+    }
+    FontLoaderService.ensureCatalogLoaded();
 
     if (initialCategory) {
       this.selectedCategory = initialCategory;

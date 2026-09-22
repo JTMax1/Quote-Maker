@@ -314,8 +314,8 @@ export class Editor {
               <div class="typography-row">
                 <div class="typography-info">
                   <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Quote Typeface</span>
-                  <span class="typography-font-name" id="lblQuoteFontName">${escapeHtml(this.state.styles.fontFamily || 'Playfair Display')}</span>
-                  <span class="typography-sample-text" id="lblQuoteFontSample" style="font-family: '${escapeHtml(this.state.styles.fontFamily || 'Playfair Display')}', serif;">“${escapeHtml(this.state.quote ? (this.state.quote.length > 32 ? this.state.quote.slice(0, 30) + '…' : this.state.quote) : 'Typography Preview')}”</span>
+                  <span class="typography-font-name" id="lblQuoteFontName" style="font-family: ${FontLoaderService.getFallbackStack(this.state.styles.fontFamily || 'Playfair Display')}; font-size: 1.05rem;">${escapeHtml(this.state.styles.fontFamily || 'Playfair Display')}</span>
+                  <span class="typography-sample-text" id="lblQuoteFontSample" style="font-family: ${FontLoaderService.getFallbackStack(this.state.styles.fontFamily || 'Playfair Display')};">“${escapeHtml(this.state.quote ? (this.state.quote.length > 32 ? this.state.quote.slice(0, 30) + '…' : this.state.quote) : 'Typography Preview')}”</span>
                 </div>
                 <button class="btn-glass" id="btnChangeQuoteFont" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;" aria-label="Change quote font">
                   Change
@@ -326,8 +326,8 @@ export class Editor {
               <div class="typography-row">
                 <div class="typography-info">
                   <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Author Signature Typeface</span>
-                  <span class="typography-font-name" id="lblAuthorFontName">${escapeHtml(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')}</span>
-                  <span class="typography-sample-text" id="lblAuthorFontSample" style="font-family: '${escapeHtml(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')}', sans-serif;">— ${escapeHtml(this.state.author || 'Author Signature')}</span>
+                  <span class="typography-font-name" id="lblAuthorFontName" style="font-family: ${FontLoaderService.getFallbackStack(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')}; font-size: 1.05rem;">${escapeHtml(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')}</span>
+                  <span class="typography-sample-text" id="lblAuthorFontSample" style="font-family: ${FontLoaderService.getFallbackStack(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')};">— ${escapeHtml(this.state.author || 'Author Signature')}</span>
                 </div>
                 <button class="btn-glass" id="btnChangeAuthorFont" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;" aria-label="Change author signature font">
                   Change
@@ -625,6 +625,7 @@ export class Editor {
     quoteText.addEventListener('input', (e) => {
       this.state.quote = e.target.value;
       charCount.textContent = `${e.target.value.length} chars`;
+      this.updateTypographyUI();
       this.scheduleRender();
     });
 
@@ -660,6 +661,7 @@ export class Editor {
 
     authorInput.addEventListener('input', (e) => {
       this.state.author = e.target.value;
+      this.updateTypographyUI();
       this.scheduleRender();
     });
     handleInput.addEventListener('input', (e) => {
@@ -1137,20 +1139,28 @@ export class Editor {
   updateTypographyUI() {
     const quoteFont = this.state.styles.fontFamily || 'Playfair Display';
     const authorFont = this.state.styles.authorFontFamily || 'Plus Jakarta Sans';
+    const quoteStack = FontLoaderService.getFallbackStack(quoteFont);
+    const authorStack = FontLoaderService.getFallbackStack(authorFont);
 
     const lblQuote = this.containerEl.querySelector('#lblQuoteFontName');
     const lblAuthor = this.containerEl.querySelector('#lblAuthorFontName');
     const sampleQuote = this.containerEl.querySelector('#lblQuoteFontSample');
     const sampleAuthor = this.containerEl.querySelector('#lblAuthorFontSample');
 
-    if (lblQuote) lblQuote.textContent = quoteFont;
-    if (lblAuthor) lblAuthor.textContent = authorFont;
+    if (lblQuote) {
+      lblQuote.textContent = quoteFont;
+      lblQuote.style.fontFamily = quoteStack;
+    }
+    if (lblAuthor) {
+      lblAuthor.textContent = authorFont;
+      lblAuthor.style.fontFamily = authorStack;
+    }
     if (sampleQuote) {
-      sampleQuote.style.fontFamily = `'${quoteFont}', serif`;
+      sampleQuote.style.fontFamily = quoteStack;
       sampleQuote.textContent = `“${this.state.quote ? (this.state.quote.length > 32 ? this.state.quote.slice(0, 30) + '…' : this.state.quote) : 'Typography Preview'}”`;
     }
     if (sampleAuthor) {
-      sampleAuthor.style.fontFamily = `'${authorFont}', sans-serif`;
+      sampleAuthor.style.fontFamily = authorStack;
       sampleAuthor.textContent = `— ${this.state.author || 'Author Signature'}`;
     }
 

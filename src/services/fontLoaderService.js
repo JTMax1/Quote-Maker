@@ -139,15 +139,54 @@ export class FontLoaderService {
   ]);
 
   static loadingPromises = new Map();
+  static catalogLoaded = false;
+
+  /**
+   * Ensure Google Fonts catalog stylesheets covering all 48 curated typefaces
+   * are active in the document head for immediate availability.
+   */
+  static ensureCatalogLoaded() {
+    if (this.catalogLoaded) return;
+    this.catalogLoaded = true;
+
+    if (typeof document === 'undefined') return;
+
+    const families = CURATED_FONTS.map(f => {
+      const weights = f.weights.join(';');
+      return `family=${f.family.replace(/ /g, '+')}:wght@${weights}`;
+    });
+
+    const mid = Math.ceil(families.length / 2);
+    const chunk1 = families.slice(0, mid).join('&');
+    const chunk2 = families.slice(mid).join('&');
+
+    const urls = [
+      `https://fonts.googleapis.com/css2?${chunk1}&display=swap`,
+      `https://fonts.googleapis.com/css2?${chunk2}&display=swap`
+    ];
+
+    urls.forEach((url, idx) => {
+      const linkId = `gf-catalog-chunk-${idx}`;
+      if (!document.getElementById(linkId)) {
+        const link = document.createElement('link');
+        link.id = linkId;
+        link.rel = 'stylesheet';
+        link.href = url;
+        document.head.appendChild(link);
+      }
+    });
+
+    CURATED_FONTS.forEach(f => this.loadedFonts.add(f.family));
+  }
 
   /**
    * Return category-aware CSS font fallback stack for bulletproof rendering.
-   * Prevents destructive character kerning and baseline reflow during font transitions.
+   * Prevents competing web font collision and avoids destructive baseline reflow.
    * @param {string} family Font family
    * @returns {string} Font stack string
    */
   static getFallbackStack(family) {
-    if (!family) return '"Plus Jakarta Sans", sans-serif';
+    if (!family) return '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
     const cleanFamily = family.trim().replace(/^['"]|['"]$/g, '');
     const meta = CURATED_FONTS.find(f => f.family.toLowerCase() === cleanFamily.toLowerCase());
     const category = meta?.category || 'sans';
@@ -155,14 +194,14 @@ export class FontLoaderService {
     switch (category) {
       case 'editorial':
       case 'serif':
-        return `"${cleanFamily}", "Playfair Display", Georgia, "Times New Roman", serif`;
+        return `"${cleanFamily}", Georgia, "Times New Roman", serif`;
       case 'handwriting':
-        return `"${cleanFamily}", "Caveat", "Brush Script MT", cursive`;
+        return `"${cleanFamily}", "Brush Script MT", cursive, sans-serif`;
       case 'mono':
-        return `"${cleanFamily}", "Space Mono", "Courier New", monospace`;
+        return `"${cleanFamily}", "Courier New", monospace`;
       case 'sans':
       default:
-        return `"${cleanFamily}", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        return `"${cleanFamily}", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
     }
   }
 
@@ -176,8 +215,12 @@ export class FontLoaderService {
     if (!family) return true;
     const cleanFamily = family.trim().replace(/^['"]|['"]$/g, '');
 
+    this.ensureCatalogLoaded();
+
     if (this.loadedFonts.has(cleanFamily)) {
-      return true;
+      if (document.fonts && document.fonts.check && document.fonts.check(`16px "${cleanFamily}"`)) {
+        return true;
+      }
     }
 
     if (this.loadingPromises.has(cleanFamily)) {
@@ -188,12 +231,12 @@ export class FontLoaderService {
       try {
         const fontMeta = CURATED_FONTS.find(f => f.family.toLowerCase() === cleanFamily.toLowerCase());
         const weights = fontMeta?.weights || [400, 600, 700];
-        const weightParam = weights.join(';');
-        const encodedFamily = encodeURIComponent(cleanFamily);
-        const url = `https://fonts.googleapis.com/css2?family=${encodedFamily}:wght@${weightParam}&display=swap`;
 
+        // Ensure standalone stylesheet link as fallback
         const linkId = `gf-link-${cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
         if (!document.getElementById(linkId)) {
+          const weightParam = weights.join(';');
+          const url = `https://fonts.googleapis.com/css2?family=${cleanFamily.replace(/ /g, '+')}:wght@${weightParam}&display=swap`;
           const link = document.createElement('link');
           link.id = linkId;
           link.rel = 'stylesheet';
