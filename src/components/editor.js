@@ -267,25 +267,25 @@ export class Editor {
           </div>
 
           <!-- Canvas Card Container -->
-          <div class="canvas-viewport-card">
-            <div class="canvas-frame" id="canvasFrame">
+          <div class="canvas-viewport-card" id="canvasViewportCard">
+            <div class="canvas-frame" id="canvasFrame" tabindex="0" role="button" aria-label="Click to expand quote preview image" title="Click to expand full image">
               <canvas id="previewCanvas" aria-label="Rendered Quote Preview Canvas" role="img"></canvas>
+              <div class="canvas-expand-hint" id="canvasExpandHint" aria-hidden="true">
+                <span aria-hidden="true">${icon('maximize2', { size: 12 })}</span>
+                <span>Expand</span>
+              </div>
             </div>
           </div>
 
-          <!-- Consolidated Primary Action Bar: Download, Share, and More Options -->
+          <!-- Consolidated Primary Action Bar: Export and Share -->
           <div class="canvas-actions-bar consolidated-actions-bar" id="canvasActionsBar">
-            <button type="button" class="btn-primary action-download-btn" id="btnMainDownload" aria-label="Download Image">
-              <span aria-hidden="true">${icon('download', { size: 15 })}</span>
-              <span id="lblMainDownloadText">Download</span>
-              <span class="action-format-badge" id="lblFormatBadge">${this.exportFormat.toUpperCase()} 2x</span>
+            <button type="button" class="btn-primary action-export-btn" id="btnMainExport" aria-label="Export Quote Graphic (Open Export and Share Options)">
+              <span aria-hidden="true">${icon('download', { size: 16 })}</span>
+              <span>Export</span>
             </button>
             <button type="button" class="btn-glass action-share-btn" id="btnMainShare" aria-label="Share Quote Graphic">
-              <span aria-hidden="true">${icon('share', { size: 15 })}</span>
+              <span aria-hidden="true">${icon('share', { size: 16 })}</span>
               <span>Share</span>
-            </button>
-            <button type="button" class="btn-glass action-more-btn" id="btnOpenExportSheet" aria-label="More Export and Publishing Options" title="More export options">
-              <span aria-hidden="true">${icon('moreHorizontal', { size: 16 })}</span>
             </button>
           </div>
         </div>
@@ -781,10 +781,46 @@ export class Editor {
           </div>
         </div>
       </div>
+
+      <!-- Expanded Full-Screen Image Preview Modal -->
+      <div class="preview-expand-backdrop" id="previewExpandBackdrop" hidden role="dialog" aria-modal="true" aria-labelledby="lblExpandBadge">
+        <div class="preview-expand-container">
+          <!-- Floating Header Bar -->
+          <div class="preview-expand-header">
+            <div class="preview-expand-info">
+              <span class="preview-expand-badge" id="lblExpandBadge">${(this.state.ratio || '1:1').toUpperCase()}</span>
+              <span class="preview-expand-meta" id="lblExpandMeta">High Resolution Preview</span>
+            </div>
+            <div class="preview-expand-actions">
+              <button type="button" class="btn-primary preview-expand-action-btn" id="btnExpandExport" aria-label="Export quote image">
+                <span aria-hidden="true">${icon('download', { size: 14 })}</span>
+                <span>Export</span>
+              </button>
+              <button type="button" class="btn-glass preview-expand-action-btn" id="btnExpandShare" aria-label="Share quote image">
+                <span aria-hidden="true">${icon('share', { size: 14 })}</span>
+                <span>Share</span>
+              </button>
+              <button type="button" class="preview-expand-close-btn" id="btnCloseExpandPreview" aria-label="Close expanded preview" title="Close (Esc)">
+                <span aria-hidden="true">${icon('x', { size: 18 })}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Stage in Expanded View -->
+          <div class="preview-expand-stage" id="previewExpandStage">
+            <canvas id="expandedPreviewCanvas" aria-label="Full-screen expanded quote image"></canvas>
+          </div>
+
+          <!-- Bottom Hint -->
+          <div class="preview-expand-footer">
+            <span>Tap outside or press <kbd>Esc</kbd> to close</span>
+          </div>
+        </div>
+      </div>
     `;
 
-    // Ensure mini-pip dock, rail drawer, and export sheet are attached to document.body for true global viewport floating
-    ['miniPipDock', 'studioRailDrawerBackdrop', 'exportSheetBackdrop'].forEach(id => {
+    // Ensure mini-pip dock, rail drawer, export sheet, and expand modal are attached to document.body for true global viewport floating
+    ['miniPipDock', 'studioRailDrawerBackdrop', 'exportSheetBackdrop', 'previewExpandBackdrop'].forEach(id => {
       const el = this.containerEl.querySelector(`#${id}`);
       if (el) {
         const existing = document.getElementById(id);
@@ -1162,12 +1198,15 @@ export class Editor {
       ro.observe(headerEl);
     }
 
-    // Primary Canvas Action Bar Handlers (Download & Share)
+    // Primary Canvas Action Bar Handlers (Export & Share)
     const executeDownload = () => {
       this.saveToHistorySilent();
       ShareService.downloadImage(this.state, this.exportFormat);
       this.closeExportSheet();
     };
+
+    const btnMainExport = this.containerEl.querySelector('#btnMainExport') || this.containerEl.querySelector('#btnOpenExportSheet');
+    if (btnMainExport) btnMainExport.addEventListener('click', () => this.openExportSheet());
 
     const btnMainDownload = this.containerEl.querySelector('#btnMainDownload');
     if (btnMainDownload) btnMainDownload.addEventListener('click', executeDownload);
@@ -1179,6 +1218,55 @@ export class Editor {
         ShareService.shareQuote(this.state);
       });
     }
+
+    // Expand Preview Handlers
+    const canvasFrame = this.containerEl.querySelector('#canvasFrame');
+    const btnCloseExpand = document.getElementById('btnCloseExpandPreview');
+    const expandBackdrop = document.getElementById('previewExpandBackdrop');
+    const btnExpandExport = document.getElementById('btnExpandExport');
+    const btnExpandShare = document.getElementById('btnExpandShare');
+
+    if (canvasFrame) {
+      canvasFrame.addEventListener('click', () => this.openExpandedPreview());
+      canvasFrame.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.openExpandedPreview();
+        }
+      });
+    }
+
+    if (btnCloseExpand) btnCloseExpand.addEventListener('click', () => this.closeExpandedPreview());
+    if (expandBackdrop) {
+      expandBackdrop.addEventListener('click', (e) => {
+        if (e.target === expandBackdrop || e.target.classList.contains('preview-expand-container') || e.target.classList.contains('preview-expand-stage')) {
+          this.closeExpandedPreview();
+        }
+      });
+    }
+
+    if (btnExpandExport) {
+      btnExpandExport.addEventListener('click', () => {
+        this.closeExpandedPreview();
+        this.openExportSheet();
+      });
+    }
+
+    if (btnExpandShare) {
+      btnExpandShare.addEventListener('click', () => {
+        this.saveToHistorySilent();
+        ShareService.shareQuote(this.state);
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const backdrop = document.getElementById('previewExpandBackdrop');
+        if (backdrop && !backdrop.hidden) {
+          this.closeExpandedPreview();
+        }
+      }
+    });
 
     // Consolidated Export Sheet Handlers
     const btnOpenExport = this.containerEl.querySelector('#btnOpenExportSheet');
@@ -1566,6 +1654,39 @@ export class Editor {
     const pipDock = document.getElementById('miniPipDock');
     if (pipCanvas && (this.mobileEditorLayout === 'pip' || (pipDock && pipDock.classList.contains('pip-active')))) {
       await CanvasRenderer.renderToCanvas(this.state, pipCanvas);
+    }
+
+    const expandBackdrop = document.getElementById('previewExpandBackdrop');
+    const expandedCanvas = document.getElementById('expandedPreviewCanvas');
+    if (expandBackdrop && !expandBackdrop.hidden && expandedCanvas) {
+      await CanvasRenderer.renderToCanvas(this.state, expandedCanvas);
+    }
+  }
+
+  async openExpandedPreview() {
+    const backdrop = document.getElementById('previewExpandBackdrop');
+    if (!backdrop) return;
+
+    backdrop.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    const badge = document.getElementById('lblExpandBadge');
+    const meta = document.getElementById('lblExpandMeta');
+    const curFormat = CANVAS_FORMATS.find(f => f.id === this.state.ratio) || CANVAS_FORMATS[0];
+    if (badge) badge.textContent = curFormat ? curFormat.label : (this.state.ratio || '1:1').toUpperCase();
+    if (meta) meta.textContent = curFormat ? `${curFormat.width} × ${curFormat.height}px HD` : 'High Resolution Preview';
+
+    const expandedCanvas = document.getElementById('expandedPreviewCanvas');
+    if (expandedCanvas) {
+      await CanvasRenderer.renderToCanvas(this.state, expandedCanvas);
+    }
+  }
+
+  closeExpandedPreview() {
+    const backdrop = document.getElementById('previewExpandBackdrop');
+    if (backdrop) {
+      backdrop.hidden = true;
+      document.body.style.overflow = '';
     }
   }
 
