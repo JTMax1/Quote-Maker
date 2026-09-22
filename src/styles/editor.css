@@ -217,31 +217,63 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   width: 100%;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
-.export-main-trigger {
-  flex: 1;
-  max-width: 260px;
-  justify-content: center;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.92rem;
+.action-download-btn {
+  flex: 1 1 auto;
+  min-height: 42px;
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: var(--radius-full);
 }
 
-.export-quick-download {
-  padding: 0.75rem 1.15rem;
-  font-size: 0.85rem;
+.action-format-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.12rem 0.42rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  letter-spacing: 0.03em;
+}
+
+.action-share-btn {
+  flex: 1 1 auto;
+  min-height: 42px;
+  padding: 0.55rem 1rem;
+  font-size: 0.86rem;
   font-weight: 600;
-  border-color: var(--border-glass-strong);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
+  border-radius: var(--radius-full);
+}
+
+.action-more-btn {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+}
+
+.action-more-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-glass-strong);
 }
 
 /* Consolidated Export & Share Bottom Sheet Modal */
@@ -529,55 +561,97 @@
   color: var(--text-muted);
 }
 
-/* Consolidated Mobile Canvas Utility Bar */
-.mobile-canvas-utility-bar {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.4rem 0.6rem;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-full);
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto 0.5rem auto;
-  box-sizing: border-box;
-  position: sticky;
-  top: 60px;
-  z-index: 35;
-}
-
-.compact-ratio-selector {
+/* Canvas Top Utility Bar (Inside Canvas Stage Area) */
+.canvas-top-utility-bar {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ratio-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   background: var(--bg-surface);
   border-radius: var(--radius-full);
-  padding: 0.15rem;
+  padding: 0.2rem 0.3rem;
   border: 1px solid var(--border-glass);
 }
 
-.compact-ratio-btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.72rem;
-  font-weight: 700;
+.ratio-chip {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  font-weight: 600;
   border-radius: var(--radius-full);
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  white-space: nowrap;
 }
 
-.compact-ratio-btn.active {
+.ratio-chip:hover {
+  color: var(--text-primary);
+}
+
+.ratio-chip.active {
   background: var(--brand-primary);
   color: #ffffff;
+  box-shadow: 0 2px 8px var(--brand-primary-glow);
+}
+
+/* Layout Selection Tool Card (50 Layouts) */
+.layout-selection-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--bg-surface-elevated);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.layout-strip-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.layout-thumb-box {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.layout-title-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layout-subtitle-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
 }
 
 .compact-util-btn {
@@ -1084,24 +1158,37 @@ input:checked + .slider:before {
     white-space: nowrap;
   }
 
-  .canvas-actions-bar {
-    gap: 0.5rem;
-    width: 100%;
+  .canvas-actions-bar.consolidated-actions-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
   }
 
-  .canvas-actions-bar button {
-    flex: 1 1 calc(50% - 0.5rem);
-    min-height: 44px;
-    padding: 0.55rem 0.75rem;
-    font-size: 0.82rem;
-    justify-content: center;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+  .canvas-actions-bar.consolidated-actions-bar .action-download-btn {
+    flex: 1 1 auto !important;
+    min-height: 40px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.82rem !important;
   }
 
-  .canvas-actions-bar #btnDownload {
-    flex: 1 1 100%;
+  .canvas-actions-bar.consolidated-actions-bar .action-share-btn {
+    flex: 1 1 auto !important;
+    min-height: 40px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .canvas-actions-bar.consolidated-actions-bar .action-more-btn {
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
   }
 
   #btnPublish {
@@ -1190,36 +1277,35 @@ input:checked + .slider:before {
   }
 
   /* -------------------------------------------------------------
-     OPTION A: Pinned Top Canvas (Canva / CapCut mobile style) - DEFAULT
+     OPTION A: Pinned Top Canvas - DEFAULT
      ------------------------------------------------------------- */
   .mobile-layout-pinned #editorLayoutRoot {
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 64px);
-    overflow: hidden;
-    gap: 0;
+    width: 100%;
+    position: relative;
   }
 
   .mobile-layout-pinned .canvas-stage-wrapper {
-    flex: 0 0 auto;
-    height: 38vh;
-    max-height: 320px;
-    min-height: 220px;
-    padding: 0.35rem 0.75rem;
-    background: var(--bg-page);
+    position: sticky;
+    top: var(--header-height, 98px);
+    z-index: 35;
+    background: rgba(11, 15, 23, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-glass-strong);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+    padding: 0.4rem 0.65rem 0.55rem 0.65rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--border-glass-strong);
-    position: relative;
-    z-index: 20;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    gap: 0.35rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .mobile-layout-pinned .canvas-viewport-card {
-    height: 100%;
-    max-height: 100%;
+    height: auto;
     padding: 0;
     background: transparent;
     border: none;
@@ -1227,36 +1313,44 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 0;
+    width: 100%;
   }
 
   .mobile-layout-pinned .canvas-frame {
-    max-height: 100%;
-    max-width: 100%;
+    height: auto;
+    max-height: 22vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
   }
 
   .mobile-layout-pinned .canvas-frame canvas {
-    max-height: 32vh !important;
+    max-height: 22vh !important;
     width: auto !important;
+    max-width: 100% !important;
     object-fit: contain;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     border-radius: var(--radius-md);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
   }
 
   .mobile-layout-pinned .canvas-actions-bar {
-    display: none; /* Replaced by top utility bar and sheet */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    margin-top: 0.35rem;
+    gap: 0.45rem;
   }
 
   .mobile-layout-pinned .editor-controls-panel {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0.75rem 0.5rem 5rem 0.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: 1rem;
+    padding: 1rem 0 5rem 0;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* -------------------------------------------------------------
@@ -1434,30 +1528,31 @@ input:checked + .slider:before {
 /* Floating Mini-PiP Dock for Option C */
 .mini-pip-dock {
   display: none;
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.25rem;
-  z-index: 120;
-  background: rgba(15, 23, 42, 0.92);
+  position: fixed !important;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  right: 1rem !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  background: rgba(15, 23, 42, 0.96);
   border: 2px solid var(--brand-primary);
   border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px var(--brand-primary-glow);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 0.4rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 24px var(--brand-primary-glow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 0.45rem;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
   cursor: pointer;
-  transition: transform var(--transition-fast);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .mini-pip-dock:hover {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .mini-pip-dock.pip-active {
-  display: flex;
+  display: flex !important;
 }
 
 .mini-pip-header {

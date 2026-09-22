@@ -2,6 +2,22 @@
    QuoteForge App Layout & Navigation Styles
    ========================================================================== */
 
+:root {
+  --header-height: 62px;
+}
+
+@media (max-width: 960px) {
+  :root {
+    --header-height: 98px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --header-height: 94px;
+  }
+}
+
 #app {
   position: relative;
   z-index: 1;
@@ -284,21 +300,19 @@
 /* View Containers */
 .view-panel {
   display: none;
-  animation: fadeIn 0.3s ease-in-out forwards;
+  animation: viewFadeIn 0.22s ease-in-out forwards;
 }
 
 .view-panel.active {
   display: block;
 }
 
-@keyframes fadeIn {
+@keyframes viewFadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 

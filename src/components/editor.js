@@ -223,75 +223,43 @@ export class Editor {
     const currentLayout = LAYOUT_STYLES.find(l => l.id === this.state.layoutId) || LAYOUT_STYLES[0];
 
     this.containerEl.innerHTML = `
-      <!-- Consolidated Mobile Canvas Utility Bar -->
-      <div class="mobile-canvas-utility-bar" id="mobileCanvasUtilityBar">
-        <!-- Aspect Ratio Quick Pill Selector -->
-        <div class="compact-ratio-selector" id="compactRatioSelector" role="radiogroup" aria-label="Canvas Aspect Ratio">
-          ${CANVAS_FORMATS.map(f => `
-            <button type="button" class="compact-ratio-btn ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}" role="radio" aria-checked="${this.state.ratio === f.id}" title="${f.label} (${f.sublabel})" aria-label="${f.label} ratio">
-              <span aria-hidden="true">${icon(f.icon || 'square', { size: 11 })}</span>
-              <span>${f.id}</span>
-            </button>
-          `).join('')}
-        </div>
-
-        <!-- 50 Layouts Trigger Pill -->
-        <button type="button" class="compact-util-btn" id="btnCompactLayouts" aria-label="Choose Canvas Layout">
-          <span aria-hidden="true">${icon('layout', { size: 12 })}</span>
-          <span id="lblCompactLayoutName">${currentLayout.name.split(' ')[0]}</span>
-          <span class="compact-badge">50</span>
-        </button>
-
-        <!-- Mobile Layout Architecture Switcher (Options A, B, C) -->
-        <div class="compact-mode-menu-wrapper">
-          <button type="button" class="compact-util-btn" id="btnMobileLayoutModeToggle" aria-label="Switch Mobile Editor Layout (Options A, B, C)" aria-haspopup="true" aria-expanded="false">
-            <span aria-hidden="true">${icon('smartphone', { size: 12 })}</span>
-            <span id="lblCurrentMobileLayoutMode">${this.mobileEditorLayout === 'rail' ? 'Rail' : (this.mobileEditorLayout === 'pip' ? 'PiP' : 'Pinned')}</span>
-            <span aria-hidden="true">${icon('chevronDown', { size: 10 })}</span>
-          </button>
-          <div class="compact-mode-dropdown" id="compactModeDropdown" hidden>
-            <button type="button" class="compact-mode-item ${(!this.mobileEditorLayout || this.mobileEditorLayout === 'pinned') ? 'active' : ''}" data-mode="pinned">
-              <strong>Option A: Pinned (Default)</strong>
-              <span>Live canvas pinned at top (Canva style)</span>
-            </button>
-            <button type="button" class="compact-mode-item ${this.mobileEditorLayout === 'rail' ? 'active' : ''}" data-mode="rail">
-              <strong>Option B: Studio Rail</strong>
-              <span>Full canvas + bottom icon rail & drawer</span>
-            </button>
-            <button type="button" class="compact-mode-item ${this.mobileEditorLayout === 'pip' ? 'active' : ''}" data-mode="pip">
-              <strong>Option C: Floating PiP</strong>
-              <span>Scrolls naturally with docked mini-preview</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Compact Export Trigger -->
-        <button type="button" class="compact-export-btn" id="btnCompactExport" aria-label="Open Export & Share Sheet">
-          <span aria-hidden="true">${icon('share', { size: 12 })}</span>
-          <span>Export</span>
-        </button>
-      </div>
-
       <div class="editor-layout" id="editorLayoutRoot">
         <!-- Canvas Stage Area -->
         <div class="canvas-stage-wrapper ${this.mobileViewMode === 'controls' ? 'hidden-mobile' : ''}" id="canvasStageWrapper">
-          <!-- Ratio Switcher & Layout Trigger -->
-          <div class="desktop-ratio-layout-bar" style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; width: 100%;">
+          <!-- Canvas Top Utility Bar: Ratio Switcher & Mobile Architecture Switcher -->
+          <div class="canvas-top-utility-bar" id="canvasTopUtilityBar">
+            <!-- Aspect Ratio Selector -->
             <div class="ratio-switcher" id="ratioSwitcher" role="radiogroup" aria-label="Canvas Aspect Ratio">
               ${CANVAS_FORMATS.map(f => `
-                <button class="ratio-chip ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}" role="radio" aria-checked="${this.state.ratio === f.id}" aria-label="${f.label} ratio">
-                  <span class="ratio-icon" aria-hidden="true">${icon(f.icon || 'square', { size: 14 })}</span>
+                <button type="button" class="ratio-chip ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}" role="radio" aria-checked="${this.state.ratio === f.id}" title="${f.label} (${f.sublabel})" aria-label="${f.label} ratio">
+                  <span class="ratio-icon" aria-hidden="true">${icon(f.icon || 'square', { size: 12 })}</span>
                   <span>${f.label}</span>
                 </button>
               `).join('')}
             </div>
 
-            <!-- 50 Layouts Trigger Pill -->
-            <button class="btn-glass" id="btnOpenLayouts" aria-label="Choose from 50 Canvas Layouts" style="padding: 0.4rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600;">
-              <span aria-hidden="true">${icon('layout', { size: 14 })}</span>
-              <span id="lblActiveLayout">Layout: ${currentLayout.name}</span>
-              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.7rem;">50 Canvas Layouts</span>
-            </button>
+            <!-- Mobile Layout Architecture Switcher (Options A, B, C) -->
+            <div class="compact-mode-menu-wrapper">
+              <button type="button" class="compact-util-btn" id="btnMobileLayoutModeToggle" aria-label="Switch Mobile Editor Layout (Options A, B, C)" aria-haspopup="true" aria-expanded="false">
+                <span aria-hidden="true">${icon('smartphone', { size: 12 })}</span>
+                <span id="lblCurrentMobileLayoutMode">${this.mobileEditorLayout === 'rail' ? 'Rail' : (this.mobileEditorLayout === 'pip' ? 'PiP' : 'Pinned')}</span>
+                <span aria-hidden="true">${icon('chevronDown', { size: 10 })}</span>
+              </button>
+              <div class="compact-mode-dropdown" id="compactModeDropdown" hidden>
+                <button type="button" class="compact-mode-item ${(!this.mobileEditorLayout || this.mobileEditorLayout === 'pinned') ? 'active' : ''}" data-mode="pinned">
+                  <strong>Option A: Pinned (Default)</strong>
+                  <span>Live canvas pinned at top (Canva style)</span>
+                </button>
+                <button type="button" class="compact-mode-item ${this.mobileEditorLayout === 'rail' ? 'active' : ''}" data-mode="rail">
+                  <strong>Option B: Studio Rail</strong>
+                  <span>Full canvas + bottom icon rail & drawer</span>
+                </button>
+                <button type="button" class="compact-mode-item ${this.mobileEditorLayout === 'pip' ? 'active' : ''}" data-mode="pip">
+                  <strong>Option C: Floating PiP</strong>
+                  <span>Scrolls naturally with docked mini-preview</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Canvas Card Container -->
@@ -301,16 +269,19 @@ export class Editor {
             </div>
           </div>
 
-          <!-- Consolidated Primary Action Bar -->
-          <div class="canvas-actions-bar consolidated-actions-bar">
-            <button type="button" class="btn-primary export-main-trigger" id="btnOpenExportSheet" aria-label="Open Export and Share Options">
-              <span aria-hidden="true">${icon('share', { size: 15 })}</span>
-              <span>Export & Share</span>
-              <span aria-hidden="true">${icon('chevronDown', { size: 13 })}</span>
+          <!-- Consolidated Primary Action Bar: Download, Share, and More Options -->
+          <div class="canvas-actions-bar consolidated-actions-bar" id="canvasActionsBar">
+            <button type="button" class="btn-primary action-download-btn" id="btnMainDownload" aria-label="Download Image">
+              <span aria-hidden="true">${icon('download', { size: 15 })}</span>
+              <span id="lblMainDownloadText">Download</span>
+              <span class="action-format-badge" id="lblFormatBadge">${this.exportFormat.toUpperCase()} 2x</span>
             </button>
-            <button type="button" class="btn-glass export-quick-download" id="btnQuickDownload" aria-label="Quick download image in ${this.exportFormat.toUpperCase()} format">
-              <span aria-hidden="true">${icon('download', { size: 14 })}</span>
-              <span id="lblQuickDownloadText">${this.exportFormat.toUpperCase()} 2x</span>
+            <button type="button" class="btn-glass action-share-btn" id="btnMainShare" aria-label="Share Quote Graphic">
+              <span aria-hidden="true">${icon('share', { size: 15 })}</span>
+              <span>Share</span>
+            </button>
+            <button type="button" class="btn-glass action-more-btn" id="btnOpenExportSheet" aria-label="More Export and Publishing Options" title="More export options">
+              <span aria-hidden="true">${icon('moreHorizontal', { size: 16 })}</span>
             </button>
           </div>
         </div>
@@ -329,6 +300,32 @@ export class Editor {
               </div>
               <button class="btn-glass" id="btnBrowsePresets" aria-label="Browse all presets" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
                 Browse Presets
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Layout (50 Canvas Layouts) Card -->
+          <div class="control-card" data-rail-section="layout">
+            <div class="control-card-header">
+              <span class="card-title">
+                <span aria-hidden="true">${icon('layout', { size: 15 })}</span>
+                <span>Canvas Layout</span>
+              </span>
+              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.72rem; font-weight: 700;">50 Layouts</span>
+            </div>
+            <div class="layout-selection-strip">
+              <div class="layout-strip-info">
+                <div class="layout-thumb-box" aria-hidden="true">
+                  ${icon('layout', { size: 20 })}
+                </div>
+                <div>
+                  <div class="layout-title-text" id="lblToolsLayoutName">${currentLayout.name}</div>
+                  <div class="layout-subtitle-text" id="lblToolsLayoutCategory">${currentLayout.category || 'Editorial & Social'} • ${currentLayout.portraitPlacement !== 'none' ? 'With Portrait' : 'Minimal'}</div>
+                </div>
+              </div>
+              <button type="button" class="btn-primary btn-choose-layout" id="btnOpenLayoutsModal" aria-label="Browse all 50 canvas layouts" style="padding: 0.45rem 1rem; font-size: 0.82rem;">
+                <span aria-hidden="true">${icon('sliders', { size: 13 })}</span>
+                <span>Choose Layout</span>
               </button>
             </div>
           </div>
@@ -629,6 +626,10 @@ export class Editor {
 
       <!-- Studio Bottom Rail Bar (Option B) -->
       <div class="studio-rail-bar" id="studioRailBar">
+        <button type="button" class="studio-rail-item ${this.activeRailCategory === 'layout' ? 'active' : ''}" data-rail="layout" aria-label="50 Canvas Layouts">
+          <span aria-hidden="true">${icon('layout', { size: 18 })}</span>
+          <span>Layout</span>
+        </button>
         <button type="button" class="studio-rail-item ${this.activeRailCategory === 'typography' ? 'active' : ''}" data-rail="typography" aria-label="Typography & Fonts">
           <span aria-hidden="true">${icon('type', { size: 18 })}</span>
           <span>Fonts</span>
@@ -778,6 +779,16 @@ export class Editor {
       </div>
     `;
 
+    // Ensure mini-pip dock, rail drawer, and export sheet are attached to document.body for true global viewport floating
+    ['miniPipDock', 'studioRailDrawerBackdrop', 'exportSheetBackdrop'].forEach(id => {
+      const el = this.containerEl.querySelector(`#${id}`);
+      if (el) {
+        const existing = document.getElementById(id);
+        if (existing && existing !== el) existing.remove();
+        document.body.appendChild(el);
+      }
+    });
+
     this.bindEvents();
     this.scheduleRender();
   }
@@ -817,11 +828,14 @@ export class Editor {
       });
     }
 
-    // Layout Picker Buttons (Desktop & Compact)
+    // Layout Picker Buttons (Desktop, Mobile Card & Compact)
     this.containerEl.querySelector('#btnOpenLayouts')?.addEventListener('click', () => {
       this.layoutPicker.open(this.state.layoutId);
     });
     this.containerEl.querySelector('#btnCompactLayouts')?.addEventListener('click', () => {
+      this.layoutPicker.open(this.state.layoutId);
+    });
+    this.containerEl.querySelector('#btnOpenLayoutsModal')?.addEventListener('click', () => {
       this.layoutPicker.open(this.state.layoutId);
     });
 
@@ -1127,14 +1141,44 @@ export class Editor {
       });
     }
 
+    // Dynamic sticky header height synchronization
+    const updateHeaderHeight = () => {
+      const header = document.querySelector('.app-header');
+      if (header) {
+        const h = header.offsetHeight || 98;
+        document.documentElement.style.setProperty('--header-height', `${h}px`);
+      }
+    };
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    window.addEventListener('orientationchange', updateHeaderHeight);
+
+    // Primary Canvas Action Bar Handlers (Download & Share)
+    const executeDownload = () => {
+      this.saveToHistorySilent();
+      ShareService.downloadImage(this.state, this.exportFormat);
+      this.closeExportSheet();
+    };
+
+    const btnMainDownload = this.containerEl.querySelector('#btnMainDownload');
+    if (btnMainDownload) btnMainDownload.addEventListener('click', executeDownload);
+
+    const btnMainShare = this.containerEl.querySelector('#btnMainShare');
+    if (btnMainShare) {
+      btnMainShare.addEventListener('click', () => {
+        this.saveToHistorySilent();
+        ShareService.shareQuote(this.state);
+      });
+    }
+
     // Consolidated Export Sheet Handlers
     const btnOpenExport = this.containerEl.querySelector('#btnOpenExportSheet');
     const btnCompactExport = this.containerEl.querySelector('#btnCompactExport');
-    const btnCloseExport = this.containerEl.querySelector('#btnCloseExportSheet');
-    const exportBackdrop = this.containerEl.querySelector('#exportSheetBackdrop');
-    const formatGrid = this.containerEl.querySelector('#sheetFormatGrid');
-    const lblSheetDownload = this.containerEl.querySelector('#lblSheetDownloadText');
-    const lblQuickDownload = this.containerEl.querySelector('#lblQuickDownloadText');
+    const btnCloseExport = document.getElementById('btnCloseExportSheet');
+    const exportBackdrop = document.getElementById('exportSheetBackdrop');
+    const formatGrid = document.getElementById('sheetFormatGrid');
+    const lblSheetDownload = document.getElementById('lblSheetDownloadText');
+    const lblFormatBadge = this.containerEl.querySelector('#lblFormatBadge');
 
     if (btnOpenExport) btnOpenExport.addEventListener('click', () => this.openExportSheet());
     if (btnCompactExport) btnCompactExport.addEventListener('click', () => this.openExportSheet());
@@ -1160,26 +1204,20 @@ export class Editor {
         if (lblSheetDownload) {
           lblSheetDownload.textContent = `Download (${fmt.toUpperCase()} 2x)`;
         }
-        if (lblQuickDownload) {
-          lblQuickDownload.textContent = `${fmt.toUpperCase()} 2x`;
+        if (lblFormatBadge) {
+          lblFormatBadge.textContent = `${fmt.toUpperCase()} 2x`;
         }
         Toast.show(`Format set to ${fmt.toUpperCase()}`, 'info');
       });
     }
 
-    const executeDownload = () => {
-      this.saveToHistorySilent();
-      ShareService.downloadImage(this.state, this.exportFormat);
-      this.closeExportSheet();
-    };
-
     const btnQuickDownload = this.containerEl.querySelector('#btnQuickDownload');
     if (btnQuickDownload) btnQuickDownload.addEventListener('click', executeDownload);
 
-    const btnSheetDownload = this.containerEl.querySelector('#btnSheetDownload');
+    const btnSheetDownload = document.getElementById('btnSheetDownload');
     if (btnSheetDownload) btnSheetDownload.addEventListener('click', executeDownload);
 
-    const btnSheetCopy = this.containerEl.querySelector('#btnSheetCopy');
+    const btnSheetCopy = document.getElementById('btnSheetCopy');
     if (btnSheetCopy) {
       btnSheetCopy.addEventListener('click', () => {
         this.saveToHistorySilent();
@@ -1188,7 +1226,7 @@ export class Editor {
       });
     }
 
-    const btnSheetShare = this.containerEl.querySelector('#btnSheetShare');
+    const btnSheetShare = document.getElementById('btnSheetShare');
     if (btnSheetShare) {
       btnSheetShare.addEventListener('click', () => {
         this.saveToHistorySilent();
@@ -1197,7 +1235,7 @@ export class Editor {
       });
     }
 
-    const btnSheetSaveHistory = this.containerEl.querySelector('#btnSheetSaveHistory');
+    const btnSheetSaveHistory = document.getElementById('btnSheetSaveHistory');
     if (btnSheetSaveHistory) {
       btnSheetSaveHistory.addEventListener('click', () => {
         const saved = StorageService.saveToHistory({
@@ -1226,7 +1264,7 @@ export class Editor {
       });
     }
 
-    const btnSheetPublish = this.containerEl.querySelector('#btnSheetPublish');
+    const btnSheetPublish = document.getElementById('btnSheetPublish');
     if (btnSheetPublish) {
       btnSheetPublish.addEventListener('click', () => {
         const published = StorageService.publishToCommunity(
@@ -1271,16 +1309,20 @@ export class Editor {
           if (this.onOpenPresets) this.onOpenPresets();
           return;
         }
+        if (cat === 'layout') {
+          this.layoutPicker.open(this.state.layoutId);
+          return;
+        }
         this.activeRailCategory = cat;
         railBar.querySelectorAll('.studio-rail-item').forEach(i => i.classList.toggle('active', i.dataset.rail === cat));
         this.openRailDrawer(cat);
       });
     }
 
-    const btnCloseRail = this.containerEl.querySelector('#btnCloseRailDrawer');
+    const btnCloseRail = document.getElementById('btnCloseRailDrawer');
     if (btnCloseRail) btnCloseRail.addEventListener('click', () => this.closeRailDrawer());
 
-    const railBackdrop = this.containerEl.querySelector('#studioRailDrawerBackdrop');
+    const railBackdrop = document.getElementById('studioRailDrawerBackdrop');
     if (railBackdrop) {
       railBackdrop.addEventListener('click', (e) => {
         if (e.target === railBackdrop) this.closeRailDrawer();
@@ -1288,8 +1330,8 @@ export class Editor {
     }
 
     // Option C: Floating PiP Dock Handlers
-    const pipDock = this.containerEl.querySelector('#miniPipDock');
-    const btnPipScrollUp = this.containerEl.querySelector('#btnPipScrollUp');
+    const pipDock = document.getElementById('miniPipDock');
+    const btnPipScrollUp = document.getElementById('btnPipScrollUp');
     const scrollToCanvas = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -1314,7 +1356,7 @@ export class Editor {
     if (toggle) toggle.checked = this.state.showAuthorImage;
     if (thumbBox) {
       thumbBox.innerHTML = this.state.authorImage && this.state.showAuthorImage 
-        ? `<img src="${this.state.authorImage}" style="width: 100%; height: 100%; object-fit: cover;" />`
+        ? `<img src="${this.state.authorImage}" style="width: 100%; height: 100%; object-fit: cover;" />` 
         : icon('user', { size: 20 });
     }
     if (statusText) {
@@ -1326,14 +1368,23 @@ export class Editor {
   }
 
   updateLayoutDisplay() {
+    const layout = LAYOUT_STYLES.find(l => l.id === this.state.layoutId) || LAYOUT_STYLES[0];
     const lbl = this.containerEl.querySelector('#lblActiveLayout');
     const compactLbl = this.containerEl.querySelector('#lblCompactLayoutName');
-    const layout = LAYOUT_STYLES.find(l => l.id === this.state.layoutId) || LAYOUT_STYLES[0];
+    const toolsName = this.containerEl.querySelector('#lblToolsLayoutName');
+    const toolsCategory = this.containerEl.querySelector('#lblToolsLayoutCategory');
+
     if (lbl) {
       lbl.textContent = `Layout: ${layout.name}`;
     }
     if (compactLbl) {
       compactLbl.textContent = layout.name.split(' ')[0];
+    }
+    if (toolsName) {
+      toolsName.textContent = layout.name;
+    }
+    if (toolsCategory) {
+      toolsCategory.textContent = `${layout.category || 'Editorial & Social'} • ${layout.portraitPlacement !== 'none' ? 'With Portrait' : 'Minimal'}`;
     }
   }
 
@@ -1502,14 +1553,15 @@ export class Editor {
     if (!canvas) return;
     await CanvasRenderer.renderToCanvas(this.state, canvas);
 
-    const pipCanvas = this.containerEl.querySelector('#miniPipCanvas');
-    if (pipCanvas && (this.mobileEditorLayout === 'pip' || (this.containerEl.querySelector('#miniPipDock') && this.containerEl.querySelector('#miniPipDock').classList.contains('pip-active')))) {
+    const pipCanvas = document.getElementById('miniPipCanvas');
+    const pipDock = document.getElementById('miniPipDock');
+    if (pipCanvas && (this.mobileEditorLayout === 'pip' || (pipDock && pipDock.classList.contains('pip-active')))) {
       await CanvasRenderer.renderToCanvas(this.state, pipCanvas);
     }
   }
 
   openExportSheet() {
-    const backdrop = this.containerEl.querySelector('#exportSheetBackdrop');
+    const backdrop = document.getElementById('exportSheetBackdrop');
     if (backdrop) {
       backdrop.hidden = false;
       this.isExportSheetOpen = true;
@@ -1517,7 +1569,7 @@ export class Editor {
   }
 
   closeExportSheet() {
-    const backdrop = this.containerEl.querySelector('#exportSheetBackdrop');
+    const backdrop = document.getElementById('exportSheetBackdrop');
     if (backdrop) {
       backdrop.hidden = true;
       this.isExportSheetOpen = false;
@@ -1525,16 +1577,17 @@ export class Editor {
   }
 
   openRailDrawer(category) {
-    const backdrop = this.containerEl.querySelector('#studioRailDrawerBackdrop');
-    const slot = this.containerEl.querySelector('#railDrawerBodySlot');
-    const titleText = this.containerEl.querySelector('#lblRailDrawerText');
-    const titleIcon = this.containerEl.querySelector('#lblRailDrawerIcon');
+    const backdrop = document.getElementById('studioRailDrawerBackdrop');
+    const slot = document.getElementById('railDrawerBodySlot');
+    const titleText = document.getElementById('lblRailDrawerText');
+    const titleIcon = document.getElementById('lblRailDrawerIcon');
     if (!backdrop || !slot) return;
 
     // Restore any previously docked card
     this.restoreRailCard();
 
     const titles = {
+      layout: { label: 'Canvas Layout (50 Layouts)', icon: 'layout' },
       typography: { label: 'Typography & Google Fonts', icon: 'type' },
       content: { label: 'Quote Content & Copy', icon: 'quote' },
       portrait: { label: 'Author Portrait & Cutout', icon: 'user' },
@@ -1571,7 +1624,7 @@ export class Editor {
   }
 
   closeRailDrawer() {
-    const backdrop = this.containerEl.querySelector('#studioRailDrawerBackdrop');
+    const backdrop = document.getElementById('studioRailDrawerBackdrop');
     if (backdrop) backdrop.hidden = true;
     this.restoreRailCard();
     const railBar = this.containerEl.querySelector('#studioRailBar');
@@ -1602,9 +1655,19 @@ export class Editor {
       this.closeRailDrawer();
     }
 
-    const pipDock = this.containerEl.querySelector('#miniPipDock');
+    const pipDock = document.getElementById('miniPipDock');
     if (mode === 'pip') {
       this.initPipObserver();
+      const stage = this.containerEl.querySelector('#canvasStageWrapper');
+      if (stage && pipDock) {
+        const rect = stage.getBoundingClientRect();
+        const isOffscreen = rect.bottom < 120;
+        pipDock.classList.toggle('pip-active', isOffscreen);
+        if (isOffscreen) {
+          const pipCanvas = document.getElementById('miniPipCanvas');
+          if (pipCanvas) CanvasRenderer.renderToCanvas(this.state, pipCanvas);
+        }
+      }
       this.scheduleRender();
     } else {
       if (pipDock) pipDock.classList.remove('pip-active');
@@ -1612,10 +1675,14 @@ export class Editor {
   }
 
   initPipObserver() {
-    if (this.pipObserver) return;
     const stage = this.containerEl.querySelector('#canvasStageWrapper');
-    const pipDock = this.containerEl.querySelector('#miniPipDock');
+    const pipDock = document.getElementById('miniPipDock');
     if (!stage || !pipDock) return;
+
+    if (this.pipObserver) {
+      this.pipObserver.disconnect();
+      this.pipObserver = null;
+    }
 
     this.pipObserver = new IntersectionObserver((entries) => {
       if (this.mobileEditorLayout !== 'pip') {
@@ -1626,7 +1693,7 @@ export class Editor {
         const isOffscreen = !entry.isIntersecting;
         pipDock.classList.toggle('pip-active', isOffscreen);
         if (isOffscreen) {
-          const pipCanvas = this.containerEl.querySelector('#miniPipCanvas');
+          const pipCanvas = document.getElementById('miniPipCanvas');
           if (pipCanvas) {
             CanvasRenderer.renderToCanvas(this.state, pipCanvas);
           }
