@@ -815,3 +815,288 @@ input:checked + .slider:before {
   }
 }
 
+/* Typography & Google Fonts Selector Styles */
+.typography-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--bg-surface-elevated);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.typography-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.typography-font-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.typography-sample-text {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* Watermark & Branding Suite Styles */
+.branding-options-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.branding-style-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+}
+
+.branding-style-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.branding-style-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.branding-style-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.branding-style-btn strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.branding-style-btn span {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.branding-pos-selector {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.branding-pos-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.branding-pos-btn:hover {
+  color: var(--text-primary);
+}
+
+.branding-pos-btn.active {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #ffffff;
+}
+
+.logo-uploader-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--bg-surface-elevated);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  flex-wrap: wrap;
+}
+
+.logo-uploader-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.logo-thumb-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: #18181b;
+  border: 1px solid var(--border-glass-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.logo-thumb-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 2px;
+}
+
+/* ==========================================================================
+   Typography Studio & Micro-Controls Styles
+   ========================================================================== */
+
+.typo-micro-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  background: var(--bg-surface-elevated);
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.typo-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.typo-control-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.typo-btn-group {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--bg-surface);
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+}
+
+.typo-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: var(--radius-xs, 4px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 34px;
+}
+
+.typo-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.typo-btn.active {
+  background: var(--brand-primary);
+  color: #ffffff;
+  border-color: var(--brand-primary);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Specimen Card Hover Elevation */
+.pairing-card {
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.pairing-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2) !important;
+}
+
+.font-sample-card {
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.font-sample-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-glass-strong) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25) !important;
+}
+
+.font-sample-card.selected:hover {
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 1px var(--brand-primary), 0 6px 20px rgba(99, 102, 241, 0.35) !important;
+}
+
+/* Mobile Responsive Optimization for Typography Studio (<640px) */
+@media (max-width: 640px) {
+  .typo-micro-controls {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .typo-btn {
+    min-height: 40px; /* Touch-friendly tap target */
+    font-size: 0.78rem;
+  }
+
+  .fonts-cards-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .pairing-card {
+    padding: 0.95rem !important;
+  }
+
+  .font-sample-card {
+    padding: 0.85rem !important;
+  }
+
+  .typography-sample-text {
+    max-width: 140px;
+  }
+
+  .category-chip {
+    min-height: 38px;
+    touch-action: manipulation;
+  }
+}
+
+

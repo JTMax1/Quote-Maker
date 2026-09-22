@@ -14,6 +14,9 @@ import { LayoutPicker } from './layoutPicker.js';
 import { Toast } from './toast.js';
 import { escapeHtml } from '../utils/security.js';
 import { icon } from '../utils/icons.js';
+import { FontPickerModal } from './fontPickerModal.js';
+import { FontLoaderService } from '../services/fontLoaderService.js';
+import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS } from '../services/brandingService.js';
 
 export class Editor {
   constructor(containerEl, onOpenPresets, onOpenStudio, onQuotePublished) {
@@ -46,6 +49,11 @@ export class Editor {
       showDate: this.profile.showDate ?? true,
       showCategory: this.profile.showCategory ?? true,
       showWatermark: this.profile.showWatermark ?? true,
+      brandingStyle: 'text',
+      brandingPosition: 'bottom-right',
+      brandingOpacity: 0.55,
+      brandingLogo: null,
+      brandingHandle: this.profile.handle || '',
       showAuthorImage: false,
       authorImage: PRESET_AUTHOR_PORTRAITS[1].imageUrl, // Seneca cutout preset available when toggled
       authorImagePlacement: 'cutout-right',
@@ -73,6 +81,35 @@ export class Editor {
       this.scheduleRender();
     });
 
+    this.fontPickerModal = new FontPickerModal(
+      (family, target) => {
+        if (target === 'author') {
+          this.state.styles.authorFontFamily = family;
+        } else {
+          this.state.styles.fontFamily = family;
+        }
+        this.updateTypographyUI();
+        this.scheduleRender();
+        Toast.show(`Applied font: ${family}`, 'success');
+      },
+      (pairing) => {
+        this.state.styles.fontFamily = pairing.quoteFont;
+        this.state.styles.authorFontFamily = pairing.authorFont;
+        this.updateTypographyUI();
+        this.scheduleRender();
+        Toast.show(`Applied "${pairing.name}" font pairing!`, 'success');
+      }
+    );
+
+    // Load saved brand logo from IndexedDB
+    BrandingService.loadCustomLogo().then(logo => {
+      if (logo) {
+        this.state.brandingLogo = logo;
+        this.updateBrandingUI();
+        this.scheduleRender();
+      }
+    });
+
     this.renderDebounceTimer = null;
     this.render();
   }
@@ -91,6 +128,32 @@ export class Editor {
     }
     this.updateThemePill();
     this.updateLayoutDisplay();
+    this.updateTypographyUI();
+    this.scheduleRender();
+  }
+
+  loadState(stateObj) {
+    if (!stateObj) return;
+    const targetState = stateObj.canvasState || stateObj;
+    this.state = {
+      ...this.state,
+      ...targetState,
+      styles: {
+        ...this.state.styles,
+        ...(targetState.styles || targetState.customStyles || {})
+      }
+    };
+    if (targetState.presetId) {
+      const all = StorageService.getAllPresets();
+      const found = all.find(p => p.id === targetState.presetId);
+      if (found) this.activePreset = found;
+    }
+    this.syncFormValues();
+    this.updateThemePill();
+    this.updateLayoutDisplay();
+    this.updateAuthorImageStrip();
+    this.updateBrandingUI();
+    this.updateTypographyUI();
     this.scheduleRender();
   }
 
@@ -227,6 +290,90 @@ export class Editor {
             </div>
           </div>
 
+          <!-- Typography & Google Fonts Studio Card -->
+          <div class="control-card">
+            <div class="control-card-header">
+              <span class="card-title">
+                <span aria-hidden="true">${icon('type', { size: 15 })}</span>
+                <span>Typography & Google Fonts</span>
+              </span>
+              <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <button class="btn-glass" id="btnOpenPairingsStudio" style="padding: 0.35rem 0.65rem; font-size: 0.76rem; border-color: var(--brand-primary); color: var(--brand-primary);" aria-label="Browse 6 Signature Font Pairings">
+                  <span aria-hidden="true">${icon('layers', { size: 12 })}</span>
+                  <span>Pairings</span>
+                </button>
+                <button class="inspire-btn" id="btnOpenFontPickerQuote" aria-label="Browse 40+ curated Google Fonts">
+                  <span aria-hidden="true">${icon('sparkles', { size: 13 })}</span>
+                  <span>Browse Fonts</span>
+                </button>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Quote Typography Row -->
+              <div class="typography-row">
+                <div class="typography-info">
+                  <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Quote Typeface</span>
+                  <span class="typography-font-name" id="lblQuoteFontName">${escapeHtml(this.state.styles.fontFamily || 'Playfair Display')}</span>
+                  <span class="typography-sample-text" id="lblQuoteFontSample" style="font-family: '${escapeHtml(this.state.styles.fontFamily || 'Playfair Display')}', serif;">“${escapeHtml(this.state.quote ? (this.state.quote.length > 32 ? this.state.quote.slice(0, 30) + '…' : this.state.quote) : 'Typography Preview')}”</span>
+                </div>
+                <button class="btn-glass" id="btnChangeQuoteFont" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;" aria-label="Change quote font">
+                  Change
+                </button>
+              </div>
+
+              <!-- Author Signature Typography Row -->
+              <div class="typography-row">
+                <div class="typography-info">
+                  <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Author Signature Typeface</span>
+                  <span class="typography-font-name" id="lblAuthorFontName">${escapeHtml(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')}</span>
+                  <span class="typography-sample-text" id="lblAuthorFontSample" style="font-family: '${escapeHtml(this.state.styles.authorFontFamily || 'Plus Jakarta Sans')}', sans-serif;">— ${escapeHtml(this.state.author || 'Author Signature')}</span>
+                </div>
+                <button class="btn-glass" id="btnChangeAuthorFont" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;" aria-label="Change author signature font">
+                  Change
+                </button>
+              </div>
+
+              <!-- Typographic Micro-Controls: Text Alignment & Font Weight -->
+              <div class="typo-micro-controls">
+                <!-- Text Alignment -->
+                <div class="typo-control-group">
+                  <span class="typo-control-label">Alignment</span>
+                  <div class="typo-btn-group" id="typoAlignGroup" role="radiogroup" aria-label="Quote Text Alignment">
+                    <button type="button" class="typo-btn ${(!this.state.styles.textAlign || this.state.styles.textAlign === 'left') ? 'active' : ''}" data-align="left" role="radio" aria-checked="${(!this.state.styles.textAlign || this.state.styles.textAlign === 'left') ? 'true' : 'false'}" aria-label="Align Left">
+                      <span aria-hidden="true">${icon('alignLeft', { size: 14 })}</span>
+                      <span>Left</span>
+                    </button>
+                    <button type="button" class="typo-btn ${this.state.styles.textAlign === 'center' ? 'active' : ''}" data-align="center" role="radio" aria-checked="${this.state.styles.textAlign === 'center' ? 'true' : 'false'}" aria-label="Align Center">
+                      <span aria-hidden="true">${icon('alignCenter', { size: 14 })}</span>
+                      <span>Center</span>
+                    </button>
+                    <button type="button" class="typo-btn ${this.state.styles.textAlign === 'right' ? 'active' : ''}" data-align="right" role="radio" aria-checked="${this.state.styles.textAlign === 'right' ? 'true' : 'false'}" aria-label="Align Right">
+                      <span aria-hidden="true">${icon('alignRight', { size: 14 })}</span>
+                      <span>Right</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Font Weight -->
+                <div class="typo-control-group">
+                  <span class="typo-control-label">Quote Weight</span>
+                  <div class="typo-btn-group" id="typoWeightGroup" role="radiogroup" aria-label="Quote Font Weight">
+                    <button type="button" class="typo-btn ${this.state.styles.fontWeight == 400 ? 'active' : ''}" data-weight="400" role="radio" aria-checked="${this.state.styles.fontWeight == 400 ? 'true' : 'false'}" aria-label="Regular 400">
+                      Regular
+                    </button>
+                    <button type="button" class="typo-btn ${(this.state.styles.fontWeight == 600 || !this.state.styles.fontWeight) ? 'active' : ''}" data-weight="600" role="radio" aria-checked="${(this.state.styles.fontWeight == 600 || !this.state.styles.fontWeight) ? 'true' : 'false'}" aria-label="Semi-Bold 600">
+                      Semi
+                    </button>
+                    <button type="button" class="typo-btn ${this.state.styles.fontWeight == 700 ? 'active' : ''}" data-weight="700" role="radio" aria-checked="${this.state.styles.fontWeight == 700 ? 'true' : 'false'}" aria-label="Bold 700">
+                      Bold
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Author Portrait & Background Remover Strip -->
           <div class="control-card">
             <div class="control-card-header">
@@ -343,16 +490,94 @@ export class Editor {
                   <span class="slider"></span>
                 </label>
               </div>
+            </div>
+          </div>
 
-              <div class="toggle-item">
-                <div class="toggle-info">
-                  <span class="toggle-label">Watermark</span>
-                  <span class="toggle-desc">Subtle QuoteForge brand mark</span>
+          <!-- Watermark & Custom Branding Suite Card -->
+          <div class="control-card">
+            <div class="control-card-header">
+              <span class="card-title">
+                <span aria-hidden="true">${icon('shield', { size: 15 })}</span>
+                <span>Watermark & Branding Suite</span>
+              </span>
+              <label class="switch" for="toggleWatermark">
+                <input type="checkbox" id="toggleWatermark" aria-label="Toggle watermark and branding display" ${this.state.showWatermark ? 'checked' : ''} />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="branding-options-stack" id="brandingOptionsBody" style="${this.state.showWatermark ? '' : 'opacity: 0.45; pointer-events: none;'}">
+              <!-- Watermark Text & Handle Input -->
+              <div class="input-row">
+                <div class="form-group">
+                  <label class="form-label" for="inputWatermarkText">Brand / Watermark Text</label>
+                  <input type="text" class="form-input" id="inputWatermarkText" value="${escapeHtml(this.state.watermark)}" placeholder="e.g. QuoteForge" aria-label="Watermark brand text" />
                 </div>
-                <label class="switch" for="toggleWatermark">
-                  <input type="checkbox" id="toggleWatermark" aria-label="Toggle watermark brand mark" ${this.state.showWatermark ? 'checked' : ''} />
-                  <span class="slider"></span>
-                </label>
+                <div class="form-group">
+                  <label class="form-label" for="inputBrandingHandle">Badge Handle</label>
+                  <input type="text" class="form-input" id="inputBrandingHandle" value="${escapeHtml(this.state.brandingHandle || this.state.handle)}" placeholder="@handle" aria-label="Badge handle" />
+                </div>
+              </div>
+
+              <!-- Branding Style Segmented Grid -->
+              <div>
+                <label class="form-label" style="margin-bottom: 0.35rem; display: block;">Branding Display Style</label>
+                <div class="branding-style-selector" id="brandingStyleSelector" role="radiogroup" aria-label="Branding Display Style">
+                  ${BRANDING_STYLES.map(s => `
+                    <button class="branding-style-btn ${this.state.brandingStyle === s.id ? 'active' : ''}" data-style="${s.id}" role="radio" aria-checked="${this.state.brandingStyle === s.id}">
+                      <strong>${s.label}</strong>
+                      <span>${s.desc}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Custom Logo Uploader -->
+              <div>
+                <label class="form-label" style="margin-bottom: 0.35rem; display: block;">Custom Logo / Emblem</label>
+                <div class="logo-uploader-strip">
+                  <div class="logo-uploader-info">
+                    <div class="logo-thumb-box" id="brandingLogoThumb" aria-hidden="true">
+                      ${this.state.brandingLogo ? `<img src="${this.state.brandingLogo}" alt="Brand logo thumbnail" />` : icon('image', { size: 18 })}
+                    </div>
+                    <div>
+                      <div style="font-size: 0.84rem; font-weight: 700;" id="lblLogoStatus">${this.state.brandingLogo ? 'Custom Logo Active' : 'No Logo Uploaded'}</div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">PNG, SVG, or JPG with transparency</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 0.4rem;">
+                    <input type="file" id="inputBrandingLogoFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display: none;" aria-label="Upload custom logo file" />
+                    <button class="btn-glass" id="btnUploadBrandingLogo" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" aria-label="Upload custom brand logo">
+                      ${icon('upload', { size: 13 })} Upload Logo
+                    </button>
+                    ${this.state.brandingLogo ? `
+                      <button class="btn-glass" id="btnClearBrandingLogo" style="padding: 0.35rem 0.6rem; font-size: 0.78rem; color: #ef4444;" aria-label="Remove custom logo">
+                        ${icon('trash', { size: 13 })}
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Canvas Position Selector -->
+              <div>
+                <label class="form-label" style="margin-bottom: 0.35rem; display: block;">Canvas Placement</label>
+                <div class="branding-pos-selector" id="brandingPosSelector" role="radiogroup" aria-label="Branding Placement on Canvas">
+                  ${BRANDING_POSITIONS.map(p => `
+                    <button class="branding-pos-btn ${this.state.brandingPosition === p.id ? 'active' : ''}" data-pos="${p.id}" role="radio" aria-checked="${this.state.brandingPosition === p.id}">
+                      <span>${p.label}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Opacity Slider -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                  <label for="sliderBrandingOpacity" class="form-label">Watermark Opacity</label>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--brand-primary);" id="lblBrandingOpacity">${Math.round(this.state.brandingOpacity * 100)}%</span>
+                </div>
+                <input type="range" id="sliderBrandingOpacity" min="10" max="100" value="${Math.round(this.state.brandingOpacity * 100)}" aria-label="Watermark Opacity" style="width: 100%; accent-color: var(--brand-primary);" />
               </div>
             </div>
           </div>
@@ -454,7 +679,6 @@ export class Editor {
     const toggleAuthor = this.containerEl.querySelector('#toggleAuthor');
     const toggleDate = this.containerEl.querySelector('#toggleDate');
     const toggleCat = this.containerEl.querySelector('#toggleCategory');
-    const toggleWatermark = this.containerEl.querySelector('#toggleWatermark');
 
     toggleAuthor.addEventListener('change', (e) => {
       this.state.showAuthor = e.target.checked;
@@ -468,10 +692,168 @@ export class Editor {
       this.state.showCategory = e.target.checked;
       this.scheduleRender();
     });
-    toggleWatermark.addEventListener('change', (e) => {
-      this.state.showWatermark = e.target.checked;
-      this.scheduleRender();
-    });
+
+    // Typography & Font Picker Triggers
+    const btnOpenFontQuote = this.containerEl.querySelector('#btnOpenFontPickerQuote');
+    const btnOpenPairings = this.containerEl.querySelector('#btnOpenPairingsStudio');
+    const btnChangeQuoteFont = this.containerEl.querySelector('#btnChangeQuoteFont');
+    const btnChangeAuthorFont = this.containerEl.querySelector('#btnChangeAuthorFont');
+
+    if (btnOpenFontQuote) {
+      btnOpenFontQuote.addEventListener('click', () => {
+        this.fontPickerModal.open(this.state.styles.fontFamily || 'Playfair Display', 'quote', this.state.quote);
+      });
+    }
+    if (btnOpenPairings) {
+      btnOpenPairings.addEventListener('click', () => {
+        this.fontPickerModal.open(this.state.styles.fontFamily || 'Playfair Display', 'quote', this.state.quote, 'pairings');
+      });
+    }
+    if (btnChangeQuoteFont) {
+      btnChangeQuoteFont.addEventListener('click', () => {
+        this.fontPickerModal.open(this.state.styles.fontFamily || 'Playfair Display', 'quote', this.state.quote);
+      });
+    }
+    if (btnChangeAuthorFont) {
+      btnChangeAuthorFont.addEventListener('click', () => {
+        this.fontPickerModal.open(this.state.styles.authorFontFamily || 'Plus Jakarta Sans', 'author', this.state.quote);
+      });
+    }
+
+    // Typographic Micro-Controls: Text Alignment
+    const typoAlignGroup = this.containerEl.querySelector('#typoAlignGroup');
+    if (typoAlignGroup) {
+      typoAlignGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('.typo-btn');
+        if (!btn || !btn.dataset.align) return;
+        this.state.styles.textAlign = btn.dataset.align;
+        this.updateTypographyUI();
+        this.scheduleRender();
+      });
+    }
+
+    // Typographic Micro-Controls: Font Weight
+    const typoWeightGroup = this.containerEl.querySelector('#typoWeightGroup');
+    if (typoWeightGroup) {
+      typoWeightGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('.typo-btn');
+        if (!btn || !btn.dataset.weight) return;
+        this.state.styles.fontWeight = parseInt(btn.dataset.weight, 10);
+        this.updateTypographyUI();
+        this.scheduleRender();
+      });
+    }
+
+    // Watermark & Branding Suite Events
+    const toggleWatermark = this.containerEl.querySelector('#toggleWatermark');
+    const brandingBody = this.containerEl.querySelector('#brandingOptionsBody');
+    if (toggleWatermark) {
+      toggleWatermark.addEventListener('change', (e) => {
+        this.state.showWatermark = e.target.checked;
+        if (brandingBody) {
+          brandingBody.style.opacity = e.target.checked ? '1' : '0.45';
+          brandingBody.style.pointerEvents = e.target.checked ? 'auto' : 'none';
+        }
+        this.scheduleRender();
+      });
+    }
+
+    const inputWatermarkText = this.containerEl.querySelector('#inputWatermarkText');
+    if (inputWatermarkText) {
+      inputWatermarkText.addEventListener('input', (e) => {
+        this.state.watermark = e.target.value;
+        this.scheduleRender();
+      });
+    }
+
+    const inputBrandingHandle = this.containerEl.querySelector('#inputBrandingHandle');
+    if (inputBrandingHandle) {
+      inputBrandingHandle.addEventListener('input', (e) => {
+        this.state.brandingHandle = e.target.value;
+        this.scheduleRender();
+      });
+    }
+
+    // Branding Style Selector
+    const brandingStyleSelector = this.containerEl.querySelector('#brandingStyleSelector');
+    if (brandingStyleSelector) {
+      brandingStyleSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('.branding-style-btn');
+        if (!btn) return;
+        brandingStyleSelector.querySelectorAll('.branding-style-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-checked', 'true');
+        this.state.brandingStyle = btn.dataset.style;
+        this.scheduleRender();
+      });
+    }
+
+    // Branding Position Selector
+    const brandingPosSelector = this.containerEl.querySelector('#brandingPosSelector');
+    if (brandingPosSelector) {
+      brandingPosSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('.branding-pos-btn');
+        if (!btn) return;
+        brandingPosSelector.querySelectorAll('.branding-pos-btn').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-checked', 'true');
+        this.state.brandingPosition = btn.dataset.pos;
+        this.scheduleRender();
+      });
+    }
+
+    // Watermark Opacity Slider
+    const sliderOpacity = this.containerEl.querySelector('#sliderBrandingOpacity');
+    const lblOpacity = this.containerEl.querySelector('#lblBrandingOpacity');
+    if (sliderOpacity) {
+      sliderOpacity.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        this.state.brandingOpacity = val / 100;
+        if (lblOpacity) lblOpacity.textContent = `${val}%`;
+        this.scheduleRender();
+      });
+    }
+
+    // Custom Logo File Uploader
+    const btnUploadLogo = this.containerEl.querySelector('#btnUploadBrandingLogo');
+    const inputLogoFile = this.containerEl.querySelector('#inputBrandingLogoFile');
+    const btnClearLogo = this.containerEl.querySelector('#btnClearBrandingLogo');
+
+    if (btnUploadLogo && inputLogoFile) {
+      btnUploadLogo.addEventListener('click', () => inputLogoFile.click());
+
+      inputLogoFile.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const dataUrl = event.target.result;
+          this.state.brandingLogo = dataUrl;
+          await BrandingService.saveCustomLogo(dataUrl);
+          this.updateBrandingUI();
+          this.scheduleRender();
+          Toast.show('Custom brand logo applied & saved!', 'success');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (btnClearLogo) {
+      btnClearLogo.addEventListener('click', async () => {
+        this.state.brandingLogo = null;
+        await BrandingService.clearCustomLogo();
+        this.updateBrandingUI();
+        this.scheduleRender();
+        Toast.show('Custom logo removed', 'info');
+      });
+    }
 
     // Preset Browse
     this.containerEl.querySelector('#btnBrowsePresets').addEventListener('click', () => {
@@ -608,6 +990,13 @@ export class Editor {
         authorImage: this.state.authorImage,
         showAuthorImage: this.state.showAuthorImage,
         authorImagePlacement: this.state.authorImagePlacement,
+        watermark: this.state.watermark,
+        showWatermark: this.state.showWatermark,
+        brandingStyle: this.state.brandingStyle,
+        brandingPosition: this.state.brandingPosition,
+        brandingOpacity: this.state.brandingOpacity,
+        brandingLogo: this.state.brandingLogo,
+        brandingHandle: this.state.brandingHandle,
         presetId: this.activePreset.id,
         styles: { ...this.state.styles }
       });
@@ -627,6 +1016,13 @@ export class Editor {
           authorImage: this.state.authorImage,
           showAuthorImage: this.state.showAuthorImage,
           authorImagePlacement: this.state.authorImagePlacement,
+          watermark: this.state.watermark,
+          showWatermark: this.state.showWatermark,
+          brandingStyle: this.state.brandingStyle,
+          brandingPosition: this.state.brandingPosition,
+          brandingOpacity: this.state.brandingOpacity,
+          brandingLogo: this.state.brandingLogo,
+          brandingHandle: this.state.brandingHandle,
           presetId: this.activePreset.id,
           styles: { ...this.state.styles }
         },
@@ -678,9 +1074,107 @@ export class Editor {
       authorImage: this.state.authorImage,
       showAuthorImage: this.state.showAuthorImage,
       authorImagePlacement: this.state.authorImagePlacement,
+      watermark: this.state.watermark,
+      showWatermark: this.state.showWatermark,
+      brandingStyle: this.state.brandingStyle,
+      brandingPosition: this.state.brandingPosition,
+      brandingOpacity: this.state.brandingOpacity,
+      brandingLogo: this.state.brandingLogo,
+      brandingHandle: this.state.brandingHandle,
       presetId: this.activePreset.id,
       styles: { ...this.state.styles }
     });
+  }
+
+  updateBrandingUI() {
+    const inputWatermarkText = this.containerEl.querySelector('#inputWatermarkText');
+    const inputBrandingHandle = this.containerEl.querySelector('#inputBrandingHandle');
+    const sliderOpacity = this.containerEl.querySelector('#sliderBrandingOpacity');
+    const lblOpacity = this.containerEl.querySelector('#lblBrandingOpacity');
+    const thumbBox = this.containerEl.querySelector('#brandingLogoThumb');
+    const statusText = this.containerEl.querySelector('#lblLogoStatus');
+    const toggleWatermark = this.containerEl.querySelector('#toggleWatermark');
+    const brandingBody = this.containerEl.querySelector('#brandingOptionsBody');
+
+    if (toggleWatermark) toggleWatermark.checked = this.state.showWatermark;
+    if (brandingBody) {
+      brandingBody.style.opacity = this.state.showWatermark ? '1' : '0.45';
+      brandingBody.style.pointerEvents = this.state.showWatermark ? 'auto' : 'none';
+    }
+    if (inputWatermarkText) inputWatermarkText.value = this.state.watermark || '';
+    if (inputBrandingHandle) inputBrandingHandle.value = this.state.brandingHandle || '';
+    if (sliderOpacity) sliderOpacity.value = Math.round(this.state.brandingOpacity * 100);
+    if (lblOpacity) lblOpacity.textContent = `${Math.round(this.state.brandingOpacity * 100)}%`;
+
+    if (thumbBox) {
+      thumbBox.innerHTML = this.state.brandingLogo 
+        ? `<img src="${this.state.brandingLogo}" alt="Custom brand logo" />` 
+        : icon('image', { size: 18 });
+    }
+    if (statusText) {
+      statusText.textContent = this.state.brandingLogo ? 'Custom Logo Active' : 'No Logo Uploaded';
+    }
+
+    const styleSelector = this.containerEl.querySelector('#brandingStyleSelector');
+    if (styleSelector) {
+      styleSelector.querySelectorAll('.branding-style-btn').forEach(b => {
+        const isMatch = b.dataset.style === this.state.brandingStyle;
+        b.classList.toggle('active', isMatch);
+        b.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+      });
+    }
+
+    const posSelector = this.containerEl.querySelector('#brandingPosSelector');
+    if (posSelector) {
+      posSelector.querySelectorAll('.branding-pos-btn').forEach(b => {
+        const isMatch = b.dataset.pos === this.state.brandingPosition;
+        b.classList.toggle('active', isMatch);
+        b.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+      });
+    }
+  }
+
+  updateTypographyUI() {
+    const quoteFont = this.state.styles.fontFamily || 'Playfair Display';
+    const authorFont = this.state.styles.authorFontFamily || 'Plus Jakarta Sans';
+
+    const lblQuote = this.containerEl.querySelector('#lblQuoteFontName');
+    const lblAuthor = this.containerEl.querySelector('#lblAuthorFontName');
+    const sampleQuote = this.containerEl.querySelector('#lblQuoteFontSample');
+    const sampleAuthor = this.containerEl.querySelector('#lblAuthorFontSample');
+
+    if (lblQuote) lblQuote.textContent = quoteFont;
+    if (lblAuthor) lblAuthor.textContent = authorFont;
+    if (sampleQuote) {
+      sampleQuote.style.fontFamily = `'${quoteFont}', serif`;
+      sampleQuote.textContent = `“${this.state.quote ? (this.state.quote.length > 32 ? this.state.quote.slice(0, 30) + '…' : this.state.quote) : 'Typography Preview'}”`;
+    }
+    if (sampleAuthor) {
+      sampleAuthor.style.fontFamily = `'${authorFont}', sans-serif`;
+      sampleAuthor.textContent = `— ${this.state.author || 'Author Signature'}`;
+    }
+
+    // Sync Text Alignment Buttons
+    const alignGroup = this.containerEl.querySelector('#typoAlignGroup');
+    if (alignGroup) {
+      const activeAlign = this.state.styles.textAlign || 'center';
+      alignGroup.querySelectorAll('.typo-btn').forEach(btn => {
+        const isMatch = btn.dataset.align === activeAlign;
+        btn.classList.toggle('active', isMatch);
+        btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+      });
+    }
+
+    // Sync Font Weight Buttons
+    const weightGroup = this.containerEl.querySelector('#typoWeightGroup');
+    if (weightGroup) {
+      const activeWeight = String(this.state.styles.fontWeight || 600);
+      weightGroup.querySelectorAll('.typo-btn').forEach(btn => {
+        const isMatch = btn.dataset.weight === activeWeight;
+        btn.classList.toggle('active', isMatch);
+        btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+      });
+    }
   }
 
   syncFormValues() {
@@ -691,7 +1185,6 @@ export class Editor {
     const toggleAuthor = this.containerEl.querySelector('#toggleAuthor');
     const toggleDate = this.containerEl.querySelector('#toggleDate');
     const toggleCat = this.containerEl.querySelector('#toggleCategory');
-    const toggleWatermark = this.containerEl.querySelector('#toggleWatermark');
 
     if (author) author.value = this.state.author;
     if (handle) handle.value = this.state.handle;
@@ -700,7 +1193,9 @@ export class Editor {
     if (toggleAuthor) toggleAuthor.checked = this.state.showAuthor;
     if (toggleDate) toggleDate.checked = this.state.showDate;
     if (toggleCat) toggleCat.checked = this.state.showCategory;
-    if (toggleWatermark) toggleWatermark.checked = this.state.showWatermark;
+
+    this.updateBrandingUI();
+    this.updateTypographyUI();
   }
 
   updateThemePill() {

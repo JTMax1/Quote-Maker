@@ -8,6 +8,7 @@
  */
 
 import { CANVAS_FORMATS, LAYOUT_STYLES, PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
+import { FontLoaderService } from './fontLoaderService.js';
 
 export class CanvasRenderer {
   static imageCache = new Map();
@@ -22,13 +23,10 @@ export class CanvasRenderer {
   }
 
   static async ensureFontsLoaded(fontFamilies = []) {
-    if (!document.fonts) return;
+    if (!fontFamilies || fontFamilies.length === 0) return;
     const promises = fontFamilies.map(font => {
-      try {
-        return document.fonts.load(`16px "${font}"`);
-      } catch (e) {
-        return Promise.resolve();
-      }
+      if (!font) return Promise.resolve();
+      return FontLoaderService.loadFont(font);
     });
     await Promise.all(promises);
   }
@@ -67,6 +65,11 @@ export class CanvasRenderer {
       showDate = true,
       showCategory = true,
       showWatermark = true,
+      brandingStyle = "text",
+      brandingPosition = "bottom-right",
+      brandingOpacity = 0.55,
+      brandingLogo = null,
+      brandingHandle = "",
       showAuthorImage = false,
       authorImage = null,
       authorImagePlacement = 'auto',
@@ -98,6 +101,11 @@ export class CanvasRenderer {
     let loadedAuthorImg = null;
     if (showAuthorImage && authorImage) {
       loadedAuthorImg = await this.loadImageAsync(authorImage);
+    }
+
+    let loadedLogoImg = null;
+    if (showWatermark && brandingLogo) {
+      loadedLogoImg = await this.loadImageAsync(brandingLogo);
     }
 
     const canvas = targetCanvas || document.createElement('canvas');
@@ -395,6 +403,25 @@ export class CanvasRenderer {
       } else {
         this.drawCutoutPortrait(ctx, loadedAuthorImg, bottomX, bottomY, bottomW, bottomH, styles, effectivePlacement);
       }
+    }
+
+    // 17. Draw Watermark & Branding (Supports Text, Glassmorphic Badge, Custom Logo, and Logo+Text)
+    if (showWatermark) {
+      this.drawBranding(ctx, {
+        watermark,
+        brandingStyle,
+        brandingPosition,
+        brandingOpacity,
+        loadedLogoImg,
+        handle: brandingHandle || handle,
+        styles,
+        width,
+        height,
+        cardX,
+        cardY,
+        cardW,
+        cardH
+      });
     }
 
     return canvas;
@@ -1848,6 +1875,9 @@ export class CanvasRenderer {
       baseMaxFont = Math.min(baseMaxFont, 66);
     }
 
+    const quoteFontStack = FontLoaderService.getFallbackStack(fontFamily);
+    const fontWeight = styles.fontWeight || 600;
+
     let fontSize = baseMaxFont;
     const minFontSize = charLen > 250 ? 16 : 22;
     const effectiveLineRatio = charLen > 250 ? Math.min(lineHeightRatio, 1.28) : lineHeightRatio;
@@ -1855,7 +1885,7 @@ export class CanvasRenderer {
     let calculatedLineHeight = fontSize * effectiveLineRatio;
 
     while (fontSize >= minFontSize) {
-      ctx.font = `600 ${fontSize}px "${fontFamily}", sans-serif`;
+      ctx.font = `${fontWeight} ${fontSize}px ${quoteFontStack}`;
       lines = this.wrapText(ctx, activeLayout.id === 'tweet-card' ? quote : `“${quote}”`, width);
       calculatedLineHeight = fontSize * effectiveLineRatio;
       const totalBlockHeight = lines.length * calculatedLineHeight;
@@ -1872,7 +1902,7 @@ export class CanvasRenderer {
       }
     }
 
-    ctx.font = `600 ${fontSize}px "${fontFamily}", sans-serif`;
+    ctx.font = `${fontWeight} ${fontSize}px ${quoteFontStack}`;
     ctx.fillStyle = textColor;
     ctx.textAlign = textAlign;
     ctx.textBaseline = 'top';
@@ -1919,6 +1949,7 @@ export class CanvasRenderer {
     const accentColor = styles.accentColor || '#3b82f6';
     const metaColor = styles.metaColor || '#71717a';
     const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+    const authorFontStack = FontLoaderService.getFallbackStack(font);
 
     let textOffsetX = 0;
     if (loadedAuthorImg) {
@@ -1939,22 +1970,16 @@ export class CanvasRenderer {
         this.drawAvatarPlacement(ctx, loadedAuthorImg, cardX + 10, y + 2, avSize, 'avatar-round', styles);
 
         ctx.textAlign = 'left';
-        ctx.font = `700 26px "${font}", sans-serif`;
+        ctx.font = `700 26px ${authorFontStack}`;
         ctx.fillStyle = textColor;
         ctx.fillText(author, cardX + avSize + 22, y + 16);
 
         if (handle) {
-          ctx.font = `500 18px "${font}", sans-serif`;
+          ctx.font = `500 18px ${authorFontStack}`;
           ctx.fillStyle = accentColor;
           ctx.fillText(handle, cardX + avSize + 22, y + 42);
         }
 
-        if (showWatermark && watermark) {
-          ctx.font = `600 20px "${font}", sans-serif`;
-          ctx.fillStyle = `${metaColor}88`;
-          ctx.textAlign = 'right';
-          ctx.fillText(watermark.toUpperCase(), x + width, y + 78);
-        }
         ctx.restore();
         return;
       }
@@ -1973,7 +1998,7 @@ export class CanvasRenderer {
 
     // Draw Tweet verified badge
     if (activeLayout.id === 'tweet-card' && showAuthor) {
-      ctx.font = `700 36px "${font}", sans-serif`;
+      ctx.font = `700 36px ${authorFontStack}`;
       ctx.fillStyle = textColor;
       ctx.fillText(author, x + textOffsetX, y);
       const nameW = ctx.measureText(author).width;
@@ -1987,7 +2012,7 @@ export class CanvasRenderer {
       ctx.fillText('✓', x + textOffsetX + nameW + 15, y + 20);
 
       if (handle) {
-        ctx.font = `500 24px "${font}", sans-serif`;
+        ctx.font = `500 24px ${authorFontStack}`;
         ctx.fillStyle = metaColor;
         ctx.fillText(handle, x + textOffsetX, y + 44);
       }
@@ -1998,23 +2023,190 @@ export class CanvasRenderer {
 
       ctx.textAlign = textAlign;
       const authorText = `— ${author}`;
-      ctx.font = `700 36px "${font}", sans-serif`;
+      ctx.font = `700 36px ${authorFontStack}`;
       ctx.fillStyle = textColor;
       ctx.fillText(authorText, authorX, y);
 
       if (handle) {
-        ctx.font = `500 24px "${font}", sans-serif`;
+        ctx.font = `500 24px ${authorFontStack}`;
         ctx.fillStyle = accentColor || metaColor;
         ctx.fillText(handle, authorX, y + 44);
       }
     }
 
-    if (showWatermark && watermark) {
-      ctx.font = `600 20px "${font}", sans-serif`;
-      ctx.fillStyle = `${metaColor}88`;
-      ctx.textAlign = 'right';
-      ctx.fillText(watermark.toUpperCase(), x + width, y + 68);
+    ctx.restore();
+  }
+
+  /**
+   * Draw Watermark & Branding (Supports Text, Glassmorphic Badge, Custom Logo, and Logo+Text)
+   */
+  static drawBranding(ctx, {
+    watermark = 'QuoteForge',
+    brandingStyle = 'text',
+    brandingPosition = 'bottom-right',
+    brandingOpacity = 0.55,
+    loadedLogoImg = null,
+    handle = '',
+    styles = {},
+    width,
+    height
+  }) {
+    if (!watermark && !loadedLogoImg && !handle) return;
+    ctx.save();
+
+    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+    const brandingFontStack = FontLoaderService.getFallbackStack(font);
+    const textColor = styles.textColor || '#18181b';
+    const accentColor = styles.accentColor || '#6366f1';
+    const metaColor = styles.metaColor || '#71717a';
+    const opacity = Math.max(0.1, Math.min(1.0, parseFloat(brandingOpacity) || 0.55));
+
+    // Calculate position coordinates based on canvas aspect ratio
+    const marginX = Math.round(width * 0.08);
+    const marginY = Math.round(height * 0.065);
+
+    let anchorX = width - marginX;
+    let anchorY = height - marginY;
+    let align = 'right';
+
+    switch (brandingPosition) {
+      case 'bottom-left':
+        anchorX = marginX;
+        anchorY = height - marginY;
+        align = 'left';
+        break;
+      case 'top-right':
+        anchorX = width - marginX;
+        anchorY = marginY + 28;
+        align = 'right';
+        break;
+      case 'top-left':
+        anchorX = marginX;
+        anchorY = marginY + 28;
+        align = 'left';
+        break;
+      case 'footer-center':
+        anchorX = width / 2;
+        anchorY = height - marginY;
+        align = 'center';
+        break;
+      case 'bottom-right':
+      default:
+        anchorX = width - marginX;
+        anchorY = height - marginY;
+        align = 'right';
+        break;
     }
+
+    ctx.globalAlpha = opacity;
+
+    if (brandingStyle === 'logo' && loadedLogoImg) {
+      // Draw Logo Emblem Only
+      const maxDim = 58;
+      const aspect = (loadedLogoImg.naturalWidth || loadedLogoImg.width || 1) / (loadedLogoImg.naturalHeight || loadedLogoImg.height || 1);
+      let lw = maxDim;
+      let lh = maxDim;
+      if (aspect > 1) {
+        lh = maxDim / aspect;
+      } else {
+        lw = maxDim * aspect;
+      }
+
+      let lx = anchorX;
+      if (align === 'right') lx = anchorX - lw;
+      else if (align === 'center') lx = anchorX - lw / 2;
+      const ly = anchorY - lh / 2;
+
+      ctx.drawImage(loadedLogoImg, lx, ly, lw, lh);
+    } else if (brandingStyle === 'badge') {
+      // Glassmorphic Pill Badge: [Emblem/Logo] @handle or Watermark
+      const displayText = handle || watermark || 'QuoteForge';
+      ctx.font = `600 20px ${brandingFontStack}`;
+      const textWidth = ctx.measureText(displayText).width;
+      const emblemSize = 24;
+      const padX = 14;
+      const badgeH = 40;
+      const badgeW = textWidth + emblemSize + padX * 2 + 10;
+
+      let bx = anchorX;
+      if (align === 'right') bx = anchorX - badgeW;
+      else if (align === 'center') bx = anchorX - badgeW / 2;
+      const by = anchorY - badgeH / 2;
+
+      // Pill Background
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.76)';
+      this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, true, false);
+      ctx.strokeStyle = accentColor ? `${accentColor}77` : 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, false, true);
+
+      // Emblem inside pill
+      const emX = bx + padX;
+      const emY = by + (badgeH - emblemSize) / 2;
+      if (loadedLogoImg) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(emX + emblemSize / 2, emY + emblemSize / 2, emblemSize / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(loadedLogoImg, emX, emY, emblemSize, emblemSize);
+        ctx.restore();
+      } else {
+        // Glowing brand sparkle
+        ctx.fillStyle = accentColor || '#6366f1';
+        ctx.beginPath();
+        ctx.arc(emX + emblemSize / 2, emY + emblemSize / 2, emblemSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✦', emX + emblemSize / 2, emY + emblemSize / 2 + 4.5);
+      }
+
+      // Badge Text
+      ctx.textAlign = 'left';
+      ctx.font = `600 19px ${brandingFontStack}`;
+      ctx.fillStyle = textColor;
+      ctx.fillText(displayText, emX + emblemSize + 10, by + badgeH / 2 + 6.5);
+    } else if (brandingStyle === 'logo-text') {
+      // Logo Emblem + Text side-by-side
+      const displayText = (watermark || handle || 'QuoteForge').toUpperCase();
+      ctx.font = `700 20px ${brandingFontStack}`;
+      const textWidth = ctx.measureText(displayText).width;
+      const logoSize = 34;
+      const gap = 10;
+      const totalW = logoSize + gap + textWidth;
+
+      let sx = anchorX;
+      if (align === 'right') sx = anchorX - totalW;
+      else if (align === 'center') sx = anchorX - totalW / 2;
+      const sy = anchorY - logoSize / 2;
+
+      if (loadedLogoImg) {
+        ctx.drawImage(loadedLogoImg, sx, sy, logoSize, logoSize);
+      } else {
+        ctx.fillStyle = accentColor || '#6366f1';
+        ctx.beginPath();
+        ctx.arc(sx + logoSize / 2, sy + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 18px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('❝', sx + logoSize / 2, sy + logoSize / 2 + 6);
+      }
+
+      ctx.textAlign = 'left';
+      ctx.font = `700 20px ${brandingFontStack}`;
+      ctx.fillStyle = textColor;
+      ctx.fillText(displayText, sx + logoSize + gap, anchorY + 7);
+    } else {
+      // Minimalist Text Watermark (Default)
+      const displayText = (watermark || 'QuoteForge').toUpperCase();
+      ctx.font = `600 21px ${brandingFontStack}`;
+      ctx.fillStyle = metaColor;
+      ctx.textAlign = align;
+      ctx.fillText(displayText, anchorX, anchorY);
+    }
+
     ctx.restore();
   }
 
