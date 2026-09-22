@@ -124,7 +124,7 @@ export class TemplateStudio {
           <div class="studio-section">
             <span class="section-label">2. Abstract Lines & Geometric Patterns</span>
             <span style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.35rem; display: block;">Subtle geometric background lines that enhance elegance without overshadowing text:</span>
-            <div class="option-chips-grid" id="abstractPatternGrid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.45rem;" role="group" aria-label="Geometric pattern style">
+            <div class="abstract-patterns-grid" id="abstractPatternGrid" role="group" aria-label="Geometric pattern style">
               <button type="button" class="option-chip-btn ${this.template.abstractPattern === 'orbital-rings' ? 'active' : ''}" data-pattern="orbital-rings">Orbital Rings</button>
               <button type="button" class="option-chip-btn ${this.template.abstractPattern === 'fibonacci' ? 'active' : ''}" data-pattern="fibonacci">Golden Spiral</button>
               <button type="button" class="option-chip-btn ${this.template.abstractPattern === 'celestial' ? 'active' : ''}" data-pattern="celestial">Star Map</button>
@@ -155,28 +155,28 @@ export class TemplateStudio {
             <div class="color-picker-grid">
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorBg" value="${this.template.background}" aria-label="Background Color" />
-                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="color-item-labels">
                   <label for="colorBg">Background</label>
                   <span class="color-hex-tag" id="hexBg">${this.template.background}</span>
                 </div>
               </div>
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorText" value="${this.template.textColor}" aria-label="Quote Text Color" />
-                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="color-item-labels">
                   <label for="colorText">Text</label>
                   <span class="color-hex-tag" id="hexText">${this.template.textColor}</span>
                 </div>
               </div>
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorAccent" value="${this.template.accentColor}" aria-label="Accent Color" />
-                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="color-item-labels">
                   <label for="colorAccent">Accent</label>
                   <span class="color-hex-tag" id="hexAccent">${this.template.accentColor}</span>
                 </div>
               </div>
               <div class="color-input-item">
                 <input type="color" class="color-swatch-input" id="colorMeta" value="${this.template.metaColor}" aria-label="Secondary Meta Color" />
-                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div class="color-item-labels">
                   <label for="colorMeta">Secondary</label>
                   <span class="color-hex-tag" id="hexMeta">${this.template.metaColor}</span>
                 </div>
@@ -233,14 +233,14 @@ export class TemplateStudio {
 
           <!-- Typography & Google Fonts Studio -->
           <div class="studio-section">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="studio-section-header">
               <span class="section-label">4. Typography & Google Fonts</span>
-              <div style="display: flex; gap: 0.35rem; align-items: center;">
-                <button type="button" class="btn-glass" id="btnStudioPairings" style="padding: 0.3rem 0.6rem; font-size: 0.74rem; border-color: var(--brand-primary); color: var(--brand-primary);" aria-label="Browse 6 Signature Font Pairings">
+              <div class="studio-section-actions">
+                <button type="button" class="btn-glass" id="btnStudioPairings" style="padding: 0.35rem 0.65rem; font-size: 0.74rem; border-color: var(--brand-primary); color: var(--brand-primary);" aria-label="Browse 6 Signature Font Pairings">
                   <span aria-hidden="true">${icon('layers', { size: 12 })}</span>
                   <span>Pairings</span>
                 </button>
-                <button type="button" class="inspire-btn" id="btnStudioBrowseFonts" style="padding: 0.3rem 0.6rem; font-size: 0.74rem;" aria-label="Browse 40+ curated Google Fonts">
+                <button type="button" class="inspire-btn" id="btnStudioBrowseFonts" style="padding: 0.35rem 0.65rem; font-size: 0.74rem;" aria-label="Browse 40+ curated Google Fonts">
                   <span aria-hidden="true">${icon('sparkles', { size: 12 })}</span>
                   <span>Browse Fonts</span>
                 </button>
@@ -413,7 +413,7 @@ export class TemplateStudio {
                       <div style="font-size: 0.72rem; color: var(--text-muted);">PNG, SVG, or JPG with transparency</div>
                     </div>
                   </div>
-                  <div style="display: flex; gap: 0.4rem;">
+                  <div class="logo-uploader-actions" style="display: flex; gap: 0.4rem;">
                     <input type="file" id="inputStudioLogoFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display: none;" aria-label="Upload custom logo file" />
                     <button type="button" class="btn-glass" id="btnStudioUploadLogo" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" aria-label="Upload custom brand logo">
                       ${icon('upload', { size: 13 })} Upload Logo
@@ -462,13 +462,25 @@ export class TemplateStudio {
           <div class="studio-preview-header">
             <span class="studio-preview-title">
               <span class="studio-preview-dot"></span>
-              Live Canvas Engine Preview
+              Live Canvas Preview
             </span>
             <div class="studio-ratio-switcher" id="studioRatioSwitcher" role="radiogroup" aria-label="Aspect ratio">
-              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '1:1' ? 'active' : ''}" data-ratio="1:1" role="radio" aria-checked="${this.currentPreviewRatio === '1:1'}">1:1 Square</button>
-              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '9:16' ? 'active' : ''}" data-ratio="9:16" role="radio" aria-checked="${this.currentPreviewRatio === '9:16'}">9:16 Story</button>
-              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '4:5' ? 'active' : ''}" data-ratio="4:5" role="radio" aria-checked="${this.currentPreviewRatio === '4:5'}">4:5 Post</button>
-              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '16:9' ? 'active' : ''}" data-ratio="16:9" role="radio" aria-checked="${this.currentPreviewRatio === '16:9'}">16:9 Wide</button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '1:1' ? 'active' : ''}" data-ratio="1:1" role="radio" aria-checked="${this.currentPreviewRatio === '1:1'}">
+                <span class="studio-ratio-full">1:1 Square</span>
+                <span class="studio-ratio-short">1:1</span>
+              </button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '9:16' ? 'active' : ''}" data-ratio="9:16" role="radio" aria-checked="${this.currentPreviewRatio === '9:16'}">
+                <span class="studio-ratio-full">9:16 Story</span>
+                <span class="studio-ratio-short">9:16</span>
+              </button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '4:5' ? 'active' : ''}" data-ratio="4:5" role="radio" aria-checked="${this.currentPreviewRatio === '4:5'}">
+                <span class="studio-ratio-full">4:5 Post</span>
+                <span class="studio-ratio-short">4:5</span>
+              </button>
+              <button type="button" class="studio-ratio-btn ${this.currentPreviewRatio === '16:9' ? 'active' : ''}" data-ratio="16:9" role="radio" aria-checked="${this.currentPreviewRatio === '16:9'}">
+                <span class="studio-ratio-full">16:9 Wide</span>
+                <span class="studio-ratio-short">16:9</span>
+              </button>
             </div>
           </div>
 

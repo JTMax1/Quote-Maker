@@ -291,15 +291,21 @@
   flex: 1;
   max-width: 1440px;
   width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 /* View Containers */
 .view-panel {
   display: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   animation: viewFadeIn 0.22s ease-in-out forwards;
 }
 

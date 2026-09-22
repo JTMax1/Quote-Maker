@@ -8,6 +8,10 @@
   grid-template-columns: 480px 1fr;
   gap: 2rem;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @media (min-width: 1101px) {
@@ -22,15 +26,20 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
   .studio-preview-pane {
     order: -1;
     position: sticky;
     top: var(--header-height, 98px);
     z-index: 30;
-    width: calc(100% + 1.5rem);
-    margin-left: -0.75rem;
-    margin-right: -0.75rem;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
     background: rgba(11, 15, 23, 0.98);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -46,6 +55,10 @@
     max-height: none !important;
     overflow-y: visible !important;
     padding: 1.25rem 0.85rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 
@@ -58,7 +71,9 @@
   flex-direction: column;
   gap: 1.5rem;
   box-shadow: var(--shadow-sm);
-  overflow-x: clip;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
 }
@@ -76,9 +91,6 @@
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 .studio-section {
@@ -112,9 +124,18 @@
   align-items: center;
 }
 
-.color-input-item label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+.color-item-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.25rem;
+}
+
+.color-item-labels label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .color-swatch-input {
@@ -161,22 +182,38 @@
   border-color: #ffffff;
 }
 
-/* Border Styles Selector */
+/* Option Chips & Pattern Grids */
 .option-chips-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
 
+.abstract-patterns-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.45rem;
+}
+
 .option-chip-btn {
-  padding: 0.6rem;
-  font-size: 0.78rem;
+  padding: 0.55rem 0.5rem;
+  font-size: 0.76rem;
   font-weight: 600;
   text-align: center;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .option-chip-btn:hover {
@@ -188,6 +225,7 @@
   background: var(--brand-primary);
   color: #ffffff;
   border-color: var(--brand-primary);
+  box-shadow: 0 2px 8px var(--brand-primary-glow);
 }
 
 /* Studio Preview Pane */
@@ -215,6 +253,9 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .studio-ratio-switcher {
@@ -225,6 +266,7 @@
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-full);
   padding: 0.15rem 0.25rem;
+  flex-shrink: 0;
 }
 
 .studio-ratio-btn {
@@ -237,6 +279,7 @@
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .studio-ratio-btn:hover {
@@ -247,6 +290,10 @@
   background: var(--brand-primary);
   color: #ffffff;
   box-shadow: 0 2px 6px var(--brand-primary-glow);
+}
+
+.studio-ratio-short {
+  display: none;
 }
 
 .studio-canvas-container {
@@ -410,4 +457,310 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* ==========================================================================
+   Template Studio Mobile Responsive Optimization (<768px & <640px)
+   Eliminates all tool set truncation, text overflows, and control clipping
+   ========================================================================== */
+
+.studio-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.studio-section-actions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .studio-controls-pane {
+    padding: 1rem 0.75rem !important;
+    gap: 1.25rem !important;
+    border-radius: var(--radius-md);
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .studio-section, .studio-form-stack {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Preview Header & Ratio Switcher: Prevent truncation on mobile */
+  .studio-preview-header {
+    max-width: 100% !important;
+    gap: 0.35rem;
+  }
+  .studio-preview-title {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .studio-ratio-full {
+    display: none !important;
+  }
+  .studio-ratio-short {
+    display: inline !important;
+  }
+  .studio-ratio-switcher {
+    padding: 0.12rem 0.2rem;
+    gap: 0.15rem;
+  }
+  .studio-ratio-btn {
+    padding: 0.22rem 0.45rem;
+    font-size: 0.7rem;
+    min-height: 26px;
+  }
+
+  /* Color Palette: 2x2 Clean Mobile Grid (Swatches + stacked labels & hex) */
+  .color-picker-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .color-input-item {
+    background: var(--bg-surface-elevated);
+    padding: 0.45rem 0.55rem !important;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-glass);
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .color-input-item .color-swatch-input {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+  }
+  .color-item-labels {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.1rem !important;
+    min-width: 0 !important;
+    flex: 1 1 0px !important;
+    overflow: hidden !important;
+  }
+  .color-item-labels label {
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  .color-hex-tag {
+    font-size: 0.66rem !important;
+    font-family: monospace !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* Curated Palettes & Gradients: Constrained horizontal overflow */
+  .curated-palettes-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .gradient-swatches-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Abstract Lines & Pattern Chips: 2-column touch cards with no text truncation */
+  .abstract-patterns-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .option-chips-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.4rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .option-chip-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 0.5rem 0.35rem !important;
+    font-size: 0.74rem !important;
+    min-height: 40px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Typography Micro-Controls & Specimen Rows */
+  .typography-row {
+    padding: 0.65rem 0.75rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .typography-sample-text {
+    max-width: 170px !important;
+  }
+  .typo-micro-controls {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 0.65rem 0.75rem !important;
+  }
+  .typo-control-group {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .typo-btn-group {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 0.2rem !important;
+    gap: 0.2rem !important;
+  }
+  .typo-btn {
+    flex: 1 1 0px !important;
+    min-width: 0 !important;
+    padding: 0.4rem 0.2rem !important;
+    font-size: 0.72rem !important;
+    min-height: 36px !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Watermark & Branding Suite: Full-width responsive options */
+  .branding-options-stack {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .branding-style-selector {
+    grid-template-columns: 1fr !important;
+    gap: 0.45rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .branding-style-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .branding-pos-selector {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.35rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .branding-pos-btn {
+    flex: 1 1 calc(50% - 0.35rem) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    justify-content: center !important;
+    min-height: 36px !important;
+  }
+  .logo-uploader-strip {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .logo-uploader-info {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .logo-uploader-actions {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 0.4rem !important;
+  }
+  .logo-uploader-actions button {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+  .input-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  #btnPublishTemplate {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .studio-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+  .studio-section-actions {
+    width: 100%;
+  }
+  .studio-section-actions button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
 
