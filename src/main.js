@@ -49,7 +49,9 @@ class App {
       <header class="app-header" role="banner">
         <div class="header-container">
           <div class="brand">
-            <div class="brand-icon" aria-hidden="true">${icon('sparkles', { size: 18 })}</div>
+            <div class="brand-icon" aria-label="QuoteForge Logo">
+              <img src="/icons/icon-192.png" alt="QuoteForge Logo" class="brand-logo-img" />
+            </div>
             <span class="brand-text">QuoteForge</span>
             <span class="brand-badge">Studio</span>
           </div>
