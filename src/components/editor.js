@@ -126,8 +126,42 @@ export class Editor {
     if (preset.layoutId) {
       this.state.layoutId = preset.layoutId;
     }
+    if (preset.fontFamily) {
+      this.state.styles.fontFamily = preset.fontFamily;
+    }
+    if (preset.authorFontFamily) {
+      this.state.styles.authorFontFamily = preset.authorFontFamily;
+    }
+    if (preset.fontWeight) {
+      this.state.styles.fontWeight = preset.fontWeight;
+    }
+    if (preset.textAlign) {
+      this.state.styles.textAlign = preset.textAlign;
+    }
+    if (preset.showWatermark !== undefined) {
+      this.state.showWatermark = preset.showWatermark;
+    }
+    if (preset.watermark !== undefined) {
+      this.state.watermark = preset.watermark;
+    }
+    if (preset.brandingHandle !== undefined) {
+      this.state.brandingHandle = preset.brandingHandle;
+    }
+    if (preset.brandingStyle !== undefined) {
+      this.state.brandingStyle = preset.brandingStyle;
+    }
+    if (preset.brandingPosition !== undefined) {
+      this.state.brandingPosition = preset.brandingPosition;
+    }
+    if (preset.brandingOpacity !== undefined) {
+      this.state.brandingOpacity = preset.brandingOpacity;
+    }
+    if (preset.brandingLogo !== undefined) {
+      this.state.brandingLogo = preset.brandingLogo;
+    }
     this.updateThemePill();
     this.updateLayoutDisplay();
+    this.updateBrandingUI();
     this.updateTypographyUI();
     this.scheduleRender();
   }
