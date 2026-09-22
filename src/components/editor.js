@@ -233,7 +233,8 @@ export class Editor {
               ${CANVAS_FORMATS.map(f => `
                 <button type="button" class="ratio-chip ${this.state.ratio === f.id ? 'active' : ''}" data-ratio="${f.id}" role="radio" aria-checked="${this.state.ratio === f.id}" title="${f.label} (${f.sublabel})" aria-label="${f.label} ratio">
                   <span class="ratio-icon" aria-hidden="true">${icon(f.icon || 'square', { size: 12 })}</span>
-                  <span>${f.label}</span>
+                  <span class="ratio-label-full">${f.label}</span>
+                  <span class="ratio-label-short">${f.id}</span>
                 </button>
               `).join('')}
             </div>
@@ -1152,6 +1153,11 @@ export class Editor {
     updateHeaderHeight();
     window.addEventListener('resize', updateHeaderHeight);
     window.addEventListener('orientationchange', updateHeaderHeight);
+    const headerEl = document.querySelector('.app-header');
+    if (headerEl && window.ResizeObserver) {
+      const ro = new ResizeObserver(() => updateHeaderHeight());
+      ro.observe(headerEl);
+    }
 
     // Primary Canvas Action Bar Handlers (Download & Share)
     const executeDownload = () => {
