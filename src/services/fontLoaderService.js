@@ -186,7 +186,7 @@ export class FontLoaderService {
    * @returns {string} Font stack string
    */
   static getFallbackStack(family) {
-    if (!family) return '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    if (!family) return "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     const cleanFamily = family.trim().replace(/^['"]|['"]$/g, '');
     const meta = CURATED_FONTS.find(f => f.family.toLowerCase() === cleanFamily.toLowerCase());
     const category = meta?.category || 'sans';
@@ -194,14 +194,14 @@ export class FontLoaderService {
     switch (category) {
       case 'editorial':
       case 'serif':
-        return `"${cleanFamily}", Georgia, "Times New Roman", serif`;
+        return `'${cleanFamily}', Georgia, 'Times New Roman', serif`;
       case 'handwriting':
-        return `"${cleanFamily}", "Brush Script MT", cursive, sans-serif`;
+        return `'${cleanFamily}', 'Brush Script MT', cursive, sans-serif`;
       case 'mono':
-        return `"${cleanFamily}", "Courier New", monospace`;
+        return `'${cleanFamily}', 'Courier New', monospace`;
       case 'sans':
       default:
-        return `"${cleanFamily}", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        return `'${cleanFamily}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
     }
   }
 

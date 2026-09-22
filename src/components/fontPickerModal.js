@@ -105,9 +105,9 @@ export class FontPickerModal {
 
         <!-- Footer -->
         <div class="stepper-footer" style="border-top: 1px solid var(--border-glass); padding: 0.85rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-          <div style="font-size: 0.78rem; color: var(--text-muted);">
-            Active ${this.currentTarget === 'author' ? 'Author' : 'Quote'} Font: 
-            <strong style="color: var(--brand-primary);" id="lblActiveFontName">${escapeHtml(this.activeFont)}</strong>
+          <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: baseline; gap: 0.35rem;">
+            <span>Active ${this.currentTarget === 'author' ? 'Author' : 'Quote'} Font:</span>
+            <strong style="color: var(--brand-primary); font-family: ${FontLoaderService.getFallbackStack(this.activeFont)}; font-size: 0.95rem;" id="lblActiveFontName">${escapeHtml(this.activeFont)}</strong>
           </div>
           <button class="btn-glass" id="btnCancelFontPicker" style="padding: 0.4rem 1.1rem; font-size: 0.82rem;">Close</button>
         </div>
@@ -288,7 +288,10 @@ export class FontPickerModal {
   async selectFont(family) {
     this.activeFont = family;
     const lblActive = this.modalEl.querySelector('#lblActiveFontName');
-    if (lblActive) lblActive.textContent = family;
+    if (lblActive) {
+      lblActive.textContent = family;
+      lblActive.style.fontFamily = FontLoaderService.getFallbackStack(family);
+    }
 
     // Guarantee font is loaded before dispatching
     await FontLoaderService.loadFont(family);
@@ -397,7 +400,10 @@ export class FontPickerModal {
         : 'Choose a signature typeface for the quote text';
     }
     const lblActive = this.modalEl.querySelector('#lblActiveFontName');
-    if (lblActive) lblActive.textContent = activeFont;
+    if (lblActive) {
+      lblActive.textContent = activeFont;
+      lblActive.style.fontFamily = FontLoaderService.getFallbackStack(activeFont);
+    }
 
     this.renderFontCards();
     this.modalEl.classList.add('open');
