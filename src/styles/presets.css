@@ -15,6 +15,15 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
+  position: sticky;
+  top: 64px;
+  z-index: 30;
+  background: rgba(11, 15, 23, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 0.65rem 0;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-glass);
 }
 
 /* Category Filter Chips */

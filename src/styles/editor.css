@@ -804,6 +804,14 @@ input:checked + .slider:before {
 @media (max-width: 960px) {
   .mobile-editor-switcher {
     display: flex;
+    position: sticky;
+    top: 60px;
+    z-index: 35;
+    background: rgba(11, 15, 23, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.4rem 0;
+    margin-bottom: 0.75rem;
   }
 
   .hidden-mobile {
