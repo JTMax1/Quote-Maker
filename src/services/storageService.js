@@ -28,6 +28,7 @@ const DEFAULT_PROFILE = {
   showWatermark: true,
   watermarkText: 'QuoteForge',
   activePresetId: 'editorial-vogue',
+  mobileEditorLayout: 'pinned',
   customPreset: null,
   onboarded: false
 };

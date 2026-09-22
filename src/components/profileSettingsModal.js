@@ -123,6 +123,27 @@ export class ProfileSettingsModal {
             </select>
           </div>
 
+          <!-- Mobile Editor Workspace Layout -->
+          <div class="form-group">
+            <label class="form-label" for="settingMobileEditorLayout">
+              ${icon('smartphone', { size: 13, class: 'mr-1' })} Mobile Editor Layout
+            </label>
+            <select class="form-input" id="settingMobileEditorLayout" aria-label="Mobile Editor Layout Mode">
+              <option value="pinned" ${(!profile.mobileEditorLayout || profile.mobileEditorLayout === 'pinned') ? 'selected' : ''}>
+                Option A: Pinned Canvas (Canva Style) — Default
+              </option>
+              <option value="rail" ${profile.mobileEditorLayout === 'rail' ? 'selected' : ''}>
+                Option B: Studio Icon Rail & Drawer (Snapseed Style)
+              </option>
+              <option value="pip" ${profile.mobileEditorLayout === 'pip' ? 'selected' : ''}>
+                Option C: Floating Mini-PiP Dock
+              </option>
+            </select>
+            <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.3rem;">
+              Controls how the live preview stays visible while editing typography and branding on mobile.
+            </span>
+          </div>
+
           <!-- Visibility Toggles -->
           <div>
             <div class="form-label" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
@@ -232,6 +253,7 @@ export class ProfileSettingsModal {
       const watermarkText = this.modalEl.querySelector('#settingProfileWatermark').value.trim();
       const activePresetId = this.modalEl.querySelector('#settingDefaultTemplate').value;
       const defaultRatio = this.modalEl.querySelector('#settingDefaultRatio').value;
+      const mobileEditorLayout = this.modalEl.querySelector('#settingMobileEditorLayout')?.value || 'pinned';
       const showAuthor = this.modalEl.querySelector('#settingToggleAuthor').checked;
       const showDate = this.modalEl.querySelector('#settingToggleDate').checked;
       const showCategory = this.modalEl.querySelector('#settingToggleCategory').checked;
@@ -245,6 +267,7 @@ export class ProfileSettingsModal {
         watermarkText: watermarkText || 'QuoteForge',
         activePresetId: activePresetId || profile.activePresetId || 'editorial-vogue',
         defaultRatio,
+        mobileEditorLayout,
         showAuthor,
         showDate,
         showCategory,
