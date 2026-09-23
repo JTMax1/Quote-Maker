@@ -84,9 +84,13 @@ export class CanvasRenderer {
     const height = formatInfo.height;
 
     const activeLayout = LAYOUT_STYLES.find(l => l.id === layoutId) || LAYOUT_STYLES[0];
-    let effectivePlacement = authorImagePlacement !== 'auto' 
-      ? authorImagePlacement 
-      : (activeLayout.portraitPlacement || 'cutout-right');
+    let effectivePlacement = (authorImagePlacement && authorImagePlacement !== 'auto')
+      ? authorImagePlacement
+      : (activeLayout.portraitPlacement || (activeLayout.category === 'author' ? 'cutout-right' : 'none'));
+
+    if (activeLayout.portraitPlacement === 'none' && authorImagePlacement === 'auto') {
+      effectivePlacement = 'none';
+    }
 
     // Normalize legacy / alias keys
     if (effectivePlacement === 'right') effectivePlacement = 'cutout-right';
@@ -144,7 +148,7 @@ export class CanvasRenderer {
     let contentH = cardH - innerPadding * 2;
 
     // 5. Placement Classification for Space Partitioning & Layering
-    const hasAuthorFocus = activeLayout.category === 'author' || effectivePlacement !== 'none';
+    const hasAuthorFocus = effectivePlacement && effectivePlacement !== 'none';
 
     const isLeftSide = hasAuthorFocus && [
       'cutout-left', 'cutout-edge-left', 'arch-portal-left',
@@ -159,7 +163,8 @@ export class CanvasRenderer {
       'avatar-mid-right', 'half-screen-right', 'scrim-split-right',
       'cutout-right-offset', 'cutout-diagonal-right', 'cutout-side-profile-right',
       'frame-skewed-parallelogram', 'cutout-hero-large', 'floating-card-bottom-right',
-      'fashion-column-right', 'semicircle-portal-right', 'polaroid-pinned-corner'
+      'fashion-column-right', 'semicircle-portal-right', 'polaroid-pinned-corner',
+      'diagonal-split-photo'
     ].includes(effectivePlacement);
 
     const isTopPortal = hasAuthorFocus && [
@@ -235,12 +240,33 @@ export class CanvasRenderer {
         bottomX = (width - bottomW) / 2;
       }
       contentH -= Math.round(bottomH * 0.42);
-    } else if (effectivePlacement === 'top-banner-strip') {
-      const bannerH = Math.round(height * 0.38);
+    } else if (effectivePlacement === 'top-banner-strip' || activeLayout.id === 'author-header-banner') {
+      const bannerH = Math.round(height * 0.35);
       contentY = Math.max(contentY, bannerH + 24);
       contentH = height - contentY - padding;
     } else if (effectivePlacement === 'bottom-banner-strip') {
       contentH = Math.min(contentH, Math.round(height * 0.60) - contentY);
+    }
+
+    // Layout-specific quote box adjustments
+    if (activeLayout.id === 'vertical-spine-text') {
+      quoteBoxX += 72;
+      quoteBoxW -= 72;
+    } else if (activeLayout.id === 'vintage-typewriter') {
+      quoteBoxX += 48;
+      quoteBoxW -= 60;
+    } else if (activeLayout.id === 'author-circle-side') {
+      quoteBoxW = Math.round(contentW * 0.62);
+    } else if (activeLayout.id === 'author-split-diagonal') {
+      quoteBoxW = Math.round(contentW * 0.55);
+    } else if (activeLayout.id === 'author-polaroid-stack') {
+      quoteBoxW = Math.round(contentW * 0.62);
+    } else if (activeLayout.id === 'swiss-asymmetric') {
+      quoteBoxX = Math.round(width * 0.40);
+      quoteBoxW = width - quoteBoxX - padding - 20;
+      contentY = Math.round(height * 0.36);
+    } else if (activeLayout.id === 'museum-ticket-stub') {
+      quoteBoxW = Math.round(cardW * 0.68) - innerPadding;
     }
 
     // 7. Header (Category, Date, Magazine Masthead, Terminal Chrome)
@@ -277,8 +303,14 @@ export class CanvasRenderer {
       quoteBoxX, quoteBoxW, styles, author, quote, date, category
     });
 
-    // Header Badges
-    if ((showCategory || showDate || isHeaderAvatar) && activeLayout.id !== 'terminal-code') {
+    // Suppress default floating header badges for layouts with dedicated mastheads/headers
+    const hasCustomHeader = [
+      'terminal-code', 'newspaper-headline', 'broadsheet-banner',
+      'front-page-lead', 'tweet-card', 'magazine-cover',
+      'the-atlantic-op', 'catalog-specimen', 'center-badge-minimal', 'calendar-tear-off'
+    ].includes(activeLayout.id);
+
+    if ((showCategory || showDate || isHeaderAvatar) && !hasCustomHeader) {
       this.drawHeader(ctx, {
         showCategory,
         category,
@@ -293,6 +325,20 @@ export class CanvasRenderer {
         effectivePlacement
       });
       currentY += headerH;
+    } else if (activeLayout.id === 'newspaper-headline') {
+      currentY = Math.max(currentY, cardY + 120);
+    } else if (activeLayout.id === 'broadsheet-banner') {
+      currentY = Math.max(currentY, cardY + 84);
+    } else if (activeLayout.id === 'front-page-lead') {
+      currentY = Math.max(currentY, cardY + 74);
+    } else if (activeLayout.id === 'tweet-card') {
+      currentY = Math.max(currentY, cardY + 88);
+    } else if (activeLayout.id === 'the-atlantic-op' || activeLayout.id === 'catalog-specimen') {
+      currentY = Math.max(currentY, cardY + 74);
+    } else if (activeLayout.id === 'center-badge-minimal') {
+      currentY = Math.max(currentY, cardY + 80);
+    } else if (activeLayout.id === 'calendar-tear-off') {
+      currentY = Math.max(currentY, cardY + 180);
     }
 
     // 8. Render Center Hero Portrait (Subtle background aura behind quote)
@@ -1866,11 +1912,21 @@ export class CanvasRenderer {
     ctx.save();
     let textAlign = styles.textAlign || 'center';
     if (activeLayout.id === 'right-aligned-minimal') textAlign = 'right';
-    if (activeLayout.id === 'left-accent-bar' || activeLayout.id === 'cutout-right' || activeLayout.id === 'tweet-card') textAlign = 'left';
+    if (
+      activeLayout.id === 'left-accent-bar' ||
+      activeLayout.id === 'cutout-right' ||
+      activeLayout.id === 'tweet-card' ||
+      activeLayout.id === 'vintage-typewriter' ||
+      activeLayout.id === 'glitch-matrix' ||
+      activeLayout.id === 'dropcap-literary' ||
+      activeLayout.id === 'interview-qa'
+    ) {
+      textAlign = 'left';
+    }
 
     const textColor = styles.textColor || '#18181b';
     const accentColor = styles.accentColor || '#3b82f6';
-    const fontFamily = styles.fontFamily || 'Playfair Display';
+    let fontFamily = styles.fontFamily || 'Playfair Display';
     const quoteMarkStyle = styles.quoteMarkStyle || 'classic';
     const lineHeightRatio = styles.lineHeight || 1.4;
 
@@ -1884,40 +1940,68 @@ export class CanvasRenderer {
       ctx.stroke();
     }
 
-    // Draw Quote Marks
-    if (quoteMarkStyle === 'classic' && activeLayout.id !== 'big-watermark' && activeLayout.id !== 'tweet-card') {
-      ctx.font = `italic 140px "Playfair Display", serif`;
-      ctx.fillStyle = `${accentColor}44`;
-      ctx.textAlign = textAlign === 'center' ? 'center' : 'left';
-      ctx.textBaseline = 'top';
-      const markX = textAlign === 'center' ? x + width / 2 : x;
-      ctx.fillText('“', markX, y - 50);
-    } else if (quoteMarkStyle === 'modern-brackets') {
-      ctx.font = `600 54px "${fontFamily}", sans-serif`;
-      ctx.fillStyle = accentColor;
-      ctx.textAlign = 'left';
-      ctx.fillText('//', x, y - 10);
-    } else if (quoteMarkStyle === 'minimal-dash') {
-      ctx.strokeStyle = accentColor;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      const dashX = textAlign === 'center' ? x + width / 2 - 30 : x;
-      ctx.moveTo(dashX, y - 10);
-      ctx.lineTo(dashX + 60, y - 10);
-      ctx.stroke();
-    } else if (quoteMarkStyle === 'decorative-stars') {
-      ctx.font = `28px serif`;
-      ctx.fillStyle = accentColor;
-      ctx.textAlign = 'center';
-      ctx.fillText('✦  ✦  ✦', x + width / 2, y - 10);
+    // Special layout flags
+    const isCinema = activeLayout.id === 'cinema-subtitles';
+    const isVogueItalics = activeLayout.id === 'vogue-italics';
+    const isGlitchMatrix = activeLayout.id === 'glitch-matrix';
+    const isTypewriter = activeLayout.id === 'vintage-typewriter';
+    const isDropCap = activeLayout.id === 'dropcap-literary';
+    const isEditorialTwoColumn = activeLayout.id === 'editorial-two-column';
+    const isRansom = activeLayout.id === 'newspaper-cutout-ransom';
+    const isHeroWordScale = activeLayout.id === 'hero-word-scale';
+    const isInterviewQA = activeLayout.id === 'interview-qa';
+    const isStencil = activeLayout.id === 'stencil-spray';
+    const isDiagonalKinetic = activeLayout.id === 'diagonal-kinetic';
+
+    if (isGlitchMatrix || isTypewriter) {
+      fontFamily = '"Courier New", Courier, monospace';
+    } else if (isVogueItalics) {
+      fontFamily = '"Playfair Display", "Didot", serif';
+    } else if (isStencil) {
+      fontFamily = '"Impact", "Arial Black", sans-serif';
     }
 
-    // Dynamic Font Sizing with Adaptive Auto-Shrink Algorithm (P2-3)
+    // Draw Quote Marks (omitted for layouts with dedicated styling)
+    const suppressQuoteMarks = [
+      'big-watermark', 'tweet-card', 'glitch-matrix', 'vintage-typewriter',
+      'dropcap-literary', 'interview-qa', 'newspaper-cutout-ransom', 'hero-word-scale',
+      'cinema-subtitles', 'editorial-two-column', 'stencil-spray', 'diagonal-kinetic'
+    ].includes(activeLayout.id);
+
+    if (!suppressQuoteMarks) {
+      if (quoteMarkStyle === 'classic') {
+        ctx.font = `italic 140px "Playfair Display", serif`;
+        ctx.fillStyle = `${accentColor}44`;
+        ctx.textAlign = textAlign === 'center' ? 'center' : 'left';
+        ctx.textBaseline = 'top';
+        const markX = textAlign === 'center' ? x + width / 2 : x;
+        ctx.fillText('“', markX, y - 50);
+      } else if (quoteMarkStyle === 'modern-brackets') {
+        ctx.font = `600 54px "${fontFamily}", sans-serif`;
+        ctx.fillStyle = accentColor;
+        ctx.textAlign = 'left';
+        ctx.fillText('//', x, y - 10);
+      } else if (quoteMarkStyle === 'minimal-dash') {
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        const dashX = textAlign === 'center' ? x + width / 2 - 30 : x;
+        ctx.moveTo(dashX, y - 10);
+        ctx.lineTo(dashX + 60, y - 10);
+        ctx.stroke();
+      } else if (quoteMarkStyle === 'decorative-stars') {
+        ctx.font = `28px serif`;
+        ctx.fillStyle = accentColor;
+        ctx.textAlign = 'center';
+        ctx.fillText('✦  ✦  ✦', x + width / 2, y - 10);
+      }
+    }
+
+    // Dynamic Font Sizing with Adaptive Auto-Shrink Algorithm
     const charLen = quote.length;
     let baseMaxFont = Math.min(Math.round(width * 0.08), 84);
     if (activeLayout.id === 'billboard-heavy') baseMaxFont = Math.min(Math.round(width * 0.11), 104);
 
-    // Scale down starting font size and minimum threshold for long quotes
     if (charLen > 350) {
       baseMaxFont = Math.min(baseMaxFont, 40);
     } else if (charLen > 220) {
@@ -1927,12 +2011,8 @@ export class CanvasRenderer {
     }
 
     const quoteFontStack = FontLoaderService.getFallbackStack(fontFamily);
-    const fontWeight = styles.fontWeight || 600;
-
-    const isCinema = activeLayout.id === 'cinema-subtitles';
-    const isVogueItalics = activeLayout.id === 'vogue-italics';
-    const effectiveTextColor = isCinema ? '#fde047' : textColor;
-    const effectiveFontWeight = isVogueItalics ? 'italic 400' : (styles.fontWeight || 600);
+    const effectiveTextColor = isGlitchMatrix ? '#4ade80' : (isCinema ? '#fde047' : (isTypewriter ? '#262626' : textColor));
+    const effectiveFontWeight = isVogueItalics ? 'italic 400' : (isStencil ? '900' : (isTypewriter ? '600' : (styles.fontWeight || 600)));
 
     let fontSize = baseMaxFont;
     const minFontSize = charLen > 250 ? 16 : 22;
@@ -1940,16 +2020,23 @@ export class CanvasRenderer {
     let lines = [];
     let calculatedLineHeight = fontSize * effectiveLineRatio;
 
+    const noCurlyQuotes = [
+      'tweet-card', 'cinema-subtitles', 'vintage-typewriter', 'glitch-matrix',
+      'dropcap-literary', 'interview-qa', 'newspaper-cutout-ransom', 'stencil-spray'
+    ].includes(activeLayout.id);
+
+    const quoteWrappedString = noCurlyQuotes ? quote : `“${quote}”`;
+
     while (fontSize >= minFontSize) {
       ctx.font = `${effectiveFontWeight} ${fontSize}px ${quoteFontStack}`;
-      lines = this.wrapText(ctx, activeLayout.id === 'tweet-card' || isCinema ? quote : `“${quote}”`, width);
+      lines = this.wrapText(ctx, quoteWrappedString, width);
       calculatedLineHeight = fontSize * effectiveLineRatio;
       const totalBlockHeight = lines.length * calculatedLineHeight;
       if (totalBlockHeight <= maxHeight) break;
       fontSize -= 2;
     }
 
-    // Safety guard: If text exceeds maxHeight even at minFontSize, clamp lines cleanly with ellipsis
+    // Safety guard
     const maxAllowedLines = Math.max(1, Math.floor(maxHeight / calculatedLineHeight));
     if (lines.length > maxAllowedLines) {
       lines = lines.slice(0, maxAllowedLines);
@@ -1964,6 +2051,304 @@ export class CanvasRenderer {
 
     const totalHeight = lines.length * calculatedLineHeight;
     const startY = y + Math.max(0, (maxHeight - totalHeight) / 2);
+
+    // 1. Drop Cap Literary Layout
+    if (isDropCap) {
+      const cleanQuote = quote.replace(/^["'“‘\s]+/, '');
+      const capChar = (cleanQuote.charAt(0) || 'A').toUpperCase();
+      const quoteRemainder = cleanQuote.slice(1);
+      const capSize = Math.min(Math.round(calculatedLineHeight * 2.2), 84);
+      const capW = capSize + 16;
+
+      const words = quoteRemainder.split(/\s+/);
+      const dropCapLines = [];
+      let currentLine = '';
+      let lineCount = 0;
+
+      for (let i = 0; i < words.length; i++) {
+        const allowedWidth = lineCount < 2 ? (width - capW) : width;
+        const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
+        if (ctx.measureText(testLine).width > allowedWidth && currentLine) {
+          dropCapLines.push(currentLine);
+          lineCount++;
+          currentLine = words[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) dropCapLines.push(currentLine);
+
+      ctx.save();
+      ctx.fillStyle = styles.accentColor ? `${styles.accentColor}25` : 'rgba(59, 130, 246, 0.15)';
+      this.roundRect(ctx, x, startY, capSize, capSize, 8, true, false);
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2;
+      this.roundRect(ctx, x, startY, capSize, capSize, 8, false, true);
+
+      ctx.fillStyle = accentColor;
+      ctx.font = `700 ${Math.round(capSize * 0.75)}px "Playfair Display", serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(capChar, x + capSize / 2, startY + capSize / 2 + 1);
+      ctx.restore();
+
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = effectiveTextColor;
+      dropCapLines.forEach((dLine, dIdx) => {
+        const dX = dIdx < 2 ? (x + capW) : x;
+        const dY = startY + (dIdx * calculatedLineHeight);
+        ctx.fillText(dLine, dX, dY);
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 2. CRT Matrix Terminal Layout
+    if (isGlitchMatrix) {
+      ctx.save();
+      ctx.font = `700 ${fontSize}px "Courier New", Courier, monospace`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#4ade80';
+      ctx.shadowColor = 'rgba(74, 222, 128, 0.75)';
+      ctx.shadowBlur = 10;
+
+      const matrixLines = this.wrapText(ctx, `> ${quote}`, width);
+      matrixLines.forEach((mLine, mIdx) => {
+        const mY = startY + (mIdx * calculatedLineHeight);
+        const textToDraw = mIdx === matrixLines.length - 1 ? `${mLine} █` : mLine;
+        ctx.fillText(textToDraw, x, mY);
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 3. Vintage Smith-Corona Typewriter Layout
+    if (isTypewriter) {
+      ctx.save();
+      ctx.font = `600 ${fontSize}px "Courier New", Courier, monospace`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#262626';
+
+      const typeLines = this.wrapText(ctx, `"${quote}"`, width);
+      typeLines.forEach((tLine, tIdx) => {
+        ctx.fillText(tLine, x, startY + (tIdx * calculatedLineHeight));
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 4. Split Editorial Two-Column Layout
+    if (isEditorialTwoColumn) {
+      ctx.save();
+      const colGap = 36;
+      const colW = Math.round((width - colGap) / 2);
+      ctx.font = `${effectiveFontWeight} ${fontSize}px ${quoteFontStack}`;
+      const colLines = this.wrapText(ctx, `“${quote}”`, colW);
+      const halfCount = Math.ceil(colLines.length / 2);
+      const leftLines = colLines.slice(0, halfCount);
+      const rightLines = colLines.slice(halfCount);
+
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = effectiveTextColor;
+
+      leftLines.forEach((lLine, lIdx) => {
+        ctx.fillText(lLine, x, startY + (lIdx * calculatedLineHeight));
+      });
+
+      rightLines.forEach((rLine, rIdx) => {
+        ctx.fillText(rLine, x + colW + colGap, startY + (rIdx * calculatedLineHeight));
+      });
+
+      const colH = Math.max(leftLines.length, rightLines.length) * calculatedLineHeight;
+      ctx.strokeStyle = styles.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + colW + colGap / 2, startY - 6);
+      ctx.lineTo(x + colW + colGap / 2, startY + colH + 6);
+      ctx.stroke();
+
+      ctx.restore();
+      return;
+    }
+
+    // 5. Display Word Highlight (Hero Words)
+    if (isHeroWordScale) {
+      ctx.save();
+      const words = quote.split(/\s+/);
+      const heroWordCount = Math.min(3, Math.max(1, Math.floor(words.length * 0.35)));
+      const heroText = words.slice(0, heroWordCount).join(' ').toUpperCase();
+      const bodyText = words.slice(heroWordCount).join(' ');
+
+      const heroFontSize = Math.min(Math.round(fontSize * 1.5), 78);
+      ctx.font = `900 ${heroFontSize}px ${quoteFontStack}`;
+      ctx.textAlign = textAlign;
+      ctx.textBaseline = 'top';
+
+      const heroLines = this.wrapText(ctx, heroText, width);
+      let curY = startY;
+
+      ctx.fillStyle = accentColor;
+      heroLines.forEach(hLine => {
+        const hX = textAlign === 'center' ? x + width / 2 : x;
+        ctx.fillText(hLine, hX, curY);
+        curY += heroFontSize * 1.15;
+      });
+
+      ctx.strokeStyle = `${accentColor}66`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const ruleX = textAlign === 'center' ? x + width / 2 - 40 : x;
+      ctx.moveTo(ruleX, curY + 6);
+      ctx.lineTo(ruleX + 80, curY + 6);
+      ctx.stroke();
+      curY += 20;
+
+      ctx.font = `${effectiveFontWeight} ${fontSize}px ${quoteFontStack}`;
+      ctx.fillStyle = effectiveTextColor;
+      const bodyLines = this.wrapText(ctx, `“${bodyText}”`, width);
+      bodyLines.forEach(bLine => {
+        const bX = textAlign === 'center' ? x + width / 2 : x;
+        ctx.fillText(bLine, bX, curY);
+        curY += calculatedLineHeight;
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 6. Interview Q&A Block
+    if (isInterviewQA) {
+      ctx.save();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+
+      let curY = startY;
+      ctx.font = `700 18px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = accentColor;
+      ctx.fillText('Q: WHAT IS THE ESSENTIAL INSIGHT?', x, curY);
+      curY += 32;
+
+      ctx.font = `800 24px "Plus Jakarta Sans", sans-serif`;
+      ctx.fillStyle = accentColor;
+      ctx.fillText('A:', x, curY);
+
+      ctx.font = `italic ${fontSize}px "Playfair Display", serif`;
+      ctx.fillStyle = effectiveTextColor;
+      const ansLines = this.wrapText(ctx, `“${quote}”`, width - 36);
+      ansLines.forEach((aLine, aIdx) => {
+        ctx.fillText(aLine, x + 36, curY + (aIdx * calculatedLineHeight));
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 7. Collage Ransom Note Layout
+    if (isRansom) {
+      ctx.save();
+      const words = quote.split(/\s+/);
+      const chipColors = [
+        { bg: '#ffffff', text: '#000000' },
+        { bg: '#fde047', text: '#000000' },
+        { bg: '#000000', text: '#ffffff' },
+        { bg: '#ef4444', text: '#ffffff' },
+        { bg: '#3b82f6', text: '#ffffff' },
+        { bg: '#f43f5e', text: '#ffffff' }
+      ];
+      ctx.font = `800 ${Math.min(fontSize, 40)}px "Arial Black", Impact, sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center';
+
+      let curX = x;
+      let curY = startY + 20;
+      const rowH = Math.min(fontSize, 40) * 1.5;
+
+      words.forEach((w, wIdx) => {
+        const wMetrics = ctx.measureText(w.toUpperCase());
+        const chipW = wMetrics.width + 16;
+        const chipH = rowH - 6;
+
+        if (curX + chipW > x + width && curX > x) {
+          curX = x;
+          curY += rowH + 6;
+        }
+
+        const colorScheme = chipColors[wIdx % chipColors.length];
+        const rot = ((wIdx * 7) % 7 - 3) * 0.03;
+
+        ctx.save();
+        ctx.translate(curX + chipW / 2, curY + chipH / 2);
+        ctx.rotate(rot);
+
+        ctx.shadowColor = 'rgba(0,0,0,0.25)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 3;
+
+        ctx.fillStyle = colorScheme.bg;
+        ctx.fillRect(-chipW / 2, -chipH / 2, chipW, chipH);
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-chipW / 2, -chipH / 2, chipW, chipH);
+
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = colorScheme.text;
+        ctx.fillText(w.toUpperCase(), 0, 1);
+        ctx.restore();
+
+        curX += chipW + 8;
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 8. Diagonal Kinetic Type
+    if (isDiagonalKinetic) {
+      ctx.save();
+      ctx.translate(x + width / 2, startY + totalHeight / 2);
+      ctx.rotate(-0.05);
+      ctx.translate(-(x + width / 2), -(startY + totalHeight / 2));
+
+      ctx.font = `italic 800 ${fontSize}px ${quoteFontStack}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = effectiveTextColor;
+
+      lines.forEach((line, index) => {
+        ctx.fillText(line, x + width / 2, startY + (index * calculatedLineHeight));
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // 9. Street Stencil Graffiti
+    if (isStencil) {
+      ctx.save();
+      ctx.font = `900 ${fontSize}px "Impact", "Arial Black", sans-serif`;
+      ctx.textAlign = textAlign;
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = effectiveTextColor;
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 4;
+
+      lines.forEach((sLine, sIdx) => {
+        const sX = textAlign === 'center' ? x + width / 2 : (textAlign === 'right' ? x + width : x);
+        ctx.fillText(sLine.toUpperCase(), sX, startY + (sIdx * calculatedLineHeight));
+      });
+
+      ctx.restore();
+      return;
+    }
 
     // Horizontal Ribbon Background
     if (activeLayout.id === 'horizontal-ribbon') {
@@ -1987,27 +2372,6 @@ export class CanvasRenderer {
         ctx.lineTo(x + width, ly + calculatedLineHeight - 4);
         ctx.stroke();
       }
-      ctx.restore();
-    }
-
-    // Drop Cap Literary Layout
-    if (activeLayout.id === 'dropcap-literary' && quote.length > 0) {
-      ctx.save();
-      const capChar = quote.trim().charAt(0).toUpperCase();
-      const capSize = Math.min(Math.round(calculatedLineHeight * 2.2), 90);
-      const capX = x;
-      const capY = startY;
-      ctx.fillStyle = styles.accentColor ? `${styles.accentColor}22` : 'rgba(59, 130, 246, 0.15)';
-      this.roundRect(ctx, capX, capY, capSize, capSize, 8, true, false);
-      ctx.strokeStyle = accentColor;
-      ctx.lineWidth = 2;
-      this.roundRect(ctx, capX, capY, capSize, capSize, 8, false, true);
-
-      ctx.fillStyle = accentColor;
-      ctx.font = `700 ${Math.round(capSize * 0.75)}px "Playfair Display", serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(capChar, capX + capSize / 2, capY + capSize / 2 + 2);
       ctx.restore();
     }
 
@@ -2075,39 +2439,78 @@ export class CanvasRenderer {
     const font = styles.authorFontFamily || 'Plus Jakarta Sans';
     const authorFontStack = FontLoaderService.getFallbackStack(font);
 
-    let textOffsetX = 0;
-    if (loadedAuthorImg) {
-      if (effectivePlacement === 'avatar-footer-card') {
-        const cardH = 72;
-        const cardW = Math.min(width, 420);
-        let cardX = x;
-        if (textAlign === 'center') cardX = x + (width - cardW) / 2;
-        if (textAlign === 'right') cardX = x + width - cardW;
+    // 1. Social Verified Tweet Card: suppress duplicate author & checkmark, render timestamp line
+    if (activeLayout.id === 'tweet-card') {
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#64748b';
+      ctx.font = `500 15px ${authorFontStack}`;
+      ctx.fillText('10:42 AM · Oct 24, 2024 · 2.4M Views', x, y + 8);
+      ctx.restore();
+      return;
+    }
 
-        ctx.fillStyle = 'rgba(24, 24, 27, 0.78)';
-        this.roundRect(ctx, cardX, y - 8, cardW, cardH, 36, true, false);
-        ctx.strokeStyle = accentColor ? `${accentColor}55` : 'rgba(255,255,255,0.2)';
-        ctx.lineWidth = 1.5;
-        this.roundRect(ctx, cardX, y - 8, cardW, cardH, 36, false, true);
+    // 2. Author Card Footer (avatar-bottom-card / avatar-footer-card)
+    if (activeLayout.id === 'avatar-bottom-card' || effectivePlacement === 'avatar-footer-card') {
+      const cardH = 72;
+      const cardW = Math.min(width, 420);
+      let cardX = x;
+      if (textAlign === 'center') cardX = x + (width - cardW) / 2;
+      if (textAlign === 'right') cardX = x + width - cardW;
 
-        const avSize = 52;
+      ctx.fillStyle = styles.isDark ? 'rgba(24, 24, 27, 0.88)' : 'rgba(255, 255, 255, 0.92)';
+      this.roundRect(ctx, cardX, y - 8, cardW, cardH, 36, true, false);
+      ctx.strokeStyle = accentColor ? `${accentColor}55` : 'rgba(100,116,139,0.3)';
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, cardX, y - 8, cardW, cardH, 36, false, true);
+
+      const avSize = 52;
+      if (loadedAuthorImg) {
         this.drawAvatarPlacement(ctx, loadedAuthorImg, cardX + 10, y + 2, avSize, 'avatar-round', styles);
-
-        ctx.textAlign = 'left';
-        ctx.font = `700 26px ${authorFontStack}`;
-        ctx.fillStyle = textColor;
-        ctx.fillText(author, cardX + avSize + 22, y + 16);
-
-        if (handle) {
-          ctx.font = `500 18px ${authorFontStack}`;
-          ctx.fillStyle = accentColor;
-          ctx.fillText(handle, cardX + avSize + 22, y + 42);
-        }
-
-        ctx.restore();
-        return;
+      } else {
+        ctx.fillStyle = accentColor;
+        ctx.beginPath();
+        ctx.arc(cardX + 10 + avSize / 2, y + 2 + avSize / 2, avSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText((author || 'A').charAt(0).toUpperCase(), cardX + 10 + avSize / 2, y + 2 + avSize / 2 + 1);
       }
 
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.font = `700 24px ${authorFontStack}`;
+      ctx.fillStyle = textColor;
+      ctx.fillText(author, cardX + avSize + 22, y + 26);
+
+      if (handle) {
+        ctx.font = `500 16px ${authorFontStack}`;
+        ctx.fillStyle = accentColor;
+        ctx.fillText(handle, cardX + avSize + 22, y + 48);
+      }
+
+      ctx.restore();
+      return;
+    }
+
+    // 3. Four-Corner Metadata Layout (corner-anchors)
+    if (activeLayout.id === 'corner-anchors') {
+      ctx.textAlign = 'left';
+      ctx.font = `700 16px monospace`;
+      ctx.fillStyle = accentColor;
+      ctx.fillText(`AUTHOR // ${author ? author.toUpperCase() : 'ANONYMOUS'}`, x, y + 10);
+      if (handle) {
+        ctx.font = `500 13px monospace`;
+        ctx.fillStyle = metaColor;
+        ctx.fillText(handle, x, y + 28);
+      }
+      ctx.restore();
+      return;
+    }
+
+    let textOffsetX = 0;
+    if (loadedAuthorImg) {
       const avSize = 56;
       let avX = x;
       if (effectivePlacement === 'avatar-bottom-right') avX = x + width - avSize;
@@ -2120,31 +2523,10 @@ export class CanvasRenderer {
       }
     }
 
-    // Draw Tweet verified badge
-    if (activeLayout.id === 'tweet-card' && showAuthor) {
-      ctx.font = `700 36px ${authorFontStack}`;
-      ctx.fillStyle = textColor;
-      ctx.fillText(author, x + textOffsetX, y);
-      const nameW = ctx.measureText(author).width;
-      // Blue verified checkmark
-      ctx.fillStyle = '#1d9bf0';
-      ctx.beginPath();
-      ctx.arc(x + textOffsetX + nameW + 20, y + 14, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `700 16px sans-serif`;
-      ctx.fillText('✓', x + textOffsetX + nameW + 15, y + 20);
-
-      if (handle) {
-        ctx.font = `500 24px ${authorFontStack}`;
-        ctx.fillStyle = metaColor;
-        ctx.fillText(handle, x + textOffsetX, y + 44);
-      }
-    } else if (showAuthor && author) {
+    if (showAuthor && author) {
       let authorX = x + textOffsetX + (width - textOffsetX) / 2;
-      if (textAlign === 'left' || activeLayout.id === 'corner-anchors') authorX = x + textOffsetX;
+      if (textAlign === 'left') authorX = x + textOffsetX;
       if (textAlign === 'right') authorX = x + width;
-      if (activeLayout.id === 'corner-anchors') textAlign = 'left';
 
       ctx.textAlign = textAlign;
 

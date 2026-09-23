@@ -77,9 +77,9 @@ export class Editor {
 
     this.layoutPicker = new LayoutPicker((layout) => {
       this.state.layoutId = layout.id;
-      if (layout.portraitPlacement && layout.portraitPlacement !== 'none') {
-        this.state.authorImagePlacement = layout.portraitPlacement;
-      }
+      this.state.authorImagePlacement = (layout.portraitPlacement && layout.portraitPlacement !== 'none')
+        ? layout.portraitPlacement
+        : 'none';
       this.updateLayoutDisplay();
       this.scheduleRender();
     });
@@ -129,9 +129,7 @@ export class Editor {
     if (preset.layoutId) {
       this.state.layoutId = preset.layoutId;
     }
-    if (preset.portraitPlacement) {
-      this.state.authorImagePlacement = preset.portraitPlacement;
-    }
+    this.state.authorImagePlacement = preset.portraitPlacement || 'none';
     if (preset.fontFamily) {
       this.state.styles.fontFamily = preset.fontFamily;
     }
