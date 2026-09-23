@@ -9,6 +9,7 @@
 
 import { CANVAS_FORMATS, LAYOUT_STYLES, PORTRAIT_PLACEMENTS } from '../data/defaultPresets.js';
 import { FontLoaderService } from './fontLoaderService.js';
+import { LayoutRenderer } from './layoutRenderer.js';
 
 export class CanvasRenderer {
   static imageCache = new Map();
@@ -143,22 +144,25 @@ export class CanvasRenderer {
     let contentH = cardH - innerPadding * 2;
 
     // 5. Placement Classification for Space Partitioning & Layering
-    const isLeftSide = loadedAuthorImg && [
+    const hasAuthorFocus = activeLayout.category === 'author' || effectivePlacement !== 'none';
+
+    const isLeftSide = hasAuthorFocus && [
       'cutout-left', 'cutout-edge-left', 'arch-portal-left',
       'bookmark-vertical-strip', 'shadowbox-inset-left', 'avatar-mid-left',
       'half-screen-left', 'scrim-split-left',
       'cutout-left-offset', 'cutout-diagonal-left', 'cutout-side-profile-left',
-      'avatar-squircle-left', 'avatar-vertical-meta'
+      'avatar-squircle-left', 'avatar-vertical-meta', 'sidebar-dossier-left'
     ].includes(effectivePlacement);
 
-    const isRightSide = loadedAuthorImg && [
+    const isRightSide = hasAuthorFocus && [
       'cutout-right', 'cutout-edge-right', 'shadowbox-inset-right',
       'avatar-mid-right', 'half-screen-right', 'scrim-split-right',
       'cutout-right-offset', 'cutout-diagonal-right', 'cutout-side-profile-right',
-      'frame-skewed-parallelogram'
+      'frame-skewed-parallelogram', 'cutout-hero-large', 'floating-card-bottom-right',
+      'fashion-column-right', 'semicircle-portal-right', 'polaroid-pinned-corner'
     ].includes(effectivePlacement);
 
-    const isTopPortal = loadedAuthorImg && [
+    const isTopPortal = hasAuthorFocus && [
       'avatar-top-center', 'avatar-top-left', 'avatar-top-right',
       'oval-cameo-center', 'hexagon-badge-top', 'diamond-inset-center',
       'arch-portal-center', 'film-cell-inset', 'monogram-seal-top',
@@ -171,27 +175,28 @@ export class CanvasRenderer {
       'frame-isometric-cube-top', 'frame-golden-ratio-box'
     ].includes(effectivePlacement);
 
-    const isTopCorner = loadedAuthorImg && [
+    const isTopCorner = hasAuthorFocus && [
       'stamp-perforated-corner', 'cutout-top-right', 'cutout-top-left',
       'cutout-floating-top', 'avatar-hexagon-corner', 'avatar-corner-pin-left',
       'avatar-corner-pin-right'
     ].includes(effectivePlacement);
 
-    const isBottomPlacement = loadedAuthorImg && [
+    const isBottomPlacement = hasAuthorFocus && [
       'cutout-bottom', 'cutout-bottom-left', 'cutout-bottom-right',
       'cutout-angle-bottom', 'cutout-side-peek', 'polaroid-card-bottom',
       'pedestal-base-center', 'cutout-center-bottom-large',
-      'cutout-grounded-pedestal', 'cutout-cinematic-wide'
+      'cutout-grounded-pedestal', 'cutout-cinematic-wide',
+      'pedestal-shelf-bottom', 'avatar-bubble-tail'
     ].includes(effectivePlacement);
 
-    const isFooterAvatar = loadedAuthorImg && [
+    const isFooterAvatar = hasAuthorFocus && [
       'avatar-bottom-left', 'avatar-bottom-right', 'avatar-bottom-center',
       'avatar-footer-card', 'avatar-inline-signature'
     ].includes(effectivePlacement);
 
-    const isInlineAvatar = loadedAuthorImg && effectivePlacement === 'avatar-quote-inline';
-    const isHeaderAvatar = loadedAuthorImg && effectivePlacement === 'avatar-header-badge';
-    const isCenterHero = loadedAuthorImg && [
+    const isInlineAvatar = hasAuthorFocus && effectivePlacement === 'avatar-quote-inline';
+    const isHeaderAvatar = hasAuthorFocus && effectivePlacement === 'avatar-header-badge';
+    const isCenterHero = hasAuthorFocus && [
       'cutout-hero-center', 'cutout-vertical-center', 'cutout-split-peek-bottom',
       'cutout-monochrome-glow', 'avatar-split-center'
     ].includes(effectivePlacement);
@@ -265,6 +270,13 @@ export class CanvasRenderer {
       ctx.restore();
     }
 
+    // Layout-specific chrome, mastheads & decorations
+    LayoutRenderer.drawLayoutChrome(ctx, activeLayout, {
+      width, height, cardX, cardY, cardW, cardH,
+      contentX, contentY, contentW, contentH,
+      quoteBoxX, quoteBoxW, styles, author, quote, date, category
+    });
+
     // Header Badges
     if ((showCategory || showDate || isHeaderAvatar) && activeLayout.id !== 'terminal-code') {
       this.drawHeader(ctx, {
@@ -289,7 +301,11 @@ export class CanvasRenderer {
       const heroH = Math.round(height * 0.72);
       const heroX = (width - heroW) / 2;
       const heroY = height - heroH;
-      this.drawCutoutPortrait(ctx, loadedAuthorImg, heroX, heroY, heroW, heroH, styles, effectivePlacement);
+      if (loadedAuthorImg) {
+        this.drawCutoutPortrait(ctx, loadedAuthorImg, heroX, heroY, heroW, heroH, styles, effectivePlacement);
+      } else {
+        LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, heroX, heroY, heroW, heroH, effectivePlacement, styles, author);
+      }
     }
 
     // 9. Render Top Portals & Avatars
@@ -311,10 +327,14 @@ export class CanvasRenderer {
       if (effectivePlacement === 'avatar-top-left') portalX = quoteBoxX;
       if (effectivePlacement === 'avatar-top-right') portalX = quoteBoxX + quoteBoxW - portalW;
 
-      if (['diamond-inset-center', 'arch-portal-center', 'film-cell-inset', 'monogram-seal-top', 'rounded-card-center'].includes(effectivePlacement)) {
-        this.drawGeometricFrame(ctx, loadedAuthorImg, portalX, currentY, portalW, portalH, effectivePlacement, styles);
+      if (loadedAuthorImg) {
+        if (['diamond-inset-center', 'arch-portal-center', 'film-cell-inset', 'monogram-seal-top', 'rounded-card-center'].includes(effectivePlacement)) {
+          this.drawGeometricFrame(ctx, loadedAuthorImg, portalX, currentY, portalW, portalH, effectivePlacement, styles);
+        } else {
+          this.drawAvatarPlacement(ctx, loadedAuthorImg, portalX, currentY, portalW, effectivePlacement, styles);
+        }
       } else {
-        this.drawAvatarPlacement(ctx, loadedAuthorImg, portalX, currentY, portalW, effectivePlacement, styles);
+        LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, portalX, currentY, portalW, portalH, effectivePlacement, styles, author);
       }
       currentY += portalH + 20;
     }
@@ -324,22 +344,38 @@ export class CanvasRenderer {
       if (effectivePlacement === 'stamp-perforated-corner') {
         const stampW = 116;
         const stampH = 140;
-        this.drawGeometricFrame(ctx, loadedAuthorImg, cardX + cardW - stampW - 16, cardY + 20, stampW, stampH, effectivePlacement, styles);
+        if (loadedAuthorImg) {
+          this.drawGeometricFrame(ctx, loadedAuthorImg, cardX + cardW - stampW - 16, cardY + 20, stampW, stampH, effectivePlacement, styles);
+        } else {
+          LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, cardX + cardW - stampW - 16, cardY + 20, stampW, stampH, effectivePlacement, styles, author);
+        }
       } else if (effectivePlacement === 'cutout-top-right') {
         const cW = 160;
         const cH = 200;
-        this.drawCutoutPortrait(ctx, loadedAuthorImg, cardX + cardW - cW - 10, cardY + 14, cW, cH, styles, effectivePlacement);
+        if (loadedAuthorImg) {
+          this.drawCutoutPortrait(ctx, loadedAuthorImg, cardX + cardW - cW - 10, cardY + 14, cW, cH, styles, effectivePlacement);
+        } else {
+          LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, cardX + cardW - cW - 10, cardY + 14, cW, cH, styles, author);
+        }
       } else if (effectivePlacement === 'cutout-top-left') {
         const cW = 160;
         const cH = 200;
-        this.drawCutoutPortrait(ctx, loadedAuthorImg, cardX + 14, cardY + 14, cW, cH, styles, effectivePlacement);
+        if (loadedAuthorImg) {
+          this.drawCutoutPortrait(ctx, loadedAuthorImg, cardX + 14, cardY + 14, cW, cH, styles, effectivePlacement);
+        } else {
+          LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, cardX + 14, cardY + 14, cW, cH, styles, author);
+        }
       }
     }
 
     // 11. Render Inline Avatar (Preceding quote speech)
     if (isInlineAvatar) {
       const inlineSize = 64;
-      this.drawAvatarPlacement(ctx, loadedAuthorImg, quoteBoxX + (quoteBoxW - inlineSize) / 2, currentY, inlineSize, 'avatar-quote-inline', styles);
+      if (loadedAuthorImg) {
+        this.drawAvatarPlacement(ctx, loadedAuthorImg, quoteBoxX + (quoteBoxW - inlineSize) / 2, currentY, inlineSize, 'avatar-quote-inline', styles);
+      } else {
+        LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, quoteBoxX + (quoteBoxW - inlineSize) / 2, currentY, inlineSize, inlineSize, 'avatar-quote-inline', styles, author);
+      }
       currentY += inlineSize + 18;
     }
 
@@ -379,29 +415,37 @@ export class CanvasRenderer {
       effectivePlacement
     });
 
-    // 15. Draw Side Placement (Cutout or Frame)
+    // 15. Draw Side Placement (Cutout, Frame, or Placeholder)
     if (isLeftSide || isRightSide) {
       const isBlendSplit = ['half-screen-left', 'half-screen-right', 'scrim-split-left', 'scrim-split-right'].includes(effectivePlacement);
       if (!isBlendSplit) {
-        if (['arch-portal-left', 'bookmark-vertical-strip', 'shadowbox-inset-left', 'shadowbox-inset-right'].includes(effectivePlacement)) {
-          this.drawGeometricFrame(ctx, loadedAuthorImg, sideX, sideY, sideW, sideH, effectivePlacement, styles);
-        } else if (effectivePlacement === 'avatar-mid-left' || effectivePlacement === 'avatar-mid-right') {
-          const midSize = Math.min(sideW, 130);
-          const midX = sideX + (sideW - midSize) / 2;
-          const midY = sideY + (sideH - midSize) / 2;
-          this.drawAvatarPlacement(ctx, loadedAuthorImg, midX, midY, midSize, 'avatar-round', styles);
+        if (loadedAuthorImg) {
+          if (['arch-portal-left', 'bookmark-vertical-strip', 'shadowbox-inset-left', 'shadowbox-inset-right'].includes(effectivePlacement)) {
+            this.drawGeometricFrame(ctx, loadedAuthorImg, sideX, sideY, sideW, sideH, effectivePlacement, styles);
+          } else if (effectivePlacement === 'avatar-mid-left' || effectivePlacement === 'avatar-mid-right') {
+            const midSize = Math.min(sideW, 130);
+            const midX = sideX + (sideW - midSize) / 2;
+            const midY = sideY + (sideH - midSize) / 2;
+            this.drawAvatarPlacement(ctx, loadedAuthorImg, midX, midY, midSize, 'avatar-round', styles);
+          } else {
+            this.drawCutoutPortrait(ctx, loadedAuthorImg, sideX, sideY, sideW, sideH, styles, effectivePlacement);
+          }
         } else {
-          this.drawCutoutPortrait(ctx, loadedAuthorImg, sideX, sideY, sideW, sideH, styles, effectivePlacement);
+          LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, sideX, sideY, sideW, sideH, effectivePlacement, styles, author);
         }
       }
     }
 
     // 16. Draw Bottom Placement (Cutout, Slant, Corner Pop, Polaroid, or Museum Pedestal)
     if (isBottomPlacement) {
-      if (effectivePlacement === 'polaroid-card-bottom' || effectivePlacement === 'pedestal-base-center') {
-        this.drawGeometricFrame(ctx, loadedAuthorImg, bottomX, bottomY, bottomW, bottomH, effectivePlacement, styles);
+      if (loadedAuthorImg) {
+        if (effectivePlacement === 'polaroid-card-bottom' || effectivePlacement === 'pedestal-base-center') {
+          this.drawGeometricFrame(ctx, loadedAuthorImg, bottomX, bottomY, bottomW, bottomH, effectivePlacement, styles);
+        } else {
+          this.drawCutoutPortrait(ctx, loadedAuthorImg, bottomX, bottomY, bottomW, bottomH, styles, effectivePlacement);
+        }
       } else {
-        this.drawCutoutPortrait(ctx, loadedAuthorImg, bottomX, bottomY, bottomW, bottomH, styles, effectivePlacement);
+        LayoutRenderer.drawAuthorVisualOrPlaceholder(ctx, null, bottomX, bottomY, bottomW, bottomH, effectivePlacement, styles, author);
       }
     }
 
@@ -787,6 +831,9 @@ export class CanvasRenderer {
       ctx.fillRect(0, 0, width, height);
     }
 
+    // Specialized Layout Background (Zen circle, dot grid, blueprint, synthwave, etc.)
+    LayoutRenderer.drawLayoutBackground(ctx, width, height, activeLayout, styles);
+
     // Abstract geometric lines & geometry
     const pattern = styles.abstractPattern;
     if (pattern) {
@@ -1077,6 +1124,10 @@ export class CanvasRenderer {
    */
   static drawCardFrame(ctx, x, y, w, h, styles, activeLayout) {
     ctx.save();
+
+    // Specialized Novelty and Layout Containers (Sticky note, boarding pass, receipt, film strip, stamp, envelope, etc.)
+    LayoutRenderer.drawLayoutCard(ctx, x, y, w, h, activeLayout, styles);
+
     const borderStyle = styles.borderStyle || 'none';
     const cardStyle = styles.cardStyle || 'flat';
     const borderColor = styles.borderColor || 'rgba(0,0,0,0.1)';
@@ -1878,6 +1929,11 @@ export class CanvasRenderer {
     const quoteFontStack = FontLoaderService.getFallbackStack(fontFamily);
     const fontWeight = styles.fontWeight || 600;
 
+    const isCinema = activeLayout.id === 'cinema-subtitles';
+    const isVogueItalics = activeLayout.id === 'vogue-italics';
+    const effectiveTextColor = isCinema ? '#fde047' : textColor;
+    const effectiveFontWeight = isVogueItalics ? 'italic 400' : (styles.fontWeight || 600);
+
     let fontSize = baseMaxFont;
     const minFontSize = charLen > 250 ? 16 : 22;
     const effectiveLineRatio = charLen > 250 ? Math.min(lineHeightRatio, 1.28) : lineHeightRatio;
@@ -1885,8 +1941,8 @@ export class CanvasRenderer {
     let calculatedLineHeight = fontSize * effectiveLineRatio;
 
     while (fontSize >= minFontSize) {
-      ctx.font = `${fontWeight} ${fontSize}px ${quoteFontStack}`;
-      lines = this.wrapText(ctx, activeLayout.id === 'tweet-card' ? quote : `“${quote}”`, width);
+      ctx.font = `${effectiveFontWeight} ${fontSize}px ${quoteFontStack}`;
+      lines = this.wrapText(ctx, activeLayout.id === 'tweet-card' || isCinema ? quote : `“${quote}”`, width);
       calculatedLineHeight = fontSize * effectiveLineRatio;
       const totalBlockHeight = lines.length * calculatedLineHeight;
       if (totalBlockHeight <= maxHeight) break;
@@ -1902,29 +1958,97 @@ export class CanvasRenderer {
       }
     }
 
-    ctx.font = `${fontWeight} ${fontSize}px ${quoteFontStack}`;
-    ctx.fillStyle = textColor;
+    ctx.font = `${effectiveFontWeight} ${fontSize}px ${quoteFontStack}`;
     ctx.textAlign = textAlign;
     ctx.textBaseline = 'top';
 
     const totalHeight = lines.length * calculatedLineHeight;
     const startY = y + Math.max(0, (maxHeight - totalHeight) / 2);
 
+    // Horizontal Ribbon Background
+    if (activeLayout.id === 'horizontal-ribbon') {
+      ctx.save();
+      ctx.fillStyle = styles.accentColor ? `${styles.accentColor}25` : 'rgba(59, 130, 246, 0.15)';
+      this.roundRect(ctx, x - 16, startY - 14, width + 32, totalHeight + 28, 8, true, false);
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 1.5;
+      this.roundRect(ctx, x - 16, startY - 14, width + 32, totalHeight + 28, 8, false, true);
+      ctx.restore();
+    }
+
+    // Index Card Ruled Lines
+    if (activeLayout.id === 'clean-index-card') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.16)';
+      ctx.lineWidth = 1.2;
+      for (let ly = startY; ly <= startY + totalHeight + 20; ly += calculatedLineHeight) {
+        ctx.beginPath();
+        ctx.moveTo(x, ly + calculatedLineHeight - 4);
+        ctx.lineTo(x + width, ly + calculatedLineHeight - 4);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Drop Cap Literary Layout
+    if (activeLayout.id === 'dropcap-literary' && quote.length > 0) {
+      ctx.save();
+      const capChar = quote.trim().charAt(0).toUpperCase();
+      const capSize = Math.min(Math.round(calculatedLineHeight * 2.2), 90);
+      const capX = x;
+      const capY = startY;
+      ctx.fillStyle = styles.accentColor ? `${styles.accentColor}22` : 'rgba(59, 130, 246, 0.15)';
+      this.roundRect(ctx, capX, capY, capSize, capSize, 8, true, false);
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2;
+      this.roundRect(ctx, capX, capY, capSize, capSize, 8, false, true);
+
+      ctx.fillStyle = accentColor;
+      ctx.font = `700 ${Math.round(capSize * 0.75)}px "Playfair Display", serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(capChar, capX + capSize / 2, capY + capSize / 2 + 2);
+      ctx.restore();
+    }
+
     let drawX = x + width / 2;
     if (textAlign === 'left') drawX = x;
     if (textAlign === 'right') drawX = x + width;
 
     lines.forEach((line, index) => {
+      const lineY = startY + (index * calculatedLineHeight);
+
       // Highlight marker effect
       if (activeLayout.id === 'highlight-marker' && index === 0) {
         const metrics = ctx.measureText(line);
         ctx.save();
         ctx.fillStyle = styles.accentColor ? `${styles.accentColor}55` : 'rgba(250, 204, 21, 0.45)';
         const hlX = textAlign === 'center' ? drawX - metrics.width / 2 : drawX;
-        ctx.fillRect(hlX - 6, startY + (index * calculatedLineHeight) + (fontSize * 0.5), metrics.width + 12, fontSize * 0.45);
+        ctx.fillRect(hlX - 6, lineY + (fontSize * 0.5), metrics.width + 12, fontSize * 0.45);
         ctx.restore();
       }
-      ctx.fillText(line, drawX, startY + (index * calculatedLineHeight));
+
+      // Boxed Words layout
+      if (activeLayout.id === 'boxed-words' && index % 2 === 0) {
+        const metrics = ctx.measureText(line);
+        ctx.save();
+        ctx.fillStyle = styles.accentColor ? `${styles.accentColor}25` : 'rgba(0,0,0,0.45)';
+        const bx = textAlign === 'center' ? drawX - metrics.width / 2 - 8 : drawX - 8;
+        this.roundRect(ctx, bx, lineY - 2, metrics.width + 16, calculatedLineHeight - 4, 6, true, false);
+        ctx.restore();
+      }
+
+      // Cinema subtitles black stroke outline
+      if (isCinema) {
+        ctx.save();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 4;
+        ctx.strokeText(line, drawX, lineY);
+        ctx.restore();
+      }
+
+      ctx.fillStyle = effectiveTextColor;
+      ctx.fillText(line, drawX, lineY);
     });
 
     if (activeLayout.id === 'pull-quote-rules') {
@@ -2018,12 +2142,27 @@ export class CanvasRenderer {
       }
     } else if (showAuthor && author) {
       let authorX = x + textOffsetX + (width - textOffsetX) / 2;
-      if (textAlign === 'left') authorX = x + textOffsetX;
+      if (textAlign === 'left' || activeLayout.id === 'corner-anchors') authorX = x + textOffsetX;
       if (textAlign === 'right') authorX = x + width;
+      if (activeLayout.id === 'corner-anchors') textAlign = 'left';
 
       ctx.textAlign = textAlign;
-      const authorText = `— ${author}`;
-      ctx.font = `700 36px ${authorFontStack}`;
+
+      // Single line divider minimal layout
+      if (activeLayout.id === 'single-line-divider') {
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const ruleLen = Math.min(width * 0.4, 200);
+        ctx.moveTo(x + (width - ruleLen) / 2, y - 14);
+        ctx.lineTo(x + (width + ruleLen) / 2, y - 14);
+        ctx.stroke();
+      }
+
+      const authorText = (activeLayout.id === 'museum-plaque' || activeLayout.id === 'single-line-divider') 
+        ? author.toUpperCase() 
+        : `— ${author}`;
+      ctx.font = `700 ${activeLayout.id === 'single-line-divider' ? '24px' : '36px'} ${authorFontStack}`;
       ctx.fillStyle = textColor;
       ctx.fillText(authorText, authorX, y);
 

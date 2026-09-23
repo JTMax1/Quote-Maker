@@ -315,7 +315,7 @@ export class Editor {
                 <span aria-hidden="true">${icon('layout', { size: 15 })}</span>
                 <span>Canvas Layout</span>
               </span>
-              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.72rem; font-weight: 700;">50 Layouts</span>
+              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.72rem; font-weight: 700;">100 Layouts</span>
             </div>
             <div class="layout-selection-strip">
               <div class="layout-strip-info">
@@ -1717,7 +1717,7 @@ export class Editor {
     this.restoreRailCard();
 
     const titles = {
-      layout: { label: 'Canvas Layout (50 Layouts)', icon: 'layout' },
+      layout: { label: 'Canvas Layout (100 Layouts)', icon: 'layout' },
       typography: { label: 'Typography & Google Fonts', icon: 'type' },
       content: { label: 'Quote Content & Copy', icon: 'quote' },
       portrait: { label: 'Author Portrait & Cutout', icon: 'user' },
