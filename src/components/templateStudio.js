@@ -852,9 +852,15 @@ export class TemplateStudio {
     const btnClearLogo = this.containerEl.querySelector('#btnClearStudioLogo');
 
     if (logoThumb) {
-      logoThumb.innerHTML = this.template.brandingLogo
-        ? `<img src="${this.template.brandingLogo}" alt="Brand logo thumbnail" />`
-        : icon('image', { size: 18 });
+      logoThumb.innerHTML = '';
+      if (this.template.brandingLogo) {
+        const img = document.createElement('img');
+        img.src = this.template.brandingLogo;
+        img.alt = 'Brand logo thumbnail';
+        logoThumb.appendChild(img);
+      } else {
+        logoThumb.innerHTML = icon('image', { size: 18 });
+      }
     }
     if (lblLogoStatus) {
       lblLogoStatus.textContent = this.template.brandingLogo ? 'Custom Logo Active' : 'No Logo Uploaded';

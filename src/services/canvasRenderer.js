@@ -2898,12 +2898,21 @@ export class CanvasRenderer {
   static async exportBlob(data, format = 'image/png', quality = 0.95, scale = 1) {
     const canvas = await this.renderToCanvas(data, null, scale);
     return new Promise(resolve => {
-      canvas.toBlob(blob => resolve(blob), format, quality);
+      canvas.toBlob(blob => {
+        // Zero out dimensions to trigger immediate GPU memory deallocation
+        canvas.width = 0;
+        canvas.height = 0;
+        resolve(blob);
+      }, format, quality);
     });
   }
 
   static async exportDataURL(data, format = 'image/png', quality = 0.95, scale = 1) {
     const canvas = await this.renderToCanvas(data, null, scale);
-    return canvas.toDataURL(format, quality);
+    const dataUrl = canvas.toDataURL(format, quality);
+    // Zero out dimensions to trigger immediate GPU memory deallocation
+    canvas.width = 0;
+    canvas.height = 0;
+    return dataUrl;
   }
 }

@@ -19,7 +19,9 @@
 
   .main-content:has(#view-editor.active) {
     height: calc(100vh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
     max-height: calc(100vh - var(--header-height));
+    max-height: calc(100dvh - var(--header-height));
     padding: 1rem 1.5rem;
     overflow: hidden;
   }
@@ -53,16 +55,19 @@
     flex: 1;
     min-height: 0;
     max-height: calc(100vh - var(--header-height) - 165px);
+    max-height: calc(100dvh - var(--header-height) - 165px);
     padding: 1.25rem;
   }
 
   #view-editor.active #previewCanvas {
     max-height: calc(100vh - var(--header-height) - 200px) !important;
+    max-height: calc(100dvh - var(--header-height) - 200px) !important;
   }
 
   #view-editor.active .editor-controls-panel {
     height: 100%;
     max-height: calc(100vh - var(--header-height) - 2.5rem);
+    max-height: calc(100dvh - var(--header-height) - 2.5rem);
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.65rem;

@@ -258,13 +258,13 @@ export class StorageService {
   }
 
   /**
-   * Import user data from a valid JSON backup string
+   * Import user data from a valid JSON backup string or object
    */
-  static importBackupJSON(jsonStr) {
+  static importBackupJSON(input) {
     try {
-      const data = JSON.parse(jsonStr);
-      if (!data || data.app !== 'QuoteForge') {
-        throw new Error('Invalid QuoteForge backup file format');
+      const data = typeof input === 'string' ? JSON.parse(input) : input;
+      if (!data || typeof data !== 'object' || data.app !== 'QuoteForge') {
+        throw new Error('Invalid QuoteForge backup format: missing QuoteForge app header.');
       }
 
       if (data.profile && typeof data.profile === 'object') {

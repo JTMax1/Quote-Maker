@@ -24,13 +24,16 @@ export class FontPickerModal {
     this.currentQuoteText = 'We suffer more often in imagination than in reality.';
     this.previewWithQuote = true;
     this.observer = null;
+    this.previouslyFocusedEl = null;
 
     this.modalEl = null;
-    FontLoaderService.ensureCatalogLoaded();
     this.render();
   }
 
   render() {
+    const existing = document.getElementById('fontPickerModal');
+    if (existing) existing.remove();
+
     this.modalEl = document.createElement('div');
     this.modalEl.className = 'modal-backdrop';
     this.modalEl.id = 'fontPickerModal';
@@ -327,9 +330,28 @@ export class FontPickerModal {
       if (e.target === this.modalEl) this.close();
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.modalEl.classList.contains('open')) {
+    this.modalEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
         this.close();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = Array.from(this.modalEl.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => el.offsetParent !== null);
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
 
@@ -406,10 +428,23 @@ export class FontPickerModal {
     }
 
     this.renderFontCards();
+    this.previouslyFocusedEl = document.activeElement;
     this.modalEl.classList.add('open');
+
+    // Transfer keyboard focus inside modal
+    setTimeout(() => {
+      const searchInput = this.modalEl.querySelector('#fontSearchInput');
+      const closeBtn = this.modalEl.querySelector('#btnCloseFontPicker');
+      (searchInput || closeBtn)?.focus();
+    }, 60);
   }
 
   close() {
     this.modalEl.classList.remove('open');
+    if (this.previouslyFocusedEl && typeof this.previouslyFocusedEl.focus === 'function') {
+      try {
+        this.previouslyFocusedEl.focus();
+      } catch (e) {}
+    }
   }
 }

@@ -214,10 +214,29 @@ export class AuthorImageModal {
       if (e.target === this.modalEl) this.close();
     });
 
-    // Escape key dismiss
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.modalEl.classList.contains('open')) {
+    // Keyboard navigation: Escape to dismiss, Tab trapping
+    this.modalEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
         this.close();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = Array.from(this.modalEl.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => el.offsetParent !== null);
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
 
@@ -638,13 +657,23 @@ export class AuthorImageModal {
       if (lblPlacement && found) lblPlacement.textContent = found.label;
     }
     if (imageUrl) this.currentImageSrc = imageUrl;
+    this.previouslyFocusedEl = document.activeElement;
     this.modalEl.classList.add('open');
     if (this.activeTab === 'placements') {
       this.renderPlacementPreview();
     }
+    setTimeout(() => {
+      const initialFocus = this.modalEl.querySelector('#tabBtnRemover') || this.modalEl.querySelector('#btnCloseAuthorModal');
+      initialFocus?.focus();
+    }, 60);
   }
 
   close() {
     this.modalEl.classList.remove('open');
+    if (this.previouslyFocusedEl && typeof this.previouslyFocusedEl.focus === 'function') {
+      try {
+        this.previouslyFocusedEl.focus();
+      } catch (e) {}
+    }
   }
 }

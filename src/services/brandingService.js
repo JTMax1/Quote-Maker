@@ -44,7 +44,7 @@ export class BrandingService {
    */
   static async loadCustomLogo() {
     try {
-      return await dbService.getImage(this.LOGO_KEY);
+      return await dbService.getImageUrl(this.LOGO_KEY);
     } catch (err) {
       console.warn('Failed to load brand logo from IndexedDB:', err);
       return null;

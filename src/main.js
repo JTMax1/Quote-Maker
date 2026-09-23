@@ -318,12 +318,12 @@ class App {
         reader.onload = (event) => {
           try {
             const parsed = JSON.parse(event.target.result);
-            const success = StorageService.importBackupJSON(parsed);
-            if (success) {
-              Toast.show('Backup data restored successfully! Reloading...', 'success');
+            const result = StorageService.importBackupJSON(parsed);
+            if (result && result.success) {
+              Toast.show(`Backup data restored successfully (${result.count || 0} quotes)! Reloading...`, 'success');
               setTimeout(() => window.location.reload(), 1200);
             } else {
-              Toast.show('Invalid backup file format.', 'error');
+              Toast.show(result?.error || 'Invalid backup file format.', 'error');
             }
           } catch (err) {
             console.error('Import parse error:', err);
@@ -392,7 +392,13 @@ class App {
   }
 
   initServiceWorker() {
-    // Optional PWA Service Worker registration placeholder
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.warn('QuoteForge ServiceWorker registration failed:', err);
+        });
+      });
+    }
   }
 }
 

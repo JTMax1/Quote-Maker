@@ -17,6 +17,7 @@ import { icon } from '../utils/icons.js';
 import { FontPickerModal } from './fontPickerModal.js';
 import { FontLoaderService } from '../services/fontLoaderService.js';
 import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS } from '../services/brandingService.js';
+import { dbService } from '../services/dbService.js';
 
 export class Editor {
   constructor(containerEl, onOpenPresets, onOpenStudio, onQuotePublished) {
@@ -176,7 +177,7 @@ export class Editor {
     this.scheduleRender();
   }
 
-  loadState(stateObj) {
+  async loadState(stateObj) {
     if (!stateObj) return;
     const targetState = stateObj.canvasState || stateObj;
     this.state = {
@@ -187,6 +188,20 @@ export class Editor {
         ...(targetState.styles || targetState.customStyles || {})
       }
     };
+
+    // If authorImage was offloaded to IndexedDB, retrieve it seamlessly
+    if (targetState.authorImageRef && !targetState.authorImage) {
+      try {
+        const storedUrl = await dbService.getImageUrl(targetState.authorImageRef);
+        if (storedUrl) {
+          this.state.authorImage = storedUrl;
+          this.state.showAuthorImage = true;
+        }
+      } catch (err) {
+        console.warn('Failed to restore author portrait from IndexedDB:', err);
+      }
+    }
+
     if (targetState.presetId) {
       const all = StorageService.getAllPresets();
       const found = all.find(p => p.id === targetState.presetId);
@@ -1461,9 +1476,16 @@ export class Editor {
 
     if (toggle) toggle.checked = this.state.showAuthorImage;
     if (thumbBox) {
-      thumbBox.innerHTML = this.state.authorImage && this.state.showAuthorImage 
-        ? `<img src="${this.state.authorImage}" style="width: 100%; height: 100%; object-fit: cover;" />` 
-        : icon('user', { size: 20 });
+      thumbBox.innerHTML = '';
+      if (this.state.authorImage && this.state.showAuthorImage) {
+        const img = document.createElement('img');
+        img.src = this.state.authorImage;
+        img.alt = 'Active author portrait';
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+        thumbBox.appendChild(img);
+      } else {
+        thumbBox.innerHTML = icon('user', { size: 20 });
+      }
     }
     if (statusText) {
       statusText.textContent = this.state.showAuthorImage && this.state.authorImage ? 'Portrait Active' : 'No Photo Active';
@@ -1539,9 +1561,15 @@ export class Editor {
     if (lblOpacity) lblOpacity.textContent = `${Math.round(this.state.brandingOpacity * 100)}%`;
 
     if (thumbBox) {
-      thumbBox.innerHTML = this.state.brandingLogo 
-        ? `<img src="${this.state.brandingLogo}" alt="Custom brand logo" />` 
-        : icon('image', { size: 18 });
+      thumbBox.innerHTML = '';
+      if (this.state.brandingLogo) {
+        const img = document.createElement('img');
+        img.src = this.state.brandingLogo;
+        img.alt = 'Custom brand logo';
+        thumbBox.appendChild(img);
+      } else {
+        thumbBox.innerHTML = icon('image', { size: 18 });
+      }
     }
     if (statusText) {
       statusText.textContent = this.state.brandingLogo ? 'Custom Logo Active' : 'No Logo Uploaded';
@@ -1661,22 +1689,29 @@ export class Editor {
   }
 
   scheduleRender() {
-    if (this.renderDebounceTimer) clearTimeout(this.renderDebounceTimer);
-    this.renderDebounceTimer = setTimeout(() => {
+    if (this.renderDebounceTimer) cancelAnimationFrame(this.renderDebounceTimer);
+    this.renderDebounceTimer = requestAnimationFrame(() => {
       this.executeRender();
-    }, 40);
+    });
   }
 
   async executeRender() {
+    this.renderSequenceToken = (this.renderSequenceToken || 0) + 1;
+    const currentToken = this.renderSequenceToken;
+
     const canvas = this.containerEl.querySelector('#previewCanvas');
     if (!canvas) return;
     await CanvasRenderer.renderToCanvas(this.state, canvas);
+
+    if (currentToken !== this.renderSequenceToken) return;
 
     const pipCanvas = document.getElementById('miniPipCanvas');
     const pipDock = document.getElementById('miniPipDock');
     if (pipCanvas && (this.mobileEditorLayout === 'pip' || (pipDock && pipDock.classList.contains('pip-active')))) {
       await CanvasRenderer.renderToCanvas(this.state, pipCanvas);
     }
+
+    if (currentToken !== this.renderSequenceToken) return;
 
     const expandBackdrop = document.getElementById('previewExpandBackdrop');
     const expandedCanvas = document.getElementById('expandedPreviewCanvas');

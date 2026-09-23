@@ -45,9 +45,6 @@ export class ShareService {
    */
   static async copyImageToClipboard(quoteData) {
     try {
-      Toast.show('Rendering to clipboard...', 'info');
-      const blob = await CanvasRenderer.exportBlob(quoteData, 'image/png');
-
       if (!navigator.clipboard || !window.ClipboardItem) {
         // Fallback: Copy quote text to clipboard
         await navigator.clipboard.writeText(`"${quoteData.quote}" — ${quoteData.author}`);
@@ -55,7 +52,11 @@ export class ShareService {
         return;
       }
 
-      const item = new ClipboardItem({ 'image/png': blob });
+      Toast.show('Rendering to clipboard...', 'info');
+
+      // Pass Promise to ClipboardItem to preserve Safari user activation token
+      const blobPromise = CanvasRenderer.exportBlob(quoteData, 'image/png');
+      const item = new ClipboardItem({ 'image/png': blobPromise });
       await navigator.clipboard.write([item]);
       Toast.show('Image copied to clipboard! Ready to paste.', 'success');
     } catch (e) {

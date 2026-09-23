@@ -142,41 +142,13 @@ export class FontLoaderService {
   static catalogLoaded = false;
 
   /**
-   * Ensure Google Fonts catalog stylesheets covering all 48 curated typefaces
-   * are active in the document head for immediate availability.
+   * On-demand typography catalog initialization.
+   * Defers font binary downloads until explicit user selection or view.
    */
   static ensureCatalogLoaded() {
-    if (this.catalogLoaded) return;
-    this.catalogLoaded = true;
-
-    if (typeof document === 'undefined') return;
-
-    const families = CURATED_FONTS.map(f => {
-      const weights = f.weights.join(';');
-      return `family=${f.family.replace(/ /g, '+')}:wght@${weights}`;
-    });
-
-    const mid = Math.ceil(families.length / 2);
-    const chunk1 = families.slice(0, mid).join('&');
-    const chunk2 = families.slice(mid).join('&');
-
-    const urls = [
-      `https://fonts.googleapis.com/css2?${chunk1}&display=swap`,
-      `https://fonts.googleapis.com/css2?${chunk2}&display=swap`
-    ];
-
-    urls.forEach((url, idx) => {
-      const linkId = `gf-catalog-chunk-${idx}`;
-      if (!document.getElementById(linkId)) {
-        const link = document.createElement('link');
-        link.id = linkId;
-        link.rel = 'stylesheet';
-        link.href = url;
-        document.head.appendChild(link);
-      }
-    });
-
-    CURATED_FONTS.forEach(f => this.loadedFonts.add(f.family));
+    // Eager bulk injection deprecated to protect Core Web Vitals and network bandwidth.
+    // Fonts are loaded on-demand via loadFont() and IntersectionObserver.
+    return;
   }
 
   /**

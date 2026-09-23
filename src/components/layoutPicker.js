@@ -23,6 +23,7 @@ export class LayoutPicker {
     const existing = document.getElementById('layoutPickerModal');
     if (existing) existing.remove();
 
+
     this.modalEl = document.createElement('div');
     this.modalEl.id = 'layoutPickerModal';
     this.modalEl.className = 'modal-backdrop';
@@ -87,16 +88,37 @@ export class LayoutPicker {
       if (e.target === this.modalEl) this.close();
     });
 
-    // Escape key listener
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.modalEl.classList.contains('open')) {
+    // Keyboard navigation: Escape to dismiss, Tab trapping
+    this.modalEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
         this.close();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = Array.from(this.modalEl.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter(el => el.offsetParent !== null);
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
 
     // Category Filter
     const catBar = this.modalEl.querySelector('#layoutCategoryBar');
-    catBar.addEventListener('click', (e) => {
+    catBar?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.category-chip');
+      if (!btn) return;
       catBar.querySelectorAll('.category-chip').forEach(b => {
         b.classList.remove('active');
         b.setAttribute('aria-pressed', 'false');
@@ -180,10 +202,22 @@ export class LayoutPicker {
   open(currentLayoutId) {
     if (currentLayoutId) this.activeLayoutId = currentLayoutId;
     this.renderCards();
+    this.previouslyFocusedEl = document.activeElement;
     this.modalEl.classList.add('open');
+
+    setTimeout(() => {
+      const searchInput = this.modalEl.querySelector('#layoutSearchInput');
+      const closeBtn = this.modalEl.querySelector('#btnCloseLayoutPicker');
+      (searchInput || closeBtn)?.focus();
+    }, 60);
   }
 
   close() {
     this.modalEl.classList.remove('open');
+    if (this.previouslyFocusedEl && typeof this.previouslyFocusedEl.focus === 'function') {
+      try {
+        this.previouslyFocusedEl.focus();
+      } catch (e) {}
+    }
   }
 }

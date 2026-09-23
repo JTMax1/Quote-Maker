@@ -119,6 +119,15 @@ class DbService {
   }
 
   /**
+   * Alias for getImageUrl for backward and cross-service compatibility
+   * @param {string} id
+   * @returns {Promise<string|null>}
+   */
+  async getImage(id) {
+    return this.getImageUrl(id);
+  }
+
+  /**
    * Deletes an image record from IndexedDB
    * @param {string} id 
    */
