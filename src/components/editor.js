@@ -274,14 +274,10 @@ export class Editor {
           <div class="canvas-viewport-card" id="canvasViewportCard">
             <div class="canvas-frame" id="canvasFrame" tabindex="0" role="button" aria-label="Click to expand quote preview image" title="Click to expand full image">
               <canvas id="previewCanvas" aria-label="Rendered Quote Preview Canvas" role="img"></canvas>
-              <div class="canvas-expand-hint" id="canvasExpandHint" aria-hidden="true">
-                <span aria-hidden="true">${icon('maximize2', { size: 12 })}</span>
-                <span>Expand</span>
-              </div>
             </div>
           </div>
 
-          <!-- Consolidated Primary Action Bar: Export and Share -->
+          <!-- Consolidated Primary Action Bar: Export, Share, Expand -->
           <div class="canvas-actions-bar consolidated-actions-bar" id="canvasActionsBar">
             <button type="button" class="btn-primary action-export-btn" id="btnMainExport" aria-label="Export Quote Graphic (Open Export and Share Options)">
               <span aria-hidden="true">${icon('download', { size: 16 })}</span>
@@ -290,6 +286,10 @@ export class Editor {
             <button type="button" class="btn-glass action-share-btn" id="btnMainShare" aria-label="Share Quote Graphic">
               <span aria-hidden="true">${icon('share', { size: 16 })}</span>
               <span>Share</span>
+            </button>
+            <button type="button" class="btn-glass action-expand-btn" id="btnMainExpand" aria-label="Expand Full Preview">
+              <span aria-hidden="true">${icon('maximize2', { size: 15 })}</span>
+              <span>Expand</span>
             </button>
           </div>
         </div>
@@ -312,14 +312,14 @@ export class Editor {
             </div>
           </div>
 
-          <!-- Canvas Layout (50 Canvas Layouts) Card -->
+          <!-- Canvas Layout Card -->
           <div class="control-card" data-rail-section="layout">
             <div class="control-card-header">
               <span class="card-title">
                 <span aria-hidden="true">${icon('layout', { size: 15 })}</span>
                 <span>Canvas Layout</span>
               </span>
-              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.72rem; font-weight: 700;">100 Layouts</span>
+              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.72rem; font-weight: 700;">${LAYOUT_STYLES.length} Layouts</span>
             </div>
             <div class="layout-selection-strip">
               <div class="layout-strip-info">
@@ -331,28 +331,28 @@ export class Editor {
                   <div class="layout-subtitle-text" id="lblToolsLayoutCategory">${currentLayout.category || 'Editorial & Social'} • ${currentLayout.portraitPlacement !== 'none' ? 'With Portrait' : 'Minimal'}</div>
                 </div>
               </div>
-              <button type="button" class="btn-primary btn-choose-layout" id="btnOpenLayoutsModal" aria-label="Browse all 50 canvas layouts" style="padding: 0.45rem 1rem; font-size: 0.82rem;">
+              <button type="button" class="btn-primary btn-choose-layout" id="btnOpenLayoutsModal" aria-label="Browse all canvas layouts" style="padding: 0.45rem 0.9rem; font-size: 0.82rem; white-space: nowrap; flex-shrink: 0;">
                 <span aria-hidden="true">${icon('sliders', { size: 13 })}</span>
-                <span>Choose Layout</span>
+                <span>Layouts</span>
               </button>
             </div>
           </div>
 
-          <!-- Typography & Google Fonts Studio Card -->
+          <!-- Typography Studio Card -->
           <div class="control-card" data-rail-section="typography">
             <div class="control-card-header">
               <span class="card-title">
                 <span aria-hidden="true">${icon('type', { size: 15 })}</span>
-                <span>Typography & Google Fonts</span>
+                <span>Typography</span>
               </span>
-              <div style="display: flex; gap: 0.4rem; align-items: center;">
-                <button class="btn-glass" id="btnOpenPairingsStudio" style="padding: 0.35rem 0.65rem; font-size: 0.76rem; border-color: var(--brand-primary); color: var(--brand-primary);" aria-label="Browse 6 Signature Font Pairings">
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                <button class="btn-glass" id="btnOpenPairingsStudio" style="padding: 0.35rem 0.65rem; font-size: 0.76rem; border-color: var(--brand-primary); color: var(--brand-primary); white-space: nowrap; flex-shrink: 0;" aria-label="Browse Signature Font Pairings">
                   <span aria-hidden="true">${icon('layers', { size: 12 })}</span>
                   <span>Pairings</span>
                 </button>
-                <button class="inspire-btn" id="btnOpenFontPickerQuote" aria-label="Browse 40+ curated Google Fonts">
+                <button class="inspire-btn" id="btnOpenFontPickerQuote" aria-label="Browse curated Google Fonts" style="white-space: nowrap; flex-shrink: 0;">
                   <span aria-hidden="true">${icon('sparkles', { size: 13 })}</span>
-                  <span>Browse Fonts</span>
+                  <span>Fonts</span>
                 </button>
               </div>
             </div>
@@ -1223,6 +1223,11 @@ export class Editor {
       });
     }
 
+    const btnMainExpand = this.containerEl.querySelector('#btnMainExpand');
+    if (btnMainExpand) {
+      btnMainExpand.addEventListener('click', () => this.openExpandedPreview());
+    }
+
     // Expand Preview Handlers
     const canvasFrame = this.containerEl.querySelector('#canvasFrame');
     const btnCloseExpand = document.getElementById('btnCloseExpandPreview');
@@ -1464,7 +1469,8 @@ export class Editor {
       statusText.textContent = this.state.showAuthorImage && this.state.authorImage ? 'Portrait Active' : 'No Photo Active';
     }
     if (posText) {
-      posText.textContent = `Placement: ${this.state.authorImagePlacement}`;
+      const placement = this.state.authorImagePlacement || 'none';
+      posText.textContent = placement === 'none' ? 'Placement: None (Hidden)' : `Placement: ${placement}`;
     }
   }
 
@@ -1612,6 +1618,7 @@ export class Editor {
   }
 
   syncFormValues() {
+    const quote = this.containerEl.querySelector('#inputQuote');
     const author = this.containerEl.querySelector('#inputAuthor');
     const handle = this.containerEl.querySelector('#inputHandle');
     const cat = this.containerEl.querySelector('#inputCategory');
@@ -1619,15 +1626,26 @@ export class Editor {
     const toggleAuthor = this.containerEl.querySelector('#toggleAuthor');
     const toggleDate = this.containerEl.querySelector('#toggleDate');
     const toggleCat = this.containerEl.querySelector('#toggleCategory');
+    const toggleAuthorImage = this.containerEl.querySelector('#toggleAuthorImage');
 
-    if (author) author.value = this.state.author;
-    if (handle) handle.value = this.state.handle;
-    if (cat) cat.value = this.state.category;
-    if (date) date.value = this.state.date;
-    if (toggleAuthor) toggleAuthor.checked = this.state.showAuthor;
-    if (toggleDate) toggleDate.checked = this.state.showDate;
-    if (toggleCat) toggleCat.checked = this.state.showCategory;
+    if (quote && this.state.quote !== undefined) quote.value = this.state.quote;
+    if (author && this.state.author !== undefined) author.value = this.state.author;
+    if (handle && this.state.handle !== undefined) handle.value = this.state.handle;
+    if (cat && this.state.category !== undefined) cat.value = this.state.category;
+    if (date && this.state.date !== undefined) date.value = this.state.date;
+    if (toggleAuthor) toggleAuthor.checked = !!this.state.showAuthor;
+    if (toggleDate) toggleDate.checked = !!this.state.showDate;
+    if (toggleCat) toggleCat.checked = !!this.state.showCategory;
+    if (toggleAuthorImage) toggleAuthorImage.checked = !!this.state.showAuthorImage;
 
+    // Sync active ratio chips
+    this.containerEl.querySelectorAll('.ratio-chip').forEach(chip => {
+      const isActive = chip.dataset.ratio === this.state.ratio;
+      chip.classList.toggle('active', isActive);
+      chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
+
+    this.updateAuthorImageStrip();
     this.updateBrandingUI();
     this.updateTypographyUI();
   }

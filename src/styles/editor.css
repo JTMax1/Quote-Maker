@@ -367,10 +367,11 @@
   box-shadow: var(--shadow-md);
 }
 
-.action-share-btn {
+.action-share-btn,
+.action-expand-btn {
   flex: 1 1 0px;
   min-height: 40px;
-  padding: 0.55rem 1rem;
+  padding: 0.55rem 0.85rem;
   font-size: 0.86rem;
   font-weight: 600;
   display: flex;
@@ -385,7 +386,8 @@
   transition: all var(--transition-fast);
 }
 
-.action-share-btn:hover {
+.action-share-btn:hover,
+.action-expand-btn:hover {
   background: var(--bg-surface-hover);
   border-color: var(--text-secondary);
 }
@@ -922,6 +924,12 @@
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-glass);
+  flex-wrap: wrap;
+}
+
+.btn-choose-layout {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .layout-strip-info {
@@ -1148,6 +1156,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .card-title {
@@ -1162,7 +1172,7 @@
 
 .inspire-btn {
   font-size: 0.76rem;
-  padding: 0.3rem 0.65rem;
+  padding: 0.35rem 0.65rem;
   border-radius: var(--radius-sm);
   background: var(--bg-surface-elevated);
   color: var(--text-primary);
@@ -1172,6 +1182,8 @@
   align-items: center;
   gap: 0.35rem;
   transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .inspire-btn:hover {
@@ -1496,16 +1508,17 @@ input:checked + .slider:before {
     border-radius: var(--radius-md) !important;
   }
 
-  .canvas-actions-bar.consolidated-actions-bar .action-share-btn {
+  .canvas-actions-bar.consolidated-actions-bar .action-share-btn,
+  .canvas-actions-bar.consolidated-actions-bar .action-expand-btn {
     flex: 1 1 0px !important;
     min-height: 40px !important;
-    padding: 0.5rem 0.75rem !important;
+    padding: 0.5rem 0.65rem !important;
     font-size: 0.84rem !important;
     font-weight: 600 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 0.4rem !important;
+    gap: 0.35rem !important;
     white-space: nowrap !important;
     border-radius: var(--radius-md) !important;
   }
@@ -2062,18 +2075,21 @@ input:checked + .slider:before {
 
 .typo-micro-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
   gap: 0.75rem;
   background: var(--bg-surface-elevated);
   padding: 0.75rem 0.85rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-glass);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .typo-control-group {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
 }
 
 .typo-control-label {
@@ -2086,21 +2102,24 @@ input:checked + .slider:before {
 
 .typo-btn-group {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.2rem;
   background: var(--bg-surface);
-  padding: 0.25rem;
+  padding: 0.2rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-glass);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .typo-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.74rem;
+  gap: 0.25rem;
+  padding: 0.35rem 0.25rem;
+  font-size: 0.72rem;
   font-weight: 600;
   border-radius: var(--radius-xs);
   background: transparent;
@@ -2108,7 +2127,11 @@ input:checked + .slider:before {
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
-  min-height: 34px;
+  min-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .typo-btn:hover {

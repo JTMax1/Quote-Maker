@@ -151,7 +151,10 @@ export class AuthorImageModal {
             <div class="option-chips-grid" id="placementOptionsGrid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.55rem;">
               ${PORTRAIT_PLACEMENTS.map(p => `
                 <button class="option-chip-btn ${this.selectedPlacement === p.id ? 'active' : ''}" data-place="${p.id}" style="text-align: left; padding: 0.65rem 0.75rem; font-size: 0.78rem;">
-                  <div style="font-weight: 700;">${p.label}</div>
+                  <div style="font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                    ${p.id === 'none' ? `<span style="color: var(--text-muted);">${icon('slash', { size: 13 })}</span>` : ''}
+                    <span>${p.label}</span>
+                  </div>
                   <div style="font-size: 0.68rem; color: var(--text-muted);">${p.type}</div>
                 </button>
               `).join('')}
@@ -355,6 +358,19 @@ export class AuthorImageModal {
 
     // Apply button
     this.modalEl.querySelector('#btnApplyAuthorImage').addEventListener('click', () => {
+      if (this.selectedPlacement === 'none') {
+        if (this.onApplyAuthorImage) {
+          this.onApplyAuthorImage({
+            showAuthorImage: false,
+            authorImage: null,
+            authorImagePlacement: 'none'
+          });
+        }
+        Toast.show('Author portrait disabled (None)', 'info');
+        this.close();
+        return;
+      }
+
       const finalImage = this.processedDataUrl || (this.currentImage ? (this.currentImage.src || this.currentImage) : null);
 
       if (finalImage) {
@@ -505,7 +521,9 @@ export class AuthorImageModal {
     const isLeft = ['cutout-left', 'cutout-edge-left', 'arch-portal-left', 'shadowbox-inset-left', 'avatar-mid-left', 'cutout-left-offset', 'cutout-diagonal-left', 'cutout-side-profile-left', 'avatar-squircle-left'].includes(pId);
     const isRight = ['cutout-right', 'cutout-edge-right', 'shadowbox-inset-right', 'avatar-mid-right', 'cutout-right-offset', 'cutout-diagonal-right', 'cutout-side-profile-right'].includes(pId);
 
-    if (isLeft) {
+    if (type === 'none' || pId === 'none') {
+      textX = 75;
+    } else if (isLeft) {
       textX = 145;
     } else if (isRight) {
       textX = 30;
@@ -522,7 +540,7 @@ export class AuthorImageModal {
     ctx.restore();
 
     // 5. Draw Subject Portrait at exact placement coordinates
-    if (img && img.complete && img.naturalWidth && type !== 'blend') {
+    if (img && img.complete && img.naturalWidth && type !== 'blend' && type !== 'none' && pId !== 'none') {
       ctx.save();
       if (type === 'cutout') {
         let cx = width - 130, cy = 35, cw = 110, ch = 165;

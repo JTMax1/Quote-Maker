@@ -86,6 +86,7 @@ export const CANVAS_FORMATS = [
  * 50 PORTRAIT PLACEMENTS ON CANVAS
  */
 export const PORTRAIT_PLACEMENTS = [
+  { id: 'none', label: 'None (No Portrait)', type: 'none', desc: 'Text-only composition with no portrait image' },
   // Cutout Placements (1-25)
   { id: 'cutout-right', label: 'Cutout Right Full', type: 'cutout', desc: 'Author cutout on the right side' },
   { id: 'cutout-left', label: 'Cutout Left Full', type: 'cutout', desc: 'Author cutout on the left side' },

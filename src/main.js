@@ -180,7 +180,8 @@ class App {
       historyContainer,
       // onLoadHistoryItem
       (historyItem) => {
-        this.components.editor.loadState(historyItem.canvasState);
+        const stateToLoad = historyItem.canvasState || historyItem;
+        this.components.editor.loadState(stateToLoad);
         this.switchTab('editor');
       },
       // onShareCommunity
@@ -193,7 +194,8 @@ class App {
     // 4. Community Feed View
     const communityContainer = document.getElementById('view-community');
     this.components.community = new CommunityView(communityContainer, (quoteItem) => {
-      this.components.editor.loadState(quoteItem.canvasState);
+      const stateToLoad = quoteItem.canvasState || quoteItem;
+      this.components.editor.loadState(stateToLoad);
       this.switchTab('editor');
     });
 
