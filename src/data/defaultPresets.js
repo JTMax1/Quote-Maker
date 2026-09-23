@@ -199,12 +199,12 @@ export const PORTRAIT_PLACEMENTS = [
  * 100 DISTINCT QUOTE LAYOUT REARRANGEMENTS
  */
 export const LAYOUT_CATEGORIES = [
-  { id: 'all', label: 'All Layouts (100)' },
-  { id: 'author', label: 'Author & Cutout Focus (20)' },
-  { id: 'editorial', label: 'Magazine & Editorial (20)' },
-  { id: 'expressive', label: 'Expressive & Display (20)' },
-  { id: 'minimalist', label: 'Clean & Minimalist (20)' },
-  { id: 'novelty', label: 'Creative & Novelty (20)' }
+  { id: 'all', label: 'All Layouts (200)' },
+  { id: 'author', label: 'Author & Cutout Focus (40)' },
+  { id: 'editorial', label: 'Magazine & Editorial (40)' },
+  { id: 'expressive', label: 'Expressive & Display (40)' },
+  { id: 'minimalist', label: 'Clean & Minimalist (40)' },
+  { id: 'novelty', label: 'Creative & Novelty (40)' }
 ];
 
 export const LAYOUT_STYLES = [
@@ -230,6 +230,28 @@ export const LAYOUT_STYLES = [
   { id: 'author-circle-side', name: 'Semicircle Edge Portal', category: 'author', icon: 'sparkle', portraitPlacement: 'semicircle-portal-right', description: 'Giant circular aperture protruding inward from right edge framing author.' },
   { id: 'author-polaroid-stack', name: 'Pinned Polaroid Snapshot', category: 'author', icon: 'camera', portraitPlacement: 'polaroid-pinned-corner', description: 'Tilted Polaroid photo card pinned into the upper-right corner beside quote.' },
 
+  // Author & Cutout Focus (21-40)
+  { id: 'author-duotone-glitch', name: 'Cyberpunk Duotone Glitch', category: 'author', icon: 'zap', portraitPlacement: 'cutout-right', description: 'Duotone portrait with RGB chromatic aberration and scanline telemetry.' },
+  { id: 'author-cameo-oval-flourish', name: 'Victorian Laurel Cameo', category: 'author', icon: 'sparkle', portraitPlacement: 'oval-cameo-center', description: 'Classical neoclassical oval medallion surrounded by gold laurel flourishes.' },
+  { id: 'author-hologram-pedestal', name: 'Sci-Fi Hologram Pedestal', category: 'author', icon: 'monitor', portraitPlacement: 'pedestal-base-center', description: 'Futuristic glowing emitter plinth projecting cyan holographic portrait aura.' },
+  { id: 'author-split-curved-wave', name: 'Fluid Wave Portrait Split', category: 'author', icon: 'shapes', portraitPlacement: 'cutout-left', description: 'Gentle organic sine wave partition separating author from typography.' },
+  { id: 'author-floating-bubble-stack', name: 'Floating Cameo Bubbles', category: 'author', icon: 'sparkles', portraitPlacement: 'avatar-mid-right', description: 'Triple frosted glass bubble cluster displaying author portrait with soft drop shadows.' },
+  { id: 'author-gallery-frame-wood', name: 'Gilded Fine Art Frame', category: 'author', icon: 'image', portraitPlacement: 'bookmark-vertical-strip', description: 'Neoclassical museum gilded molding with linen mat bevel framing author.' },
+  { id: 'author-passport-stamp', name: 'Visa Passport Inset', category: 'author', icon: 'tag', portraitPlacement: 'avatar-top-right', description: 'Vintage visa stamp and travel authority cancellation marks over portrait card.' },
+  { id: 'author-slanted-parallelogram', name: 'Sheared Parallelogram Strip', category: 'author', icon: 'sliders', portraitPlacement: 'diagonal-split-photo', description: '20-degree skewed dynamic parallelogram window with high-contrast accent stripe.' },
+  { id: 'author-arch-deco-gold', name: 'Art Deco Stepped Arch', category: 'author', icon: 'shield', portraitPlacement: 'arch-portal-center', description: '1920s Chrysler-style stepped archway crowned with geometric gold trim.' },
+  { id: 'author-hexagonal-honeycomb', name: 'Honeycomb Hex Aperture', category: 'author', icon: 'box', portraitPlacement: 'avatar-top-center', description: 'Precision hexagonal carbon mesh bezel enclosing author portrait.' },
+  { id: 'author-film-noir-venetian', name: 'Film Noir Blind Shadows', category: 'author', icon: 'moon', portraitPlacement: 'scrim-split-left', description: 'Atmospheric high-contrast Venetian window blind shadow stripes casting across author.' },
+  { id: 'author-badge-shield-heraldic', name: 'Heraldic Knight Crest', category: 'author', icon: 'shield', portraitPlacement: 'avatar-header-badge', description: 'Medieval heraldic coat of arms crest with ribbon banner and author initial.' },
+  { id: 'author-circle-bottom-right-overlap', name: 'Overlapping Corner Cameo', category: 'author', icon: 'user', portraitPlacement: 'floating-card-bottom-right', description: 'Oversized circular author portrait overlapping the bottom-right of quote plaque.' },
+  { id: 'author-side-strip-ribbon', name: 'Vertical Ribbon Bookmark', category: 'author', icon: 'bookmark', portraitPlacement: 'bookmark-vertical-strip', description: 'Solid vertical colored ribbon band running down right edge with author portrait.' },
+  { id: 'author-double-exposure-nature', name: 'Double Exposure Silhouette', category: 'author', icon: 'sun', portraitPlacement: 'cutout-hero-large', description: 'Forest canopy botanical silhouette blending softly into author portrait aura.' },
+  { id: 'author-statue-marble-pedestal', name: 'Classical Marble Plinth', category: 'author', icon: 'layout', portraitPlacement: 'pedestal-shelf-bottom', description: 'Greco-Roman chiseled marble architectural base anchoring author portrait.' },
+  { id: 'author-isometric-cube-card', name: 'Isometric 3D Extrusion', category: 'author', icon: 'box', portraitPlacement: 'avatar-mid-left', description: 'Axonometric 3D extruded prism card housing author photo with crisp geometric shadows.' },
+  { id: 'author-split-vertical-zipper', name: 'Two-Tone Seam Partition', category: 'author', icon: 'columns', portraitPlacement: 'cutout-left', description: 'Contrasting black and cream split canvas with central notched seam division.' },
+  { id: 'author-frosted-glass-pill', name: 'Frosted Glass Capsule', category: 'author', icon: 'feather', portraitPlacement: 'avatar-footer-card', description: 'Ultra-modern frosted glass capsule with specular highlight floating at base.' },
+  { id: 'author-polaroid-triple-fan', name: 'Fanned Polaroid Trio', category: 'author', icon: 'camera', portraitPlacement: 'polaroid-pinned-corner', description: 'Trio of fanned vintage instant snapshots pinned into corner.' },
+
   // 2. Magazine & Editorial (21-40)
   { id: 'classic-centered', name: 'Classic Vogue Editorial', category: 'editorial', icon: 'newspaper', portraitPlacement: 'avatar-top-center', description: 'Harmonious center-aligned typography with curly quote marks.' },
   { id: 'magazine-cover', name: 'Magazine Cover Masthead', category: 'editorial', icon: 'newspaper', portraitPlacement: 'scrim', description: 'Publication title masthead across top, bold headline quote.' },
@@ -251,6 +273,28 @@ export const LAYOUT_STYLES = [
   { id: 'the-atlantic-op', name: 'The Atlantic Essayist', category: 'editorial', icon: 'type', portraitPlacement: 'none', description: 'Prestige op-ed essay layout with category kicker and refined author signature.' },
   { id: 'catalog-specimen', name: 'Typography Specimen Poster', category: 'editorial', icon: 'shapes', portraitPlacement: 'none', description: 'Graphic design catalog sheet featuring glyph scale marks and point sizes.' },
   { id: 'broadsheet-banner', name: 'Inverted Masthead Banner', category: 'editorial', icon: 'newspaper', portraitPlacement: 'none', description: 'Deep dark solid banner header across top with crisp newsprint layout.' },
+
+  // Magazine & Editorial (41-60)
+  { id: 'new-yorker-spotlight', name: 'The New Yorker Spotlight', category: 'editorial', icon: 'feather', portraitPlacement: 'none', description: 'Refined serif title font with classic Eustace Tilley filigree divider rule.' },
+  { id: 'wired-tech-spread', name: 'Wired Feature Spread', category: 'editorial', icon: 'cpu', portraitPlacement: 'none', description: 'Electric neon kicker header, technical decimal grid, and dense editorial poise.' },
+  { id: 'harpers-bazaar-elegance', name: 'Harper’s Bazaar Haute Type', category: 'editorial', icon: 'type', portraitPlacement: 'none', description: 'Colossal ultra-thin Didot display serif with sweeping letterspacing.' },
+  { id: 'rolling-stone-anthem', name: 'Rolling Stone Rock Lead', category: 'editorial', icon: 'music', portraitPlacement: 'none', description: 'Vintage bold headline with distressed drop shadow and music review header.' },
+  { id: 'natgeo-yellow-border', name: 'National Geographic Border', category: 'editorial', icon: 'square', portraitPlacement: 'none', description: 'Iconic yellow documentary perimeter frame with geographical coordinates.' },
+  { id: 'time-red-border', name: 'TIME Crimson Cover Frame', category: 'editorial', icon: 'square', portraitPlacement: 'none', description: 'Legendary thick red rectangular border framing bold cover quote.' },
+  { id: 'esquire-man-at-his-best', name: 'Esquire Man At His Best', category: 'editorial', icon: 'user', portraitPlacement: 'none', description: 'Classic mid-century men’s magazine layout with cursive kicker script.' },
+  { id: 'economist-red-box', name: 'The Economist Red Header', category: 'editorial', icon: 'tag', portraitPlacement: 'none', description: 'Signature red rectangular topic box with stark, authoritative grotesque typography.' },
+  { id: 'monograph-scholarly', name: 'Scholarly Monograph Opus', category: 'editorial', icon: 'bookOpen', portraitPlacement: 'none', description: 'University press monograph layout with Latin chapter heading and thesis rule.' },
+  { id: 'broadsheet-classifieds', name: 'Vintage Classifieds Grid', category: 'editorial', icon: 'grid', portraitPlacement: 'none', description: 'Dense antique newspaper column grid with boxed classified announcement styling.' },
+  { id: 'paris-review-interview', name: 'Paris Review Dialogue', category: 'editorial', icon: 'message', portraitPlacement: 'none', description: 'Celebrated literary interview typography with crimson prompt lead-ins.' },
+  { id: 'encyclopedia-britannica', name: 'Encyclopedia Reference Entry', category: 'editorial', icon: 'bookOpen', portraitPlacement: 'none', description: 'Dual-column classical reference layout with bold phonetic lemma and section marks.' },
+  { id: 'playbill-theater-program', name: 'Broadway Playbill Program', category: 'editorial', icon: 'tv', portraitPlacement: 'none', description: 'Bright yellow Playbill header box with authentic Broadway stage typography.' },
+  { id: 'dictionary-definition', name: 'Lexicon Dictionary Lemma', category: 'editorial', icon: 'type', portraitPlacement: 'none', description: 'Formal dictionary entry with phonetic pronunciation, etymology, and numbered senses.' },
+  { id: 'fashion-lookbook-runway', name: 'Runway Lookbook Folio', category: 'editorial', icon: 'layout', portraitPlacement: 'none', description: 'Ultra-minimalist haute couture lookbook with seasonal collection index.' },
+  { id: 'botanical-herbarium-folio', name: 'Botanical Herbarium Plate', category: 'editorial', icon: 'feather', portraitPlacement: 'none', description: '18th-century scientific specimen plate with Latin binomial classification stamp.' },
+  { id: 'court-trial-transcript', name: 'Court Stenographer Record', category: 'editorial', icon: 'fileText', portraitPlacement: 'none', description: 'Official legal deposition transcript with numbered margin rules (1-25) and Q&A stamps.' },
+  { id: 'manifesto-bulletin-board', name: 'Constructivist Manifesto', category: 'editorial', icon: 'alert', portraitPlacement: 'none', description: 'Bauhaus constructivist propaganda sheet with bold red diagonal rules and exclamation marks.' },
+  { id: 'financial-times-salmon', name: 'Financial Times Salmon Page', category: 'editorial', icon: 'globe', portraitPlacement: 'none', description: 'Distinguished salmon-pink newsprint background with financial market indices.' },
+  { id: 'manuscript-redacted-file', name: 'Declassified Redacted Dossier', category: 'editorial', icon: 'shield', portraitPlacement: 'none', description: 'Top-secret intelligence file with heavy black marker redaction bars and TOP SECRET stamp.' },
 
   // 3. Expressive & Display (41-60)
   { id: 'big-watermark', name: 'Giant Watermark Marks', category: 'expressive', icon: 'quote', portraitPlacement: 'none', description: 'Huge 400px quotation marks faded softly into background.' },
@@ -274,6 +318,28 @@ export const LAYOUT_STYLES = [
   { id: 'vinyl-album-sleeve', name: 'Vinyl 12-Inch Record Cover', category: 'expressive', icon: 'disc', portraitPlacement: 'none', description: 'Authentic vinyl LP jacket layout with center spindle hole and groove rings.' },
   { id: 'liquid-blobs-pop', name: 'Organic Liquid Blobs', category: 'expressive', icon: 'shapes', portraitPlacement: 'none', description: 'Playful fluid organic blob contours framing quote statement.' },
 
+  // Expressive & Display (61-80)
+  { id: 'acid-techno-smiley', name: '90s Acid Techno Rave', category: 'expressive', icon: 'zap', portraitPlacement: 'none', description: 'Underground warehouse rave flyer with acid green gradients and chrome shapes.' },
+  { id: 'vaporwave-aesthetic', name: 'Aesthetic Vaporwave Palm', category: 'expressive', icon: 'sun', portraitPlacement: 'none', description: 'Sun-drenched pastel pink and cyan retro horizon with Japanese katakana glyphs.' },
+  { id: 'cyber-warning-hazard', name: 'Industrial Hazard Strip', category: 'expressive', icon: 'alert', portraitPlacement: 'none', description: 'Yellow-and-black diagonal hazard stripes with high-voltage warning banners.' },
+  { id: 'glitch-chromatic-aberration', name: '3D Anaglyph Chromatic Split', category: 'expressive', icon: 'sliders', portraitPlacement: 'none', description: 'Stereoscopic red and cyan offset 3D text with digital transmission static.' },
+  { id: 'brutalist-anti-design', name: 'Raw Brutalist Anti-Design', category: 'expressive', icon: 'terminal', portraitPlacement: 'none', description: 'Uncompromising raw web anti-design with oversized cursors and system error telemetry.' },
+  { id: 'retro-arcade-pixel', name: '8-Bit Arcade High Score', category: 'expressive', icon: 'cpu', portraitPlacement: 'none', description: 'Retro coin-op arcade cabinet CRT screen with glowing pixel font and INSERT COIN.' },
+  { id: 'liquid-chrome-metal', name: 'Y2K Molten Liquid Chrome', category: 'expressive', icon: 'sparkles', portraitPlacement: 'none', description: 'Futuristic iridescent mercury liquid metal typography frame with specular reflections.' },
+  { id: 'neon-noir-cyberpunk', name: 'Neon Noir Rainy Alley', category: 'expressive', icon: 'moon', portraitPlacement: 'none', description: 'Midnight Tokyo neon wire glow reflecting off wet asphalt with atmospheric haze.' },
+  { id: 'risograph-three-color', name: 'Three-Color Risograph Print', category: 'expressive', icon: 'printer', portraitPlacement: 'none', description: 'Authentic soy-ink risograph print with misaligned teal, fluorescent pink, and yellow dots.' },
+  { id: 'halftone-pop-art-burst', name: 'Comic Book Action Burst', category: 'expressive', icon: 'zap', portraitPlacement: 'none', description: 'Lichtenstein pop art halftone dot screen with explosive action sound burst.' },
+  { id: 'distorted-wave-warp', name: 'Kinetic Ribbon Wave Warp', category: 'expressive', icon: 'waves', portraitPlacement: 'none', description: 'Fluid sinusoidal wave curvature warping text into dynamic undulating ribbons.' },
+  { id: 'gothic-cathedral-stained-glass', name: 'Stained Glass Rose Window', category: 'expressive', icon: 'sun', portraitPlacement: 'none', description: 'Cathedral kaleidoscopic stained-glass rosette frame glowing with jewel tones.' },
+  { id: 'sound-spectrum-bars', name: '32-Band Audio Spectrum', category: 'expressive', icon: 'radio', portraitPlacement: 'none', description: 'Graphic equalizer audio frequency visualizer spectrum bouncing beneath statement.' },
+  { id: 'thermal-infrared-vision', name: 'Thermal Heat Map Vision', category: 'expressive', icon: 'eye', portraitPlacement: 'none', description: 'Infrared thermographic false-color spectrum glowing from deep violet to hot neon yellow.' },
+  { id: 'psychedelic-70s-swirl', name: '1970s Psychedelic Groovy Swirl', category: 'expressive', icon: 'sparkles', portraitPlacement: 'none', description: 'Woodstock festival flowing fluid contours with curvaceous retro bubble serif type.' },
+  { id: 'blueprint-schematic-iso', name: 'Isometric Wireframe Schematic', category: 'expressive', icon: 'shapes', portraitPlacement: 'none', description: '3D isometric CAD schematic drawing with dimensional callouts and coordinate ticks.' },
+  { id: 'graffiti-wildstyle-tag', name: 'Urban Spray Paint Wildstyle', category: 'expressive', icon: 'paintbrush', portraitPlacement: 'none', description: 'Raw street art stencil graffiti with realistic aerosol overspray drips and splatter.' },
+  { id: 'film-leader-countdown', name: '35mm Film Reel Countdown', category: 'expressive', icon: 'clock', portraitPlacement: 'none', description: 'Vintage SMPTE cinema projector countdown clock with rotating radial sweep.' },
+  { id: 'analog-vhs-glitch', name: '1980s VHS Tracking Error', category: 'expressive', icon: 'tv', portraitPlacement: 'none', description: 'Authentic VHS magnetic tape tracking artifacts with glowing green PLAY icon and SP timecode.' },
+  { id: 'solarized-cyanotype-blueprint', name: 'Photographic Cyanotype Print', category: 'expressive', icon: 'sun', portraitPlacement: 'none', description: 'Deep Prussian blue sun-exposed photographic paper with delicate botanical silhouettes.' },
+
   // 4. Clean & Minimalist (61-80)
   { id: 'left-accent-bar', name: 'Modern Left Accent Bar', category: 'minimalist', icon: 'alignLeft', portraitPlacement: 'none', description: 'Left-aligned text with a bold vertical colored accent stripe.' },
   { id: 'swiss-asymmetric', name: 'Swiss Modernist Grid', category: 'minimalist', icon: 'layout', portraitPlacement: 'none', description: 'Stark geometric arrangement adhering to asymmetric Swiss grids.' },
@@ -296,6 +362,28 @@ export const LAYOUT_STYLES = [
   { id: 'subtle-grid-blueprint', name: 'Draftsman Grid Coordinates', category: 'minimalist', icon: 'grid', portraitPlacement: 'none', description: 'Faint 32px blueprint grid with technical coordinate markers (A-1, B-4).' },
   { id: 'center-badge-minimal', name: 'Center Seal Monogram', category: 'minimalist', icon: 'shield', portraitPlacement: 'none', description: 'Compact circular monogram seal centered at top with quiet quotes.' },
 
+  // Clean & Minimalist (81-100)
+  { id: 'golden-ratio-spiral', name: 'Fibonacci Golden Spiral', category: 'minimalist', icon: 'sparkle', portraitPlacement: 'none', description: 'Delicate logarithmic golden ratio spiral rendered in shimmering gold hairline.' },
+  { id: 'nordic-hygge-neutral', name: 'Nordic Organic Hygge', category: 'minimalist', icon: 'feather', portraitPlacement: 'none', description: 'Warm Scandinavian neutral oat-and-linen palette with generous negative space.' },
+  { id: 'museum-catalog-page', name: 'Curator Provenance Plate', category: 'minimalist', icon: 'layout', portraitPlacement: 'none', description: 'Fine art gallery provenance catalog with specimen inventory index and quiet type.' },
+  { id: 'architectural-elevation-ruler', name: 'Draftsman Millimeter Scale', category: 'minimalist', icon: 'sliders', portraitPlacement: 'none', description: 'Precision metric engineer ruler calibrated along top and left margins.' },
+  { id: 'braun-rams-functionalist', name: 'Dieter Rams Functionalist', category: 'minimalist', icon: 'compass', portraitPlacement: 'none', description: 'Clean German industrial design with rotary dial markers and Akzidenz-Grotesk precision.' },
+  { id: 'japanese-wabi-sabi-ink', name: 'Sumi-E Zen Calligraphy Wash', category: 'minimalist', icon: 'feather', portraitPlacement: 'none', description: 'Minimalist sumi ink wash brushmark imparting meditative tranquility and asymmetrical balance.' },
+  { id: 'single-accent-corner-block', name: 'Monolithic Accent Tile', category: 'minimalist', icon: 'square', portraitPlacement: 'none', description: 'Vibrant geometric color block anchored in top corner balancing serene quote.' },
+  { id: 'hairline-grid-quadrants', name: 'Four-Quadrant Cartesian Grid', category: 'minimalist', icon: 'grid', portraitPlacement: 'none', description: 'Subtle hairline grid partitioning quote, author, date, and coordinates into clean cells.' },
+  { id: 'editorial-bracket-quote', name: 'Oversized Square Brackets', category: 'minimalist', icon: 'box', portraitPlacement: 'none', description: 'Architectural heavyweight typographic brackets [ ] encapsulating quote.' },
+  { id: 'polar-coordinate-radar', name: 'Polar Navigational Reticle', category: 'minimalist', icon: 'crosshair', portraitPlacement: 'none', description: 'Concentric circular radar coordinate rings with degree angular ticks (0°-360°).' },
+  { id: 'offset-vertical-stripe', name: 'Offset Accent Band Strip', category: 'minimalist', icon: 'columns', portraitPlacement: 'none', description: 'Clean 14px vertical color stripe offset from left margin grounding typography.' },
+  { id: 'monochrome-typographic-scale', name: 'Pure Typographic Scale Study', category: 'minimalist', icon: 'type', portraitPlacement: 'none', description: 'Strict Swiss exploration pairing gossamer light body text with bold display accents.' },
+  { id: 'card-inset-soft-bevel', name: 'Matte Beveled Studio Card', category: 'minimalist', icon: 'square', portraitPlacement: 'none', description: 'Refined soft-matte inner-beveled studio plaque floating on warm neutral ground.' },
+  { id: 'center-cross-cruciform', name: 'Cruciform Axis Coordinates', category: 'minimalist', icon: 'plus', portraitPlacement: 'none', description: 'Fine architectural cruciform crosshair intersecting behind tranquil centered statement.' },
+  { id: 'linear-timeline-node', name: 'Chronological Timeline Axis', category: 'minimalist', icon: 'minus', portraitPlacement: 'none', description: 'Horizontal timeline trajectory with milestone node dot and date annotation.' },
+  { id: 'monogram-seal-watermark', name: 'Embossed Medallion Watermark', category: 'minimalist', icon: 'shield', portraitPlacement: 'none', description: 'Subtle translucent architectural seal stamped behind centered quote.' },
+  { id: 'minimal-index-folio', name: 'Swiss Archive Folio Sheet', category: 'minimalist', icon: 'fileText', portraitPlacement: 'none', description: 'Prestigious museum archive index card with bold folio numbering (FOLIO // 084).' },
+  { id: 'duo-tone-horizontal-split', name: '50/50 Horizontal Horizon', category: 'minimalist', icon: 'layout', portraitPlacement: 'none', description: 'Stark color-blocked horizon bisecting canvas into deep obsidian and warm cream.' },
+  { id: 'subtle-corner-notches', name: 'Chamfered Corner Notches', category: 'minimalist', icon: 'square', portraitPlacement: 'none', description: 'Inset hairline border with precision 45-degree architecturally cut corners.' },
+  { id: 'floating-glass-tile', name: 'Specular Glass Floating Tile', category: 'minimalist', icon: 'sparkle', portraitPlacement: 'none', description: 'Ultra-thin translucent glass panel with specular highlight border and diffuse depth.' },
+
   // 5. Creative & Novelty (81-100)
   { id: 'tweet-card', name: 'Social Verified Tweet Card', category: 'novelty', icon: 'message', portraitPlacement: 'none', description: 'Twitter/X style verified social media card with avatar and metrics.' },
   { id: 'polaroid-photo', name: 'Instant Polaroid Snapshot', category: 'novelty', icon: 'camera', portraitPlacement: 'none', description: 'Iconic white Polaroid film border with handwritten caption.' },
@@ -316,7 +404,29 @@ export const LAYOUT_STYLES = [
   { id: 'hotel-keycard-tag', name: 'Grand Hotel Key Fob', category: 'novelty', icon: 'key', portraitPlacement: 'none', description: 'Boutique hotel vintage brass/acrylic key fob tag with room number.' },
   { id: 'coffee-shop-cup', name: 'Artisan Coffee Cup Sleeve', category: 'novelty', icon: 'coffee', portraitPlacement: 'none', description: 'Corrugated cardboard coffee cup sleeve with barista marker stamp.' },
   { id: 'vintage-envelope-letter', name: 'Par Avion Airmail Letter', category: 'novelty', icon: 'mail', portraitPlacement: 'none', description: 'Red and blue striped airmail envelope border with vintage wax seal.' },
-  { id: 'retro-floppy-disk', name: '3.5-Inch Floppy Diskette', category: 'novelty', icon: 'hardDrive', portraitPlacement: 'none', description: '1.44MB retro computer diskette with metal sliding shutter and lined sticker.' }
+  { id: 'retro-floppy-disk', name: '3.5-Inch Floppy Diskette', category: 'novelty', icon: 'hardDrive', portraitPlacement: 'none', description: '1.44MB retro computer diskette with metal sliding shutter and lined sticker.' },
+
+  // Creative & Novelty (101-120)
+  { id: 'vinyl-turntable-slipmat', name: '33 RPM Turntable Slipmat', category: 'novelty', icon: 'disc', portraitPlacement: 'none', description: 'Authentic vinyl turntable platter with concentric microgrooves and tonearm needle.' },
+  { id: 'vintage-calculator-lcd', name: 'Pocket Calculator LCD Display', category: 'novelty', icon: 'cpu', portraitPlacement: 'none', description: '1980s pocket calculator with vintage green 7-segment digital LCD readout and solar cell.' },
+  { id: 'retro-polaroid-with-clip', name: 'Suspended Polaroid Clothesline', category: 'novelty', icon: 'camera', portraitPlacement: 'none', description: 'Instant photo card hanging from twine line secured with miniature wooden clothespin.' },
+  { id: 'library-due-date-slip', name: 'Vintage Library Due Date Card', category: 'novelty', icon: 'fileText', portraitPlacement: 'none', description: 'Library card checkout slip stamped with multiple purple ink return dates.' },
+  { id: 'cassette-plastic-jewel-case', name: 'Cassette Jewel Case J-Card', category: 'novelty', icon: 'disc', portraitPlacement: 'none', description: 'Clear acrylic cassette case with folded paper J-card spine insert and tracklist.' },
+  { id: 'retro-pager-beeper', name: '1990s Alphanumeric Pager', category: 'novelty', icon: 'message', portraitPlacement: 'none', description: 'Iconic 90s Motorola pager casing with glowing green dot-matrix screen and alert icon.' },
+  { id: 'vintage-matchbook-cover', name: 'Diner Cardboard Matchbook', category: 'novelty', icon: 'box', portraitPlacement: 'none', description: 'Folded diner matchbook cover with red striker strip and authentic center staple.' },
+  { id: 'shipping-label-fedex', name: 'Express Freight Shipping Label', category: 'novelty', icon: 'tag', portraitPlacement: 'none', description: 'Thermal logistics label with tracking barcode, PRIORITY OVERNIGHT stamp, and routing box.' },
+  { id: 'retro-television-crt', name: '1970s Woodgrain Tube TV', category: 'novelty', icon: 'tv', portraitPlacement: 'none', description: 'Vintage walnut wood TV cabinet with curved cathode-ray tube glass screen and channel dials.' },
+  { id: 'antique-telegraph-telegram', name: 'Western Union Telegram Slip', category: 'novelty', icon: 'mail', portraitPlacement: 'none', description: 'Aged yellow telegram paper with typed uppercase message and authentic STOP punctuation.' },
+  { id: 'vintage-film-clapperboard', name: 'Cinema Slate Clapperboard', category: 'novelty', icon: 'film', portraitPlacement: 'none', description: 'Black-and-white chevron movie director slate with chalk text: SCENE, TAKE, ROLL.' },
+  { id: 'coffee-shop-chalkboard', name: 'Artisan Cafe Chalkboard', category: 'novelty', icon: 'coffee', portraitPlacement: 'none', description: 'Rustic wooden frame cafe menu chalkboard with authentic hand-drawn chalk lettering.' },
+  { id: 'retro-mac-system-dialog', name: '1984 Macintosh System Dialog', category: 'novelty', icon: 'monitor', portraitPlacement: 'none', description: 'Classic System 7 alert window with Chicago font, pinstripe title bar, and OK button.' },
+  { id: 'airplane-window-portal', name: 'Commercial Flight Cabin Window', category: 'novelty', icon: 'globe', portraitPlacement: 'none', description: 'Curved airplane cabin oval window looking out over cloud strata with quote on glass.' },
+  { id: 'vintage-postcard-back', name: 'Antique Postal Card Back', category: 'novelty', icon: 'mail', portraitPlacement: 'none', description: 'Yellowed postcard back with center vertical dividing line, stamp box, and wavy cancellation.' },
+  { id: 'concert-wristband-tyvek', name: 'Festival Tyvek Wristband', category: 'novelty', icon: 'tag', portraitPlacement: 'none', description: 'Vibrant neon VIP festival wristband with die-cut adhesive tamper pattern and serial code.' },
+  { id: 'hotel-do-not-disturb-door-hanger', name: 'Do Not Disturb Door Hanger', category: 'novelty', icon: 'key', portraitPlacement: 'none', description: 'Luxury hotel door hanger tag with circular doorknob aperture cutout at top.' },
+  { id: 'vintage-pocket-watch-dial', name: 'Antique Enamel Pocket Watch', category: 'novelty', icon: 'clock', portraitPlacement: 'none', description: 'Porcelain enamel pocket watch face with Roman numerals, minute track, and ornate filigree hands.' },
+  { id: 'pharmacy-rx-prescription', name: 'Apothecary Rx Prescription', category: 'novelty', icon: 'fileText', portraitPlacement: 'none', description: 'Vintage medical prescription blank with Latin Rx caduceus emblem and physician signature.' },
+  { id: 'retro-gameboy-screen', name: '1989 Dot-Matrix Game Boy', category: 'novelty', icon: 'cpu', portraitPlacement: 'none', description: 'Classic grey handheld console with olive-green 4-shade LCD screen, battery LED, and A/B buttons.' },
 ];
 
 export const ABSTRACT_GEOMETRIC_THEMES = GEOMETRY_PRESETS;

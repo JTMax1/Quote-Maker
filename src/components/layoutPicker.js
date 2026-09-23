@@ -28,7 +28,7 @@ export class LayoutPicker {
     this.modalEl.className = 'modal-backdrop';
     this.modalEl.setAttribute('role', 'dialog');
     this.modalEl.setAttribute('aria-modal', 'true');
-    this.modalEl.setAttribute('aria-label', '100 Quote Layout Rearrangements');
+    this.modalEl.setAttribute('aria-label', `${LAYOUT_STYLES.length} Quote Layout Rearrangements`);
 
     this.modalEl.innerHTML = `
       <div class="onboarding-card modal-card" style="max-width: 960px; max-height: 85vh;">
@@ -39,7 +39,7 @@ export class LayoutPicker {
               ${icon('layout', { size: 20 })}
             </div>
             <div>
-              <h2 style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-display); margin: 0;">100 Quote Layout Rearrangements</h2>
+              <h2 style="font-size: 1.3rem; font-weight: 700; font-family: var(--font-display); margin: 0;">${LAYOUT_STYLES.length} Quote Layout Rearrangements</h2>
               <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">Select how quote text, author portraits, headers, and frames are structured.</p>
             </div>
           </div>

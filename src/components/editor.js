@@ -123,13 +123,19 @@ export class Editor {
     return found || DEFAULT_PRESETS[0];
   }
 
-  applyPreset(preset) {
+  applyPreset(preset, preserveLayout = false) {
     this.activePreset = preset;
+    const previousLayoutId = this.state.layoutId;
+    const previousAuthorPlacement = this.state.authorImagePlacement;
+
     this.state.styles = { ...preset };
-    if (preset.layoutId) {
+    if (!preserveLayout && preset.layoutId) {
       this.state.layoutId = preset.layoutId;
+      this.state.authorImagePlacement = preset.portraitPlacement || 'none';
+    } else {
+      this.state.layoutId = previousLayoutId;
+      this.state.authorImagePlacement = previousAuthorPlacement;
     }
-    this.state.authorImagePlacement = preset.portraitPlacement || 'none';
     if (preset.fontFamily) {
       this.state.styles.fontFamily = preset.fontFamily;
     }
