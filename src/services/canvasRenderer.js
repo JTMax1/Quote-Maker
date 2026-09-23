@@ -307,7 +307,8 @@ export class CanvasRenderer {
     const hasCustomHeader = [
       'terminal-code', 'newspaper-headline', 'broadsheet-banner',
       'front-page-lead', 'tweet-card', 'magazine-cover',
-      'the-atlantic-op', 'catalog-specimen', 'center-badge-minimal', 'calendar-tear-off'
+      'the-atlantic-op', 'catalog-specimen', 'center-badge-minimal', 'calendar-tear-off',
+      'cyber-warning-hazard'
     ].includes(activeLayout.id);
 
     if ((showCategory || showDate || isHeaderAvatar) && !hasCustomHeader) {
@@ -1219,7 +1220,7 @@ export class CanvasRenderer {
       ctx.fillRect(x + 14, y + 14, w, h);
       ctx.fillStyle = styles.cardBackground || '#ffffff';
       ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle = borderColor || '#000000';
       ctx.lineWidth = 6;
       ctx.strokeRect(x, y, w, h);
     } else if (borderStyle === 'polaroid' || activeLayout.id === 'polaroid-photo') {

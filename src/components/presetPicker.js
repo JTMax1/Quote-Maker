@@ -147,11 +147,24 @@ export class PresetPicker {
       const safeCategory = escapeHtml(preset.category);
       const sampleQuote = "“Simplicity is the ultimate sophistication.”";
 
+      const hasCard = preset.cardBackground && preset.cardBackground !== 'transparent';
+      const cardBg = hasCard ? sanitizeStyleValue(preset.cardBackground, 'transparent') : 'transparent';
+      const cardBorder = preset.borderColor ? sanitizeStyleValue(preset.borderColor, 'rgba(255,255,255,0.15)') : 'rgba(255, 255, 255, 0.12)';
+
+      const cardInnerHtml = hasCard ? `
+        <div class="preset-preview-inner-card" style="background: ${cardBg}; color: ${color}; padding: 10px 12px; border-radius: 6px; width: 100%; border: 1.5px solid ${cardBorder}; box-shadow: 0 4px 12px rgba(0,0,0,0.35); text-align: left; box-sizing: border-box;">
+          <div class="preset-quote-sample" style="color: ${color}; font-size: 0.82rem; line-height: 1.35; margin-bottom: 6px;">${sampleQuote}</div>
+          <div class="preset-author-sample" style="color: ${accent}; font-size: 0.72rem; opacity: 0.9;">— Leonardo da Vinci</div>
+        </div>
+      ` : `
+        <div class="preset-quote-sample">${sampleQuote}</div>
+        <div class="preset-author-sample" style="color: ${accent}">— Leonardo da Vinci</div>
+      `;
+
       return `
         <div class="preset-card ${isActive ? 'active-theme' : ''}" data-id="${safeId}">
-          <div class="preset-preview-box" style="background: ${bgStyle}; color: ${color}; font-family: '${font}', sans-serif;">
-            <div class="preset-quote-sample">${sampleQuote}</div>
-            <div class="preset-author-sample" style="color: ${accent}">— Leonardo da Vinci</div>
+          <div class="preset-preview-box" style="background: ${bgStyle}; color: ${color}; font-family: '${font}', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px; box-sizing: border-box;">
+            ${cardInnerHtml}
           </div>
           <div class="preset-card-footer">
             <div class="preset-name-wrap">

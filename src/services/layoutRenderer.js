@@ -595,6 +595,76 @@ export class LayoutRenderer {
       ctx.restore();
     }
 
+    // 21. Industrial Hazard Strip (Yellow & Black Diagonal Warning Stripes)
+    if (id === 'cyber-warning-hazard') {
+      ctx.save();
+      const hazardColor = styles.accentColor || '#ffd000';
+      const stripeH = 36;
+      
+      const drawHazardBar = (barY) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, barY, width, stripeH);
+        ctx.clip();
+        
+        // Safety yellow background
+        ctx.fillStyle = hazardColor;
+        ctx.fillRect(0, barY, width, stripeH);
+        
+        // 45-degree diagonal jet black hazard stripes
+        ctx.fillStyle = '#000000';
+        for (let hx = -stripeH * 2; hx < width + stripeH * 2; hx += 38) {
+          ctx.beginPath();
+          ctx.moveTo(hx, barY);
+          ctx.lineTo(hx + 20, barY);
+          ctx.lineTo(hx + 20 - stripeH, barY + stripeH);
+          ctx.lineTo(hx - stripeH, barY + stripeH);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Heavy border line separating hazard tape
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        if (barY === 0) {
+          ctx.moveTo(0, stripeH);
+          ctx.lineTo(width, stripeH);
+        } else {
+          ctx.moveTo(0, barY);
+          ctx.lineTo(width, barY);
+        }
+        ctx.stroke();
+        ctx.restore();
+      };
+
+      // Draw top and bottom warning bars
+      drawHazardBar(0);
+      drawHazardBar(height - stripeH);
+
+      // Industrial technical corner crosshair ticks
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      const cornerInset = 54;
+      const tickLen = 16;
+      const corners = [
+        [cornerInset, cornerInset],
+        [width - cornerInset, cornerInset],
+        [cornerInset, height - cornerInset],
+        [width - cornerInset, height - cornerInset]
+      ];
+      corners.forEach(([cx, cy]) => {
+        ctx.beginPath();
+        ctx.moveTo(cx - tickLen, cy);
+        ctx.lineTo(cx + tickLen, cy);
+        ctx.moveTo(cx, cy - tickLen);
+        ctx.lineTo(cx, cy + tickLen);
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
     ctx.restore();
   }
 
@@ -1661,6 +1731,33 @@ export class LayoutRenderer {
       ctx.fillStyle = 'rgba(254, 240, 138, 0.7)'; // yellow masking tape
       ctx.fillRect(polX + 35, polY - 10, 70, 20);
 
+      ctx.restore();
+    }
+
+    // 20. Industrial Hazard Strip Chrome
+    if (id === 'cyber-warning-hazard') {
+      ctx.save();
+      const textColor = styles.textColor || '#ffd000';
+      
+      // Top Caution Banner inside card
+      ctx.fillStyle = textColor;
+      ctx.font = '900 13px "Space Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('⚠️ CAUTION // INDUSTRIAL HAZARD // DANGER ⚠️', width / 2, cardY + 24);
+
+      // Warning Divider Line
+      ctx.strokeStyle = textColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cardX + 24, cardY + 44);
+      ctx.lineTo(cardX + cardW - 24, cardY + 44);
+      ctx.stroke();
+
+      // Bottom Industrial Placard Specs
+      ctx.font = '700 11px "Space Mono", monospace';
+      ctx.fillStyle = styles.metaColor || '#a1a1aa';
+      ctx.fillText('REF: ISO-7010 // HAZARD CLASSIFICATION 4.2 // HEAVY MACHINERY', width / 2, cardY + cardH - 24);
       ctx.restore();
     }
 

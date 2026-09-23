@@ -170,7 +170,7 @@ class App {
     // 2. Preset Library View
     const presetsContainer = document.getElementById('view-presets');
     this.components.presets = new PresetPicker(presetsContainer, (selectedPreset) => {
-      this.components.editor.applyPreset(selectedPreset, true);
+      this.components.editor.applyPreset(selectedPreset, false);
       this.switchTab('editor');
     });
 
