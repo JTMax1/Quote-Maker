@@ -2571,96 +2571,209 @@ export class CanvasRenderer {
     handle = '',
     styles = {},
     width,
-    height
+    height,
+    cardX,
+    cardY,
+    cardW,
+    cardH,
+    activeLayout
   }) {
-    if (!watermark && !loadedLogoImg && !handle) return;
     ctx.save();
 
-    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
-    const brandingFontStack = FontLoaderService.getFallbackStack(font);
-    const textColor = styles.textColor || '#18181b';
-    const accentColor = styles.accentColor || '#6366f1';
-    const metaColor = styles.metaColor || '#71717a';
-    const opacity = Math.max(0.1, Math.min(1.0, parseFloat(brandingOpacity) || 0.55));
+    // 1. Resolve effective branding text fallback
+    const rawText = watermark || handle || 'QuoteForge';
+    const displayText = String(rawText).trim().toUpperCase();
 
-    // Calculate position coordinates based on canvas aspect ratio
-    const marginX = Math.round(width * 0.08);
-    const marginY = Math.round(height * 0.065);
+    // 2. Resolve safe card boundary coordinates
+    const basePadding = Math.round(width * 0.08);
+    const cX = typeof cardX === 'number' ? cardX : basePadding;
+    const cY = typeof cardY === 'number' ? cardY : basePadding;
+    const cW = typeof cardW === 'number' ? cardW : (width - basePadding * 2);
+    const cH = typeof cardH === 'number' ? cardH : (height - basePadding * 2);
 
-    let anchorX = width - marginX;
-    let anchorY = height - marginY;
+    const cRight = cX + cW;
+    const cBottom = cY + cH;
+
+    const borderStyle = styles.borderStyle || 'none';
+    const cardStyle = styles.cardStyle || 'flat';
+
+    // 3. Compute generous safe clearance from all card frames, borders, shadows & corner curves
+    let safeInsetX = Math.max(54, Math.round(cW * 0.055));
+    let safeInsetY = Math.max(38, Math.round(cH * 0.042));
+
+    if (borderStyle === 'double' || borderStyle === 'gold-inlay') {
+      safeInsetX = Math.max(safeInsetX, 60);
+      safeInsetY = Math.max(safeInsetY, 44);
+    } else if (borderStyle === 'rounded-soft' || cardStyle === 'glass') {
+      safeInsetX = Math.max(safeInsetX, 58);
+      safeInsetY = Math.max(safeInsetY, 42);
+    } else if (borderStyle === 'brutalist-solid') {
+      safeInsetX = Math.max(safeInsetX, 54);
+      safeInsetY = Math.max(safeInsetY, 42);
+    } else if (borderStyle === 'thick-left') {
+      safeInsetX = Math.max(safeInsetX, 66);
+    }
+
+    // 4. Compute anchor coordinates based on brandingPosition
+    let anchorX = cRight - safeInsetX;
+    let anchorY = cBottom - safeInsetY;
     let align = 'right';
 
     switch (brandingPosition) {
       case 'bottom-left':
-        anchorX = marginX;
-        anchorY = height - marginY;
+        anchorX = cX + safeInsetX;
+        anchorY = cBottom - safeInsetY;
         align = 'left';
         break;
+
       case 'top-right':
-        anchorX = width - marginX;
-        anchorY = marginY + 28;
+        anchorX = cRight - safeInsetX;
+        anchorY = cY + safeInsetY + 14;
         align = 'right';
         break;
+
       case 'top-left':
-        anchorX = marginX;
-        anchorY = marginY + 28;
+        anchorX = cX + safeInsetX;
+        anchorY = cY + safeInsetY + 14;
         align = 'left';
         break;
+
       case 'footer-center':
-        anchorX = width / 2;
-        anchorY = height - marginY;
+        anchorX = cX + cW / 2;
+        anchorY = cBottom - safeInsetY;
         align = 'center';
         break;
+
       case 'bottom-right':
       default:
-        anchorX = width - marginX;
-        anchorY = height - marginY;
+        anchorX = cRight - safeInsetX;
+        anchorY = cBottom - safeInsetY;
         align = 'right';
         break;
     }
 
+    // 5. Determine surface brightness to guarantee high-contrast readability
+    const surfaceBg = (styles.cardBackground && styles.cardBackground !== 'transparent') 
+      ? styles.cardBackground 
+      : (styles.background || '#ffffff');
+
+    const isLightColor = (color) => {
+      if (!color || typeof color !== 'string') return true;
+      if (color.startsWith('rgba') || color.startsWith('rgb')) {
+        const parts = color.match(/\d+/g);
+        if (parts && parts.length >= 3) {
+          const lum = (parseInt(parts[0]) * 299 + parseInt(parts[1]) * 587 + parseInt(parts[2]) * 114) / 1000;
+          return lum > 145;
+        }
+      }
+      if (color.startsWith('#')) {
+        let hex = color.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        const lum = (r * 299 + g * 587 + b * 114) / 1000;
+        return lum > 145;
+      }
+      return false;
+    };
+
+    const lightSurface = isLightColor(surfaceBg);
+
+    // Guaranteed contrast colors
+    let brandTextColor = styles.textColor;
+    let brandMetaColor = styles.metaColor;
+    const accentColor = styles.accentColor || '#6366f1';
+
+    if (lightSurface) {
+      if (!brandMetaColor || isLightColor(brandMetaColor)) {
+        brandMetaColor = '#475569'; // Slate 600
+      }
+      if (!brandTextColor || isLightColor(brandTextColor)) {
+        brandTextColor = '#0f172a'; // Slate 900
+      }
+    } else {
+      if (!brandMetaColor || !isLightColor(brandMetaColor)) {
+        brandMetaColor = '#cbd5e1'; // Slate 300
+      }
+      if (!brandTextColor || !isLightColor(brandTextColor)) {
+        brandTextColor = '#ffffff';
+      }
+    }
+
+    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+    const brandingFontStack = FontLoaderService.getFallbackStack(font);
+    // Guarantee minimum opacity of 0.45 so watermark is never washed out
+    const opacity = Math.max(0.45, Math.min(1.0, parseFloat(brandingOpacity) || 0.65));
+
     ctx.globalAlpha = opacity;
 
-    if (brandingStyle === 'logo' && loadedLogoImg) {
-      // Draw Logo Emblem Only
-      const maxDim = 58;
-      const aspect = (loadedLogoImg.naturalWidth || loadedLogoImg.width || 1) / (loadedLogoImg.naturalHeight || loadedLogoImg.height || 1);
+    if (brandingStyle === 'logo') {
+      // Draw Logo Emblem Only (with elegant seal fallback)
+      const maxDim = 52;
       let lw = maxDim;
       let lh = maxDim;
-      if (aspect > 1) {
-        lh = maxDim / aspect;
-      } else {
-        lw = maxDim * aspect;
-      }
 
       let lx = anchorX;
       if (align === 'right') lx = anchorX - lw;
       else if (align === 'center') lx = anchorX - lw / 2;
-      const ly = anchorY - lh / 2;
+      const ly = anchorY - lh;
 
-      ctx.drawImage(loadedLogoImg, lx, ly, lw, lh);
-    } else if (brandingStyle === 'badge') {
+      if (loadedLogoImg) {
+        const aspect = (loadedLogoImg.naturalWidth || loadedLogoImg.width || 1) / (loadedLogoImg.naturalHeight || loadedLogoImg.height || 1);
+        if (aspect > 1) {
+          lh = maxDim / aspect;
+        } else {
+          lw = maxDim * aspect;
+        }
+        ctx.drawImage(loadedLogoImg, lx, ly, lw, lh);
+      } else {
+        // Fallback brand emblem seal
+        ctx.fillStyle = accentColor || '#6366f1';
+        ctx.beginPath();
+        ctx.arc(lx + maxDim / 2, ly + maxDim / 2, maxDim / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('❝', lx + maxDim / 2, ly + maxDim / 2 + 1);
+      }
+    } else if (brandingStyle === 'badge' || brandingStyle === 'pill-badge') {
       // Glassmorphic Pill Badge: [Emblem/Logo] @handle or Watermark
-      const displayText = handle || watermark || 'QuoteForge';
-      ctx.font = `600 20px ${brandingFontStack}`;
-      const textWidth = ctx.measureText(displayText).width;
-      const emblemSize = 24;
+      const badgeDisplayText = handle || watermark || 'QuoteForge';
+      ctx.font = `600 18px ${brandingFontStack}`;
+      const textWidth = ctx.measureText(badgeDisplayText).width;
+      const emblemSize = 22;
       const padX = 14;
-      const badgeH = 40;
-      const badgeW = textWidth + emblemSize + padX * 2 + 10;
+      const badgeH = 38;
+      const badgeW = textWidth + emblemSize + padX * 2 + 8;
 
       let bx = anchorX;
       if (align === 'right') bx = anchorX - badgeW;
       else if (align === 'center') bx = anchorX - badgeW / 2;
-      const by = anchorY - badgeH / 2;
+      const by = anchorY - badgeH;
 
-      // Pill Background
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.76)';
-      this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, true, false);
-      ctx.strokeStyle = accentColor ? `${accentColor}77` : 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 1.5;
-      this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, false, true);
+      // Pill Background & Border adapt to surface
+      if (lightSurface) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 10;
+        this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, true, false);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.lineWidth = 1.2;
+        this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, false, true);
+        ctx.shadowBlur = 0;
+      } else {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+        ctx.shadowBlur = 12;
+        this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, true, false);
+        ctx.strokeStyle = accentColor ? `${accentColor}66` : 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1.2;
+        this.roundRect(ctx, bx, by, badgeW, badgeH, badgeH / 2, false, true);
+        ctx.shadowBlur = 0;
+      }
 
       // Emblem inside pill
       const emX = bx + padX;
@@ -2673,35 +2786,35 @@ export class CanvasRenderer {
         ctx.drawImage(loadedLogoImg, emX, emY, emblemSize, emblemSize);
         ctx.restore();
       } else {
-        // Glowing brand sparkle
         ctx.fillStyle = accentColor || '#6366f1';
         ctx.beginPath();
         ctx.arc(emX + emblemSize / 2, emY + emblemSize / 2, emblemSize / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '700 13px sans-serif';
+        ctx.font = '700 12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('✦', emX + emblemSize / 2, emY + emblemSize / 2 + 4.5);
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✦', emX + emblemSize / 2, emY + emblemSize / 2);
       }
 
       // Badge Text
       ctx.textAlign = 'left';
-      ctx.font = `600 19px ${brandingFontStack}`;
-      ctx.fillStyle = textColor;
-      ctx.fillText(displayText, emX + emblemSize + 10, by + badgeH / 2 + 6.5);
+      ctx.textBaseline = 'middle';
+      ctx.font = `600 18px ${brandingFontStack}`;
+      ctx.fillStyle = lightSurface ? '#0f172a' : '#f8fafc';
+      ctx.fillText(badgeDisplayText, emX + emblemSize + 8, by + badgeH / 2 + 1);
     } else if (brandingStyle === 'logo-text') {
       // Logo Emblem + Text side-by-side
-      const displayText = (watermark || handle || 'QuoteForge').toUpperCase();
-      ctx.font = `700 20px ${brandingFontStack}`;
+      ctx.font = `700 19px ${brandingFontStack}`;
       const textWidth = ctx.measureText(displayText).width;
-      const logoSize = 34;
-      const gap = 10;
+      const logoSize = 30;
+      const gap = 8;
       const totalW = logoSize + gap + textWidth;
 
       let sx = anchorX;
       if (align === 'right') sx = anchorX - totalW;
       else if (align === 'center') sx = anchorX - totalW / 2;
-      const sy = anchorY - logoSize / 2;
+      const sy = anchorY - logoSize;
 
       if (loadedLogoImg) {
         ctx.drawImage(loadedLogoImg, sx, sy, logoSize, logoSize);
@@ -2711,21 +2824,23 @@ export class CanvasRenderer {
         ctx.arc(sx + logoSize / 2, sy + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '700 18px sans-serif';
+        ctx.font = '700 16px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('❝', sx + logoSize / 2, sy + logoSize / 2 + 6);
+        ctx.textBaseline = 'middle';
+        ctx.fillText('❝', sx + logoSize / 2, sy + logoSize / 2);
       }
 
       ctx.textAlign = 'left';
-      ctx.font = `700 20px ${brandingFontStack}`;
-      ctx.fillStyle = textColor;
-      ctx.fillText(displayText, sx + logoSize + gap, anchorY + 7);
+      ctx.textBaseline = 'middle';
+      ctx.font = `700 19px ${brandingFontStack}`;
+      ctx.fillStyle = brandTextColor;
+      ctx.fillText(displayText, sx + logoSize + gap, sy + logoSize / 2);
     } else {
       // Minimalist Text Watermark (Default)
-      const displayText = (watermark || 'QuoteForge').toUpperCase();
-      ctx.font = `600 21px ${brandingFontStack}`;
-      ctx.fillStyle = metaColor;
+      ctx.font = `600 20px ${brandingFontStack}`;
+      ctx.fillStyle = brandMetaColor;
       ctx.textAlign = align;
+      ctx.textBaseline = 'bottom';
       ctx.fillText(displayText, anchorX, anchorY);
     }
 

@@ -52,7 +52,7 @@ export class TemplateStudio {
       showWatermark: true,
       watermark: 'QuoteForge Studio',
       brandingHandle: '@quoteforge',
-      brandingStyle: 'pill-badge',
+      brandingStyle: 'badge',
       brandingPosition: 'bottom-right',
       brandingOpacity: 0.85,
       brandingLogo: null
@@ -866,7 +866,7 @@ export class TemplateStudio {
     const styleSelector = this.containerEl.querySelector('#studioBrandingStyleSelector');
     if (styleSelector) {
       styleSelector.querySelectorAll('.branding-style-btn').forEach(btn => {
-        const isActive = btn.dataset.style === (this.template.brandingStyle || 'pill-badge');
+        const isActive = btn.dataset.style === (this.template.brandingStyle || 'badge');
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
       });
@@ -942,7 +942,7 @@ export class TemplateStudio {
       showDate: true,
       showCategory: true,
       showWatermark: !!this.template.showWatermark,
-      brandingStyle: this.template.brandingStyle || 'pill-badge',
+      brandingStyle: this.template.brandingStyle || 'badge',
       brandingPosition: this.template.brandingPosition || 'bottom-right',
       brandingOpacity: this.template.brandingOpacity ?? 0.85,
       brandingLogo: this.template.brandingLogo || null,
