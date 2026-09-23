@@ -63,9 +63,9 @@
 }
 
 .toast-action-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: var(--brand-primary-subtle);
+  border: 1px solid var(--brand-primary-border);
+  color: var(--brand-primary);
   padding: 0.3rem 0.65rem;
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
@@ -78,6 +78,7 @@
 .toast-action-btn:hover {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
+  color: #ffffff;
 }
 
 .toast-close-btn {

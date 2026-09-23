@@ -18,20 +18,6 @@
   --brand-rose: #e11d48;
   --brand-emerald: #059669;
 
-  /* Neutral Studio Surfaces (Precision Matte Charcoal) */
-  --bg-page: #0f1115;
-  --bg-surface: #16181d;
-  --bg-surface-elevated: #1e2027;
-  --bg-surface-hover: #262932;
-  --bg-surface-active: #2f333e;
-  --bg-glass: #16181df2;
-  --bg-glass-card: #1e2027e6;
-
-  /* Studio Hairline Borders */
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --border-glass-strong: rgba(255, 255, 255, 0.14);
-  --border-glass-focus: #4f46e5;
-
   /* Spacing Scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -43,25 +29,11 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  /* Typography Colors - WCAG 2.1 AA Compliant */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-inverse: #0f1115;
-
   /* Typography Stacks (Clean, High-Readability UI) */
   --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
   --font-display: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-
-  /* Precision Elevation Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.55), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 16px -2px var(--brand-primary-glow);
-  --shadow-neon: 0 0 16px -2px rgba(2, 132, 199, 0.25);
 
   /* Intentional Radius Scale (Structured & Ergonomic) */
   --radius-xs: 4px;
@@ -75,6 +47,141 @@
   --transition-fast: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Dark Studio Theme Tokens (Default)
+   -------------------------------------------------------------------------- */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Neutral Studio Surfaces (Precision Matte Charcoal) */
+  --bg-page: #0f1115;
+  --bg-surface: #16181d;
+  --bg-surface-elevated: #1e2027;
+  --bg-surface-hover: #262932;
+  --bg-surface-active: #2f333e;
+  --bg-glass: #16181df2;
+  --bg-glass-card: #1e2027e6;
+
+  /* Canvas Studio Stage (Dark Charcoal Drafting Board) */
+  --bg-canvas-stage: #121418;
+  --canvas-grid-line: rgba(255, 255, 255, 0.035);
+  --drafting-texture: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
+
+  /* Studio Hairline Borders */
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-strong: rgba(255, 255, 255, 0.14);
+  --border-glass-focus: #4f46e5;
+  --modal-backdrop: rgba(4, 6, 12, 0.85);
+
+  /* Typography Colors - WCAG 2.1 AA Compliant */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f1115;
+
+  /* Precision Elevation Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.55), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 16px -2px var(--brand-primary-glow);
+  --shadow-neon: 0 0 16px -2px rgba(2, 132, 199, 0.25);
+
+  /* Scrollbar Tokens */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+}
+
+/* --------------------------------------------------------------------------
+   Porcelain & Platinum Light Theme Tokens
+   -------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Neutral Studio Surfaces (Porcelain & Platinum Crisp White) */
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
+  --bg-surface-active: #cbd5e1;
+  --bg-glass: rgba(255, 255, 255, 0.94);
+  --bg-glass-card: rgba(255, 255, 255, 0.97);
+
+  /* Canvas Studio Stage (Neutral Contrast Workbench so light quotes pop) */
+  --bg-canvas-stage: #e2e8f0;
+  --canvas-grid-line: rgba(15, 23, 42, 0.05);
+  --drafting-texture: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.035) 0%, transparent 60%);
+
+  /* Studio Hairline Borders */
+  --border-glass: rgba(15, 23, 42, 0.09);
+  --border-glass-strong: rgba(15, 23, 42, 0.16);
+  --border-glass-focus: #4f46e5;
+  --modal-backdrop: rgba(15, 23, 42, 0.55);
+
+  /* Typography Colors - Rich Midnight Slate */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Refined Light Elevation Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+  --shadow-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.15);
+  --shadow-glow: 0 0 16px -2px rgba(79, 70, 229, 0.22);
+  --shadow-neon: 0 0 16px -2px rgba(2, 132, 199, 0.18);
+
+  /* Scrollbar Tokens */
+  --scrollbar-thumb: rgba(15, 23, 42, 0.18);
+  --scrollbar-thumb-hover: rgba(15, 23, 42, 0.32);
+
+  /* Light Accent Tuning */
+  --brand-primary-subtle: rgba(79, 70, 229, 0.08);
+  --brand-primary-border: rgba(79, 70, 229, 0.28);
+  --brand-accent-subtle: rgba(2, 132, 199, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Automatic System Preference Fallback (when data-theme-setting is 'system')
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: light) {
+  :root[data-theme-setting="system"]:not([data-theme="dark"]),
+  :root:not([data-theme="dark"]):not([data-theme="light"]) {
+    color-scheme: light;
+    --bg-page: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f1f5f9;
+    --bg-surface-hover: #e2e8f0;
+    --bg-surface-active: #cbd5e1;
+    --bg-glass: rgba(255, 255, 255, 0.94);
+    --bg-glass-card: rgba(255, 255, 255, 0.97);
+    --bg-canvas-stage: #e2e8f0;
+    --canvas-grid-line: rgba(15, 23, 42, 0.05);
+    --drafting-texture: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.035) 0%, transparent 60%);
+    --border-glass: rgba(15, 23, 42, 0.09);
+    --border-glass-strong: rgba(15, 23, 42, 0.16);
+    --border-glass-focus: #4f46e5;
+    --modal-backdrop: rgba(15, 23, 42, 0.55);
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --text-inverse: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 1px rgba(15, 23, 42, 0.03);
+    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+    --shadow-xl: 0 20px 40px -8px rgba(15, 23, 42, 0.15);
+    --shadow-glow: 0 0 16px -2px rgba(79, 70, 229, 0.22);
+    --shadow-neon: 0 0 16px -2px rgba(2, 132, 199, 0.18);
+    --scrollbar-thumb: rgba(15, 23, 42, 0.18);
+    --scrollbar-thumb-hover: rgba(15, 23, 42, 0.32);
+    --brand-primary-subtle: rgba(79, 70, 229, 0.08);
+    --brand-primary-border: rgba(79, 70, 229, 0.28);
+    --brand-accent-subtle: rgba(2, 132, 199, 0.08);
+  }
 }
 
 *, *::before, *::after {
@@ -96,8 +203,7 @@ html, body {
 
 /* Subtle drafting grid texture on workspace */
 body {
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
+  background-image: var(--drafting-texture);
 }
 
 a {
@@ -162,11 +268,11 @@ button .lucide-icon {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--scrollbar-thumb);
   border-radius: var(--radius-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Reduced-Motion Accessibility */

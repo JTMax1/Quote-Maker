@@ -169,6 +169,36 @@
   gap: 0.25rem;
 }
 
+.btn-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-theme-toggle:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+  border-color: var(--border-glass-strong);
+}
+
+.btn-theme-toggle .theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-gold);
+}
+
+:root[data-theme="light"] .btn-theme-toggle .theme-toggle-icon {
+  color: var(--brand-primary);
+}
+
 .profile-chip {
   display: flex;
   align-items: center;
@@ -347,7 +377,7 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
     justify-content: flex-start;
     gap: 0.35rem;
     padding-bottom: 0.25rem;
@@ -360,7 +390,7 @@
     background: transparent;
   }
   .nav-tabs::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
   }
   .tab-btn {

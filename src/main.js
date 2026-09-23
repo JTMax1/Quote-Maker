@@ -32,6 +32,7 @@ class App {
   }
 
   init() {
+    StorageService.initThemeListener();
     this.renderAppShell();
     this.initComponents();
     this.bindGlobalEvents();
@@ -43,6 +44,7 @@ class App {
     const profile = StorageService.getProfile();
     const safeName = profile.name || 'C';
     const initial = escapeHtml(safeName[0].toUpperCase());
+    const resolvedTheme = StorageService.getResolvedTheme();
 
     appEl.innerHTML = `
       <!-- Header -->
@@ -83,6 +85,10 @@ class App {
           <!-- Header Actions -->
           <div class="header-actions">
             <div class="desktop-actions">
+              <button class="btn-glass btn-header-action btn-theme-toggle" id="btnThemeToggle" title="${resolvedTheme === 'light' ? 'Switch to Dark Studio Mode' : 'Switch to Porcelain Light Mode'}" aria-label="Toggle light or dark theme">
+                <span class="theme-toggle-icon" aria-hidden="true">${icon(resolvedTheme === 'light' ? 'moon' : 'sun', { size: 14 })}</span>
+                <span class="theme-toggle-label">${resolvedTheme === 'light' ? 'Dark' : 'Light'}</span>
+              </button>
               <button class="btn-glass btn-header-action" id="btnExportBackup" title="Export Quotes & Themes Backup (JSON)" aria-label="Export backup">
                 <span aria-hidden="true">${icon('download', { size: 14 })}</span>
                 <span>Backup</span>
@@ -105,6 +111,10 @@ class App {
                 <span aria-hidden="true">${icon('moreVertical', { size: 18 })}</span>
               </button>
               <div class="mobile-overflow-dropdown" id="mobileOverflowMenu" role="menu" hidden>
+                <button class="overflow-menu-item" id="btnMobileThemeToggle" role="menuitem">
+                  <span class="mobile-theme-icon" aria-hidden="true">${icon(resolvedTheme === 'light' ? 'moon' : 'sun', { size: 15 })}</span>
+                  <span class="mobile-theme-label">Switch to ${resolvedTheme === 'light' ? 'Dark Studio' : 'Light Mode'}</span>
+                </button>
                 <button class="overflow-menu-item" id="btnMobileOpenProfile" role="menuitem">
                   <span aria-hidden="true">${icon('settings', { size: 15 })}</span>
                   <span>Signature & Settings</span>
@@ -335,6 +345,52 @@ class App {
         inputRestore.value = '';
       });
     }
+
+    // Theme Toggle Handler (Desktop & Mobile)
+    const handleThemeToggle = () => {
+      if (mobileOverflowMenu) mobileOverflowMenu.hidden = true;
+      const newTheme = StorageService.toggleTheme();
+      const resolved = StorageService.getResolvedTheme(newTheme);
+      Toast.show(`Theme switched to ${resolved === 'light' ? 'Porcelain Light' : 'Dark Studio'}`, 'info', { duration: 2000 });
+    };
+
+    const btnThemeToggle = document.getElementById('btnThemeToggle');
+    if (btnThemeToggle) {
+      btnThemeToggle.addEventListener('click', handleThemeToggle);
+    }
+
+    const btnMobileThemeToggle = document.getElementById('btnMobileThemeToggle');
+    if (btnMobileThemeToggle) {
+      btnMobileThemeToggle.addEventListener('click', handleThemeToggle);
+    }
+
+    // Reactive Theme Change Listener
+    window.addEventListener('themechange', (e) => {
+      const resolved = e.detail?.resolved || StorageService.getResolvedTheme();
+      const isLight = resolved === 'light';
+
+      const dtBtn = document.getElementById('btnThemeToggle');
+      if (dtBtn) {
+        const iconSpan = dtBtn.querySelector('.theme-toggle-icon');
+        const labelSpan = dtBtn.querySelector('.theme-toggle-label');
+        if (iconSpan) iconSpan.innerHTML = icon(isLight ? 'moon' : 'sun', { size: 14 });
+        if (labelSpan) labelSpan.textContent = isLight ? 'Dark' : 'Light';
+        dtBtn.setAttribute('title', isLight ? 'Switch to Dark Studio Mode' : 'Switch to Porcelain Light Mode');
+        dtBtn.setAttribute('aria-label', isLight ? 'Switch to Dark Studio Mode' : 'Switch to Porcelain Light Mode');
+      }
+
+      const mbBtn = document.getElementById('btnMobileThemeToggle');
+      if (mbBtn) {
+        const mbIcon = mbBtn.querySelector('.mobile-theme-icon');
+        const mbLabel = mbBtn.querySelector('.mobile-theme-label');
+        if (mbIcon) mbIcon.innerHTML = icon(isLight ? 'moon' : 'sun', { size: 15 });
+        if (mbLabel) mbLabel.textContent = `Switch to ${isLight ? 'Dark Studio' : 'Light Mode'}`;
+      }
+
+      if (this.components.editor && this.currentTab === 'editor') {
+        this.components.editor.scheduleRender();
+      }
+    });
 
     // Hash navigation (deep linking)
     window.addEventListener('hashchange', () => {

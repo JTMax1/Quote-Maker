@@ -150,10 +150,10 @@
   width: 100%;
   max-width: 100%;
   min-height: 480px;
-  background-color: #121418;
+  background-color: var(--bg-canvas-stage);
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, var(--canvas-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--canvas-grid-line) 1px, transparent 1px);
   background-size: 24px 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-glass);
@@ -188,7 +188,7 @@
   width: auto !important;
   height: auto !important;
   border-radius: var(--radius-sm);
-  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-xl), 0 0 0 1px var(--border-glass-strong);
   object-fit: contain;
   transition: transform var(--transition-normal);
   display: block;
@@ -1286,7 +1286,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.45rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .toggle-item:last-child {
@@ -1426,7 +1426,7 @@ input:checked + .slider:before {
   height: 38px;
   border-radius: 50%;
   overflow: hidden;
-  background: #27272a;
+  background: var(--bg-surface-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1656,7 +1656,7 @@ input:checked + .slider:before {
     max-width: 100% !important;
     object-fit: contain;
     border-radius: var(--radius-md);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-lg);
   }
 
   .mobile-layout-pinned .canvas-actions-bar {
@@ -1909,7 +1909,8 @@ input:checked + .slider:before {
   height: 110px;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: #000;
+  background: var(--bg-canvas-stage);
+  border: 1px solid var(--border-glass-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2064,7 +2065,7 @@ input:checked + .slider:before {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  background: #18181b;
+  background: var(--bg-surface-elevated);
   border: 1px solid var(--border-glass-strong);
   display: flex;
   align-items: center;

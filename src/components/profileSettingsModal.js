@@ -144,6 +144,27 @@ export class ProfileSettingsModal {
             </span>
           </div>
 
+          <!-- App Appearance / Theme Mode -->
+          <div class="form-group">
+            <label class="form-label" for="settingThemeMode">
+              ${icon('sun', { size: 13, class: 'mr-1' })} App Appearance
+            </label>
+            <select class="form-input" id="settingThemeMode" aria-label="App Theme Appearance">
+              <option value="system" ${(profile.themeMode === 'system' || !profile.themeMode) ? 'selected' : ''}>
+                System Default (Synchronize with OS)
+              </option>
+              <option value="dark" ${profile.themeMode === 'dark' ? 'selected' : ''}>
+                Dark Studio (Charcoal & Matte)
+              </option>
+              <option value="light" ${profile.themeMode === 'light' ? 'selected' : ''}>
+                Porcelain Light (Crisp & Platinum)
+              </option>
+            </select>
+            <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.3rem;">
+              Choose between dark studio workbench, crisp light porcelain, or synchronize automatically with your device settings.
+            </span>
+          </div>
+
           <!-- Visibility Toggles -->
           <div>
             <div class="form-label" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
@@ -273,6 +294,7 @@ export class ProfileSettingsModal {
       const activePresetId = this.modalEl.querySelector('#settingDefaultTemplate').value;
       const defaultRatio = this.modalEl.querySelector('#settingDefaultRatio').value;
       const mobileEditorLayout = this.modalEl.querySelector('#settingMobileEditorLayout')?.value || 'pinned';
+      const themeMode = this.modalEl.querySelector('#settingThemeMode')?.value || 'system';
       const showAuthor = this.modalEl.querySelector('#settingToggleAuthor').checked;
       const showDate = this.modalEl.querySelector('#settingToggleDate').checked;
       const showCategory = this.modalEl.querySelector('#settingToggleCategory').checked;
@@ -287,6 +309,7 @@ export class ProfileSettingsModal {
         activePresetId: activePresetId || profile.activePresetId || 'editorial-vogue',
         defaultRatio,
         mobileEditorLayout,
+        themeMode,
         showAuthor,
         showDate,
         showCategory,
@@ -295,7 +318,8 @@ export class ProfileSettingsModal {
       };
 
       StorageService.saveProfile(updated);
-      Toast.show('Profile and default template saved successfully!', 'success');
+      StorageService.setTheme(themeMode);
+      Toast.show('Profile and preferences saved successfully!', 'success');
       this.close();
 
       if (this.onSave) {
@@ -334,6 +358,12 @@ export class ProfileSettingsModal {
     this.modalEl.querySelector('#settingProfileWatermark').value = profile.watermarkText || 'QuoteForge';
     this.modalEl.querySelector('#settingDefaultTemplate').value = profile.activePresetId || 'editorial-vogue';
     this.modalEl.querySelector('#settingDefaultRatio').value = profile.defaultRatio || '1:1';
+    if (this.modalEl.querySelector('#settingMobileEditorLayout')) {
+      this.modalEl.querySelector('#settingMobileEditorLayout').value = profile.mobileEditorLayout || 'pinned';
+    }
+    if (this.modalEl.querySelector('#settingThemeMode')) {
+      this.modalEl.querySelector('#settingThemeMode').value = StorageService.getTheme();
+    }
     this.modalEl.querySelector('#settingToggleAuthor').checked = profile.showAuthor ?? true;
     this.modalEl.querySelector('#settingToggleDate').checked = profile.showDate ?? true;
     this.modalEl.querySelector('#settingToggleCategory').checked = profile.showCategory ?? true;

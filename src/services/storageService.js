@@ -13,7 +13,8 @@ const STORAGE_KEYS = {
   HISTORY: 'quoteforge_quote_history',
   CUSTOM_TEMPLATES: 'quoteforge_custom_templates',
   COMMUNITY: 'quoteforge_community_quotes',
-  LIKED_QUOTES: 'quoteforge_liked_quotes'
+  LIKED_QUOTES: 'quoteforge_liked_quotes',
+  THEME: 'quoteforge_theme_mode'
 };
 
 const DEFAULT_PROFILE = {
@@ -30,6 +31,7 @@ const DEFAULT_PROFILE = {
   activePresetId: 'editorial-vogue',
   mobileEditorLayout: 'pinned',
   customPreset: null,
+  themeMode: 'system',
   onboarded: false
 };
 
@@ -42,6 +44,76 @@ export class StorageService {
     } catch (e) {
       console.error('Failed to load profile:', e);
       return { ...DEFAULT_PROFILE };
+    }
+  }
+
+  static getTheme() {
+    try {
+      const mode = localStorage.getItem(STORAGE_KEYS.THEME);
+      if (mode && ['dark', 'light', 'system'].includes(mode)) return mode;
+      return this.getProfile().themeMode || 'system';
+    } catch (e) {
+      return 'system';
+    }
+  }
+
+  static setTheme(mode) {
+    try {
+      const valid = ['dark', 'light', 'system'].includes(mode) ? mode : 'system';
+      localStorage.setItem(STORAGE_KEYS.THEME, valid);
+      const profile = this.getProfile();
+      profile.themeMode = valid;
+      this.saveProfile(profile);
+      this.applyTheme(valid);
+      return valid;
+    } catch (e) {
+      console.error('Failed to save theme:', e);
+      return 'system';
+    }
+  }
+
+  static toggleTheme() {
+    const current = this.getTheme();
+    const resolved = this.getResolvedTheme(current);
+    const next = resolved === 'dark' ? 'light' : 'dark';
+    return this.setTheme(next);
+  }
+
+  static getResolvedTheme(mode = this.getTheme()) {
+    if (mode === 'system') {
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
+      return 'dark';
+    }
+    return mode === 'light' ? 'light' : 'dark';
+  }
+
+  static applyTheme(mode = this.getTheme()) {
+    if (typeof document === 'undefined') return 'dark';
+    const resolved = this.getResolvedTheme(mode);
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.setAttribute('data-theme-setting', mode);
+
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', resolved === 'light' ? '#f8fafc' : '#0b0f17');
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('themechange', { detail: { mode, resolved } }));
+    }
+    return resolved;
+  }
+
+  static initThemeListener() {
+    this.applyTheme();
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (this.getTheme() === 'system') {
+          this.applyTheme('system');
+        }
+      });
     }
   }
 
@@ -249,6 +321,7 @@ export class StorageService {
       app: 'QuoteForge',
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
+      themeMode: this.getTheme(),
       profile: this.getProfile(),
       history: this.getHistory(),
       customTemplates: this.getCustomTemplates(),
@@ -265,6 +338,10 @@ export class StorageService {
       const data = typeof input === 'string' ? JSON.parse(input) : input;
       if (!data || typeof data !== 'object' || data.app !== 'QuoteForge') {
         throw new Error('Invalid QuoteForge backup format: missing QuoteForge app header.');
+      }
+
+      if (data.themeMode) {
+        this.setTheme(data.themeMode);
       }
 
       if (data.profile && typeof data.profile === 'object') {

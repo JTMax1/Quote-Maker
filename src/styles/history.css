@@ -46,7 +46,7 @@
 }
 
 .history-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--border-glass-strong);
   box-shadow: var(--shadow-md);
 }
 

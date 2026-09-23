@@ -76,7 +76,8 @@ import {
   ChevronDown,
   ChevronRight,
   Sparkle,
-  Paintbrush
+  Paintbrush,
+  Sun
 } from 'lucide';
 
 const ICON_MAP = {
@@ -130,6 +131,7 @@ const ICON_MAP = {
   alignCenter: AlignCenter,
   alignRight: AlignRight,
   moon: Moon,
+  sun: Sun,
   zap: Zap,
   crown: Crown,
   gem: Gem,
