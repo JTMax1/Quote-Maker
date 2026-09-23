@@ -116,16 +116,20 @@ export class LayoutRenderer {
     ctx.fillText(initial, cx, cy + 2);
 
     // Studio Profile Bust Silhouette
-    const bustY = y + h * 0.74;
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.85)' : '#18181b';
-    ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+    const authorFontSize = Math.max(14, Math.min(22, Math.round(w * 0.08)));
+    const badgeFontSize = Math.max(10, Math.min(13, Math.round(authorFontSize * 0.65)));
+    const bustY = y + h * 0.72;
+    const spacingY = authorFontSize + 6;
+
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.92)' : '#18181b';
+    ctx.font = `600 ${authorFontSize}px "Plus Jakarta Sans", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(authorName || 'AUTHOR', cx, bustY);
 
     ctx.fillStyle = accentColor;
-    ctx.font = '700 9px monospace';
-    ctx.fillText('PORTRAIT PROFILE', cx, bustY + 18);
+    ctx.font = `700 ${badgeFontSize}px monospace`;
+    ctx.fillText('PORTRAIT PROFILE', cx, bustY + spacingY);
 
     ctx.restore();
   }

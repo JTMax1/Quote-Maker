@@ -58,11 +58,11 @@ export class AuthorImageModal {
 
         <!-- Modal Sub-Tabs (P2-2: Eliminates nested scroll touch-traps) -->
         <div style="display: flex; gap: 0.5rem; padding: 0.75rem 1.5rem 0.25rem 1.5rem; border-bottom: 1px solid var(--border-glass); background: var(--bg-surface-elevated);" role="tablist" aria-label="Author Studio Sections">
-          <button class="tab-btn ${this.activeTab === 'remover' ? 'active' : ''}" id="tabBtnRemover" role="tab" aria-selected="${this.activeTab === 'remover'}" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
+          <button class="tab-btn ${this.activeTab === 'remover' ? 'active' : ''}" id="tabBtnRemover" role="tab" aria-selected="${this.activeTab === 'remover'}" aria-label="Background Remover Studio" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
             <span>${icon('scissors', { size: 14 })}</span>
             <span>Background Remover</span>
           </button>
-          <button class="tab-btn ${this.activeTab === 'placements' ? 'active' : ''}" id="tabBtnPlacements" role="tab" aria-selected="${this.activeTab === 'placements'}" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
+          <button class="tab-btn ${this.activeTab === 'placements' ? 'active' : ''}" id="tabBtnPlacements" role="tab" aria-selected="${this.activeTab === 'placements'}" aria-label="Portrait Placements (${PORTRAIT_PLACEMENTS.length} options)" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
             <span>${icon('layout', { size: 14 })}</span>
             <span>Placements</span>
             <span class="tab-badge" id="placementsBadgeCount" style="background: var(--brand-primary); font-size: 0.68rem; margin-left: 0.25rem;">${PORTRAIT_PLACEMENTS.length}</span>
@@ -148,14 +148,14 @@ export class AuthorImageModal {
             </div>
 
             <!-- Placement Cards Grid (Flows with main modal scroll) -->
-            <div class="option-chips-grid" id="placementOptionsGrid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.55rem;">
+            <div class="option-chips-grid" id="placementOptionsGrid" style="grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 0.55rem;">
               ${PORTRAIT_PLACEMENTS.map(p => `
-                <button class="option-chip-btn ${this.selectedPlacement === p.id ? 'active' : ''}" data-place="${p.id}" style="text-align: left; padding: 0.65rem 0.75rem; font-size: 0.78rem;">
-                  <div style="font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                <button class="option-chip-btn placement-option-chip ${this.selectedPlacement === p.id ? 'active' : ''}" data-place="${p.id}" aria-label="Select placement: ${p.label} (${p.type})">
+                  <div class="placement-chip-label">
                     ${p.id === 'none' ? `<span style="color: var(--text-muted);">${icon('slash', { size: 13 })}</span>` : ''}
                     <span>${p.label}</span>
                   </div>
-                  <div style="font-size: 0.68rem; color: var(--text-muted);">${p.type}</div>
+                  <span class="placement-chip-badge">${p.type}</span>
                 </button>
               `).join('')}
             </div>

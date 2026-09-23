@@ -32,7 +32,7 @@ export class PresetPicker {
         <div class="presets-toolbar">
           <div class="category-filter-bar" id="presetCategoryBar">
             ${PRESET_CATEGORIES.map(cat => `
-              <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}">
+              <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}" role="button" aria-pressed="${this.selectedCategory === cat.id ? 'true' : 'false'}" aria-label="Filter presets by ${cat.label}">
                 <span>${icon(cat.icon || 'sparkles', { size: 14 })}</span>
                 <span>${cat.label}</span>
               </button>
@@ -64,9 +64,12 @@ export class PresetPicker {
     const catBar = this.containerEl.querySelector('#presetCategoryBar');
     catBar.addEventListener('click', (e) => {
       const btn = e.target.closest('.category-chip');
-      if (!btn) return;
-      catBar.querySelectorAll('.category-chip').forEach(b => b.classList.remove('active'));
+      catBar.querySelectorAll('.category-chip').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       this.selectedCategory = btn.dataset.cat;
       this.renderCards();
     });

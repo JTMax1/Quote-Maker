@@ -153,10 +153,10 @@ class App {
     const editorContainer = document.getElementById('view-editor');
     this.components.editor = new Editor(editorContainer, {
       onSaveHistory: (item) => {
-        if (this.components.history) this.components.history.refreshHistory();
+        if (this.components.history) this.components.history.refresh();
       },
       onShareCommunity: (item) => {
-        if (this.components.community) this.components.community.refreshQuotes();
+        if (this.components.community) this.components.community.refresh();
         this.switchTab('community');
       },
       onOpenPresetPicker: () => {
@@ -186,7 +186,7 @@ class App {
       },
       // onShareCommunity
       (historyItem) => {
-        if (this.components.community) this.components.community.refreshQuotes();
+        if (this.components.community) this.components.community.refresh();
         this.switchTab('community');
       }
     );
@@ -371,9 +371,9 @@ class App {
 
     // Trigger tab-specific refresh if needed
     if (tabName === 'history' && this.components.history) {
-      this.components.history.refreshHistory();
+      this.components.history.refresh();
     } else if (tabName === 'community' && this.components.community) {
-      this.components.community.refreshQuotes();
+      this.components.community.refresh();
     } else if (tabName === 'editor' && this.components.editor) {
       this.components.editor.scheduleRender();
     }

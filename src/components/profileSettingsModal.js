@@ -199,8 +199,8 @@ export class ProfileSettingsModal {
 
         <!-- Footer -->
         <div class="stepper-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem;">
-          <button class="btn-glass" id="btnCancelProfileModal">Cancel</button>
-          <button class="btn-primary" id="btnSaveProfileSettings">
+          <button class="btn-glass" id="btnCancelProfileModal" aria-label="Cancel and close profile settings">Cancel</button>
+          <button class="btn-primary" id="btnSaveProfileSettings" aria-label="Save profile and default template settings">
             ${icon('check', { size: 16 })} Save Settings
           </button>
         </div>

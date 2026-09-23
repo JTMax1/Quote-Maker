@@ -50,9 +50,9 @@ export class LayoutPicker {
 
         <!-- Filter Bar -->
         <div style="padding: 1rem 1.5rem 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-bottom: 1px solid var(--border-glass);">
-          <div class="category-filter-bar" id="layoutCategoryBar">
+          <div class="category-filter-bar" id="layoutCategoryBar" role="region" aria-label="Layout Categories">
             ${LAYOUT_CATEGORIES.map(cat => `
-              <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}">
+              <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}" role="button" aria-pressed="${this.selectedCategory === cat.id ? 'true' : 'false'}" aria-label="Filter layouts by ${cat.label}">
                 ${cat.label}
               </button>
             `).join('')}
@@ -97,10 +97,12 @@ export class LayoutPicker {
     // Category Filter
     const catBar = this.modalEl.querySelector('#layoutCategoryBar');
     catBar.addEventListener('click', (e) => {
-      const btn = e.target.closest('.category-chip');
-      if (!btn) return;
-      catBar.querySelectorAll('.category-chip').forEach(b => b.classList.remove('active'));
+      catBar.querySelectorAll('.category-chip').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       this.selectedCategory = btn.dataset.cat;
       this.renderCards();
     });

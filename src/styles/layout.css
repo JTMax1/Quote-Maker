@@ -345,12 +345,22 @@
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     justify-content: flex-start;
-    gap: 0.25rem;
+    gap: 0.35rem;
+    padding-bottom: 0.25rem;
   }
   .nav-tabs::-webkit-scrollbar {
-    display: none;
+    display: block;
+    height: 3px;
+  }
+  .nav-tabs::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .nav-tabs::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
   }
   .tab-btn {
     white-space: nowrap;

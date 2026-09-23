@@ -83,13 +83,13 @@ export class FontPickerModal {
           </div>
 
           <!-- Category Chips Bar (Touch-friendly & Horizontal-scrolling) -->
-          <div class="category-filter-bar" id="fontCategoryFilterBar" style="gap: 0.4rem; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 0.2rem; margin-bottom: 0; scrollbar-width: none;">
+          <div class="category-filter-bar" id="fontCategoryFilterBar" role="region" aria-label="Font Categories" style="gap: 0.4rem; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 0.4rem; margin-bottom: 0;">
             ${FONT_CATEGORIES.map(cat => `
-              <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; flex-shrink: 0;">
+              <button class="category-chip ${this.selectedCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}" role="button" aria-pressed="${this.selectedCategory === cat.id ? 'true' : 'false'}" aria-label="Filter fonts by ${cat.label}" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; flex-shrink: 0;">
                 <span>${cat.label}</span>
               </button>
             `).join('')}
-            <button class="category-chip ${this.selectedCategory === 'pairings' ? 'active' : ''}" data-cat="pairings" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; flex-shrink: 0; border-color: var(--brand-primary); color: var(--brand-primary);">
+            <button class="category-chip ${this.selectedCategory === 'pairings' ? 'active' : ''}" data-cat="pairings" role="button" aria-pressed="${this.selectedCategory === 'pairings' ? 'true' : 'false'}" aria-label="View curated signature font pairings" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; flex-shrink: 0; border-color: var(--brand-primary); color: var(--brand-primary);">
               <span>${icon('layers', { size: 13 })}</span>
               <span>Signature Pairings (6)</span>
             </button>
@@ -109,7 +109,7 @@ export class FontPickerModal {
             <span>Active ${this.currentTarget === 'author' ? 'Author' : 'Quote'} Font:</span>
             <strong style="color: var(--brand-primary); font-family: ${FontLoaderService.getFallbackStack(this.activeFont)}; font-size: 0.95rem;" id="lblActiveFontName">${escapeHtml(this.activeFont)}</strong>
           </div>
-          <button class="btn-glass" id="btnCancelFontPicker" style="padding: 0.4rem 1.1rem; font-size: 0.82rem;">Close</button>
+          <button class="btn-glass" id="btnCancelFontPicker" style="padding: 0.4rem 1.1rem; font-size: 0.82rem;" aria-label="Close font picker">Close</button>
         </div>
       </div>
     `;
