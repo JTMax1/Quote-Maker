@@ -225,7 +225,7 @@
   background: var(--brand-primary);
   color: #ffffff;
   border-color: var(--brand-primary);
-  box-shadow: 0 2px 8px var(--brand-primary-glow);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Studio Preview Pane */
@@ -261,22 +261,22 @@
 .studio-ratio-switcher {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
   background: var(--bg-surface);
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   padding: 0.15rem 0.25rem;
   flex-shrink: 0;
 }
 
 .studio-ratio-btn {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-secondary);
   font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-full);
+  font-weight: 500;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
@@ -284,12 +284,15 @@
 
 .studio-ratio-btn:hover {
   color: var(--text-primary);
+  background: var(--bg-surface-hover);
 }
 
 .studio-ratio-btn.active {
-  background: var(--brand-primary);
-  color: #ffffff;
-  box-shadow: 0 2px 6px var(--brand-primary-glow);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  font-weight: 600;
+  border-color: var(--border-glass-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .studio-ratio-short {
@@ -311,8 +314,8 @@
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -354,7 +357,7 @@
   padding: 0.4rem 0.75rem;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-glass);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 600;
@@ -367,7 +370,7 @@
 .palette-preset-chip:hover {
   color: var(--text-primary);
   border-color: var(--border-glass-strong);
-  transform: translateY(-1px);
+  background: var(--bg-surface-hover);
 }
 
 .palette-dots {

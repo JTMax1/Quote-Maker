@@ -1,31 +1,38 @@
 /* ==========================================================================
    QuoteForge Design Tokens & Base Styles
-   Modern Dark/Light Hybrid Aesthetic with Curated Gradients & Glassmorphism
+   Professional Studio Workbench Aesthetic: High-Density, Neutral & Precise
    ========================================================================== */
 
 :root {
-  /* Core Brand Colors */
-  --brand-primary: #6366f1;
-  --brand-primary-hover: #4f46e5;
-  --brand-primary-glow: rgba(99, 102, 241, 0.35);
-  --brand-accent: #06b6d4;
-  --brand-accent-glow: rgba(6, 182, 212, 0.3);
-  --brand-gold: #d4af37;
-  --brand-rose: #f43f5e;
-  --brand-emerald: #10b981;
+  /* Core Studio Brand & Primary Accent */
+  --brand-primary: #4f46e5;
+  --brand-primary-hover: #4338ca;
+  --brand-primary-subtle: rgba(79, 70, 229, 0.12);
+  --brand-primary-border: rgba(79, 70, 229, 0.35);
+  --brand-primary-glow: rgba(79, 70, 229, 0.2);
 
-  /* Neutral Surface Colors (Modern Midnight Theme) */
-  --bg-page: #0b0f17;
-  --bg-surface: #111827;
-  --bg-surface-elevated: #1a2234;
-  --bg-surface-hover: #222d42;
-  --bg-glass: rgba(17, 24, 39, 0.75);
-  --bg-glass-card: rgba(26, 34, 52, 0.6);
+  /* Studio Secondary Accents */
+  --brand-accent: #0284c7;
+  --brand-accent-subtle: rgba(2, 132, 199, 0.12);
+  --brand-gold: #d97706;
+  --brand-rose: #e11d48;
+  --brand-emerald: #059669;
+
+  /* Neutral Studio Surfaces (Precision Matte Charcoal) */
+  --bg-page: #0f1115;
+  --bg-surface: #16181d;
+  --bg-surface-elevated: #1e2027;
+  --bg-surface-hover: #262932;
+  --bg-surface-active: #2f333e;
+  --bg-glass: #16181df2;
+  --bg-glass-card: #1e2027e6;
+
+  /* Studio Hairline Borders */
   --border-glass: rgba(255, 255, 255, 0.08);
-  --border-glass-strong: rgba(255, 255, 255, 0.16);
-  --border-glass-focus: rgba(99, 102, 241, 0.6);
+  --border-glass-strong: rgba(255, 255, 255, 0.14);
+  --border-glass-focus: #4f46e5;
 
-  /* Spacing Scale Tokens (P2-4) */
+  /* Spacing Scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -36,33 +43,38 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  /* Typography Colors - WCAG 2.1 AA Compliant (P2-5) */
-  --text-primary: #f8fafc;       /* 15.8:1 on #0b0f17 */
-  --text-secondary: #cbd5e1;     /* 10.4:1 on #0b0f17, 8.8:1 on #111827 */
-  --text-muted: #94a3b8;         /* 5.6:1 on #0b0f17, 4.8:1 on #111827 - passes AA 4.5:1 */
-  --text-inverse: #0f172a;
+  /* Typography Colors - WCAG 2.1 AA Compliant */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f1115;
 
-  /* Typography Stacks */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Typography Stacks (Clean, High-Readability UI) */
+  --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
-  --font-mono: 'Space Mono', monospace;
-  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+  --font-display: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px -5px var(--brand-primary-glow);
-  --shadow-neon: 0 0 25px -4px rgba(6, 182, 212, 0.45);
+  /* Precision Elevation Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.55), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 16px -2px var(--brand-primary-glow);
+  --shadow-neon: 0 0 16px -2px rgba(2, 132, 199, 0.25);
 
-  /* Radius & Transitions */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  /* Intentional Radius Scale (Structured & Ergonomic) */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Motion & Transitions (Crisp & Tactile) */
+  --transition-fast: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *, *::before, *::after {
@@ -82,31 +94,10 @@ html, body {
   overflow-x: clip;
 }
 
-/* Background Atmosphere Glows */
-body::before {
-  content: '';
-  position: fixed;
-  top: -15vw;
-  left: 20vw;
-  width: 50vw;
-  height: 50vw;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -20vw;
-  right: 10vw;
-  width: 45vw;
-  height: 45vw;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+/* Subtle drafting grid texture on workspace */
+body {
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
 }
 
 a {
@@ -140,8 +131,12 @@ button {
   transition: all var(--transition-fast);
 }
 
+button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -150,7 +145,7 @@ button:disabled {
   display: inline-block;
   vertical-align: -0.18em;
   flex-shrink: 0;
-  stroke-width: 2px;
+  stroke-width: 1.85px;
   stroke: currentColor;
 }
 
@@ -158,28 +153,23 @@ button .lucide-icon {
   vertical-align: -0.15em;
 }
 
-button:hover .lucide-icon {
-  transform: scale(1.05);
-  transition: transform var(--transition-fast);
-}
-
-/* Custom Scrollbar */
+/* Custom Studio Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-page);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-surface-elevated);
-  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* Reduced-Motion Accessibility (Phase 3) */
+/* Reduced-Motion Accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -188,9 +178,5 @@ button:hover .lucide-icon {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-  body::before,
-  body::after {
-    display: none !important;
   }
 }

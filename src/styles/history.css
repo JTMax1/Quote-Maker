@@ -19,7 +19,8 @@
 .history-title-wrap h2 {
   font-size: 1.4rem;
   font-weight: 700;
-  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+  font-family: var(--font-sans);
 }
 
 .history-title-wrap p {
@@ -30,7 +31,7 @@
 .history-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .history-card {
@@ -41,12 +42,11 @@
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .history-card:hover {
-  border-color: var(--border-glass-strong);
-  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow-md);
 }
 
@@ -84,17 +84,16 @@
   right: 0.75rem;
   font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-full);
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-xs);
+  background: rgba(0, 0, 0, 0.65);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   z-index: 2;
 }
 
 .history-card-actions {
-  padding: 0.85rem 1.25rem;
+  padding: 0.85rem 1.15rem;
   background: var(--bg-surface-elevated);
   border-top: 1px solid var(--border-glass);
   display: flex;
@@ -104,21 +103,24 @@
 }
 
 .history-action-btn {
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.65rem;
   font-size: 0.78rem;
   font-weight: 600;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   background: var(--bg-surface);
   border: 1px solid var(--border-glass);
   color: var(--text-secondary);
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .history-action-btn:hover {
   color: var(--text-primary);
-  border-color: var(--brand-primary);
+  border-color: var(--border-glass-strong);
+  background: var(--bg-surface-hover);
 }
 
 .history-action-btn.btn-delete:hover {
@@ -147,6 +149,7 @@
 .empty-title {
   font-size: 1.25rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .empty-desc {
