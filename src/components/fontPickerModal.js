@@ -14,9 +14,10 @@ import { escapeHtml } from '../utils/security.js';
 import { icon } from '../utils/icons.js';
 
 export class FontPickerModal {
-  constructor(onSelectFont, onApplyPairing) {
+  constructor(onSelectFont, onApplyPairing, modalId = 'fontPickerModal') {
     this.onSelectFont = onSelectFont;
     this.onApplyPairing = onApplyPairing;
+    this.modalId = modalId;
     this.selectedCategory = 'all'; // 'all' | 'editorial' | 'sans' | 'serif' | 'handwriting' | 'mono' | 'pairings'
     this.searchQuery = '';
     this.currentTarget = 'quote'; // 'quote' | 'author'
@@ -31,12 +32,12 @@ export class FontPickerModal {
   }
 
   render() {
-    const existing = document.getElementById('fontPickerModal');
-    if (existing) existing.remove();
+    const existing = document.getElementById(this.modalId);
+    if (existing && existing !== this.modalEl) existing.remove();
 
     this.modalEl = document.createElement('div');
     this.modalEl.className = 'modal-backdrop';
-    this.modalEl.id = 'fontPickerModal';
+    this.modalEl.id = this.modalId;
     this.modalEl.setAttribute('role', 'dialog');
     this.modalEl.setAttribute('aria-modal', 'true');
     this.modalEl.setAttribute('aria-label', 'Google Fonts Typography Library');
@@ -429,6 +430,9 @@ export class FontPickerModal {
 
     this.renderFontCards();
     this.previouslyFocusedEl = document.activeElement;
+    if (!document.body.contains(this.modalEl)) {
+      document.body.appendChild(this.modalEl);
+    }
     this.modalEl.classList.add('open');
 
     // Transfer keyboard focus inside modal

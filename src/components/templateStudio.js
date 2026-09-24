@@ -76,7 +76,8 @@ export class TemplateStudio {
         this.updateTypographyUI();
         this.updateMockup();
         Toast.show(`Applied "${pairing.name}" font pairing!`, 'success');
-      }
+      },
+      'studioFontPickerModal'
     );
 
     // Auto-load brand logo from IndexedDB if saved previously

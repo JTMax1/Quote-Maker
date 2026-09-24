@@ -102,7 +102,8 @@ export class Editor {
         this.updateTypographyUI();
         this.scheduleRender();
         Toast.show(`Applied "${pairing.name}" font pairing!`, 'success');
-      }
+      },
+      'editorFontPickerModal'
     );
 
     // Load saved brand logo from IndexedDB

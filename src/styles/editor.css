@@ -221,19 +221,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(11, 15, 23, 0.78);
+  background: var(--bg-glass-card);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--border-glass-strong);
   color: var(--text-primary);
   font-size: 0.72rem;
   font-weight: 600;
   padding: 0.3rem 0.65rem;
   border-radius: var(--radius-full);
   pointer-events: none;
-  opacity: 0.82;
+  opacity: 0.88;
   transition: all var(--transition-fast);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-sm);
 }
 
 .canvas-frame:hover .canvas-expand-hint,
@@ -1608,11 +1608,11 @@ input:checked + .slider:before {
     position: sticky;
     top: var(--header-height, 98px);
     z-index: 35;
-    background: rgba(11, 15, 23, 0.98);
+    background: var(--bg-surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-glass-strong);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+    box-shadow: var(--shadow-md);
     padding: 0.4rem 0.75rem 0.55rem 0.75rem;
     display: flex;
     flex-direction: column;
@@ -1748,7 +1748,7 @@ input:checked + .slider:before {
   left: 0;
   right: 0;
   height: 62px;
-  background: rgba(11, 15, 23, 0.94);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-glass-strong);
@@ -1788,7 +1788,7 @@ input:checked + .slider:before {
 .rail-drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--modal-backdrop);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 94;
@@ -1811,7 +1811,7 @@ input:checked + .slider:before {
   z-index: 95;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-xl);
   animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1819,7 +1819,7 @@ input:checked + .slider:before {
   width: 40px;
   height: 4px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--border-glass-strong);
   margin: 0.6rem auto 0 auto;
 }
 
@@ -1857,8 +1857,8 @@ input:checked + .slider:before {
   right: 1rem !important;
   z-index: 9999 !important;
   pointer-events: auto !important;
-  background: rgba(15, 23, 42, 0.96);
-  border: 2px solid var(--brand-primary);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--brand-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   backdrop-filter: blur(20px);
