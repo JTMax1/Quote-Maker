@@ -335,7 +335,7 @@ export class Editor {
                 <span aria-hidden="true">${icon('layout', { size: 15 })}</span>
                 <span>Canvas Layout</span>
               </span>
-              <span class="tab-badge" style="background: var(--brand-primary); font-size: 0.72rem; font-weight: 700;">${LAYOUT_STYLES.length} Layouts</span>
+              <span class="tab-badge">${LAYOUT_STYLES.length} Layouts</span>
             </div>
             <div class="layout-selection-strip">
               <div class="layout-strip-info">

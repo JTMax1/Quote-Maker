@@ -65,7 +65,7 @@ export class AuthorImageModal {
           <button class="tab-btn ${this.activeTab === 'placements' ? 'active' : ''}" id="tabBtnPlacements" role="tab" aria-selected="${this.activeTab === 'placements'}" aria-label="Portrait Placements (${PORTRAIT_PLACEMENTS.length} options)" style="font-size: 0.84rem; padding: 0.4rem 1rem;">
             <span>${icon('layout', { size: 14 })}</span>
             <span>Placements</span>
-            <span class="tab-badge" id="placementsBadgeCount" style="background: var(--brand-primary); font-size: 0.68rem; margin-left: 0.25rem;">${PORTRAIT_PLACEMENTS.length}</span>
+            <span class="tab-badge" id="placementsBadgeCount">${PORTRAIT_PLACEMENTS.length}</span>
           </button>
         </div>
 
@@ -136,7 +136,7 @@ export class AuthorImageModal {
                   <span style="font-size: 0.88rem; color: var(--brand-primary); font-weight: 700;" id="lblCurrentPlacementName">${this.selectedPlacement}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <span class="tab-badge" id="lblPlacementTypeBadge" style="background: rgba(99,102,241,0.2); color: var(--brand-primary); border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 0.2rem 0.6rem;">cutout</span>
+                  <span class="tab-badge" id="lblPlacementTypeBadge">cutout</span>
                   <span style="font-size: 0.75rem; color: var(--text-muted);">Click any option to preview</span>
                 </div>
               </div>

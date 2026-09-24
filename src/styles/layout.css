@@ -136,15 +136,40 @@
 
 .tab-badge {
   font-size: 0.68rem;
-  padding: 0.1rem 0.4rem;
+  font-weight: 600;
+  padding: 0.12rem 0.45rem;
   border-radius: var(--radius-xs);
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-secondary);
+  background: var(--brand-primary-subtle);
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tab-btn .tab-badge {
+  margin-left: 0.35rem;
+}
+
+.tab-btn:hover .tab-badge {
+  border-color: var(--brand-primary);
 }
 
 .tab-btn.active .tab-badge {
   background: var(--brand-primary);
   color: #ffffff;
+  border-color: var(--brand-primary);
+}
+
+.tab-badge.badge-neutral {
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border-color: var(--border-glass-strong);
 }
 
 /* Header Actions */

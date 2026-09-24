@@ -164,7 +164,7 @@ export class FontPickerModal {
               <span style="font-weight: 700; font-size: 0.95rem; color: var(--brand-primary);">${escapeHtml(p.name)}</span>
               <span style="font-size: 0.72rem; color: var(--text-muted);">(${escapeHtml(p.quoteFont)} + ${escapeHtml(p.authorFont)})</span>
             </div>
-            <span class="tab-badge" style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.18); color: var(--brand-primary); flex-shrink: 0;">PAIRING</span>
+            <span class="tab-badge">PAIRING</span>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem; background: var(--bg-surface); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
@@ -246,7 +246,7 @@ export class FontPickerModal {
                   style="font-family: ${fallbackStack}; font-weight: ${titleWeight}; font-size: 1.1rem; color: ${isSelected ? 'var(--brand-primary)' : 'var(--text-primary)'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.01em;">
               ${escapeHtml(f.family)}
             </span>
-            <span class="tab-badge" style="font-size: 0.65rem; text-transform: uppercase; padding: 0.15rem 0.45rem; flex-shrink: 0;">${escapeHtml(f.category)}</span>
+            <span class="tab-badge" style="text-transform: uppercase;">${escapeHtml(f.category)}</span>
           </div>
           
           <div class="font-preview-specimen" 
