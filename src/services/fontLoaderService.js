@@ -53,7 +53,8 @@ export const CURATED_FONTS = [
   { family: 'Castoro', category: 'serif', weights: [400], sample: 'Academic authority & discipline' },
 
   // --- Handwriting & Signature ---
-  { family: 'Caveat', category: 'handwriting', weights: [600, 700], sample: 'Casual handwritten spontaneity' },
+  { family: 'Caveat', category: 'handwriting', weights: [400, 600, 700], sample: 'Casual handwritten spontaneity' },
+  { family: 'Brush Script MT', category: 'handwriting', weights: [400], sample: 'Classic calligraphic cursive flourish' },
   { family: 'Dancing Script', category: 'handwriting', weights: [600, 700], sample: 'Bouncy lively cursive rhythm' },
   { family: 'Pacifico', category: 'handwriting', weights: [400], sample: '1950s American surf nostalgia' },
   { family: 'Great Vibes', category: 'handwriting', weights: [400], sample: 'Formal flowing calligraphy' },
@@ -103,6 +104,13 @@ export const FONT_PAIRINGS = [
     desc: 'Warm handwritten spontaneity anchored by bold sans'
   },
   {
+    id: 'vintage-calligraphy',
+    name: 'Vintage Calligraphy',
+    quoteFont: 'Brush Script MT',
+    authorFont: 'Plus Jakarta Sans',
+    desc: 'Formal mid-century cursive flourish paired with clean modern sans'
+  },
+  {
     id: 'tech-brutalist',
     name: 'Tech Brutalist',
     quoteFont: 'Syne',
@@ -125,17 +133,11 @@ export class FontLoaderService {
     'sans-serif',
     'serif',
     'monospace',
+    'Brush Script MT',
     // Pre-loaded in index.html
+    'Inter',
     'Plus Jakarta Sans',
-    'Caveat',
-    'Cinzel',
-    'Merriweather',
-    'Montserrat',
-    'Outfit',
-    'Playfair Display',
-    'Space Grotesk',
-    'Space Mono',
-    'Syne'
+    'JetBrains Mono'
   ]);
 
   static loadingPromises = new Map();
@@ -160,6 +162,15 @@ export class FontLoaderService {
   static getFallbackStack(family) {
     if (!family) return "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     const cleanFamily = family.trim().replace(/^['"]|['"]$/g, '');
+
+    // Specialized individual typeface overrides
+    if (cleanFamily.toLowerCase() === 'brush script mt') {
+      return "'Brush Script MT', 'Dancing Script', 'Alex Brush', cursive";
+    }
+    if (cleanFamily.toLowerCase() === 'caveat') {
+      return "'Caveat', cursive, sans-serif";
+    }
+
     const meta = CURATED_FONTS.find(f => f.family.toLowerCase() === cleanFamily.toLowerCase());
     const category = meta?.category || 'sans';
 
@@ -187,12 +198,18 @@ export class FontLoaderService {
     if (!family) return true;
     const cleanFamily = family.trim().replace(/^['"]|['"]$/g, '');
 
-    this.ensureCatalogLoaded();
+    // System fonts don't need external Google Font downloads
+    const systemFonts = ['system-ui', '-apple-system', 'sans-serif', 'serif', 'monospace', 'brush script mt', 'georgia', 'times new roman', 'courier new', 'arial'];
+    if (systemFonts.includes(cleanFamily.toLowerCase())) {
+      this.loadedFonts.add(cleanFamily);
+      if (cleanFamily.toLowerCase() === 'brush script mt') {
+        this.loadFont('Dancing Script');
+      }
+      return true;
+    }
 
     if (this.loadedFonts.has(cleanFamily)) {
-      if (document.fonts && document.fonts.check && document.fonts.check(`16px "${cleanFamily}"`)) {
-        return true;
-      }
+      return true;
     }
 
     if (this.loadingPromises.has(cleanFamily)) {

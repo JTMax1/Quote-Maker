@@ -264,8 +264,9 @@ export class FontPickerModal {
       `;
     }).join('');
 
-    // Preload font binaries for displayed cards
+    // Preload and register font stylesheets for displayed cards
     filtered.forEach(f => {
+      FontLoaderService.loadFont(f.family);
       const weight = f.weights.includes(400) ? 400 : f.weights[0];
       if (document.fonts && document.fonts.load) {
         document.fonts.load(`${weight} 16px "${f.family}"`).catch(() => {});

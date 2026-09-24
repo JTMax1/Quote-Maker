@@ -38,7 +38,8 @@ export const FONT_FAMILIES = [
   { id: 'Space Grotesk', label: 'Space Grotesk (Neo-Brutalist)', type: 'sans' },
   { id: 'Space Mono', label: 'Space Mono (Tech Monospace)', type: 'mono' },
   { id: 'Montserrat', label: 'Montserrat (Geometric Sans)', type: 'sans' },
-  { id: 'Caveat', label: 'Caveat (Personal Handwritten)', type: 'script' },
+  { id: 'Caveat', label: 'Caveat (Casual Handwritten)', type: 'script' },
+  { id: 'Brush Script MT', label: 'Brush Script (Cursive Calligraphy)', type: 'script' },
   { id: 'Outfit', label: 'Outfit (Sleek Contemporary)', type: 'sans' },
   { id: 'Merriweather', label: 'Merriweather (Literary Serif)', type: 'serif' }
 ];

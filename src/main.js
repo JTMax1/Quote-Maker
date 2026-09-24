@@ -21,6 +21,7 @@ import { HistoryView } from './components/historyView.js';
 import { CommunityView } from './components/communityView.js';
 import { TemplateStudio } from './components/templateStudio.js';
 import { Toast } from './components/toast.js';
+import { FontLoaderService } from './services/fontLoaderService.js';
 import { icon } from './utils/icons.js';
 import { escapeHtml } from './utils/security.js';
 
@@ -33,6 +34,7 @@ class App {
 
   init() {
     StorageService.initThemeListener();
+    FontLoaderService.preloadPopular();
     this.renderAppShell();
     this.initComponents();
     this.bindGlobalEvents();
