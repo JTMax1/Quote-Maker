@@ -179,7 +179,7 @@ export class FontLoaderService {
       case 'serif':
         return `'${cleanFamily}', Georgia, 'Times New Roman', serif`;
       case 'handwriting':
-        return `'${cleanFamily}', 'Brush Script MT', cursive, sans-serif`;
+        return `'${cleanFamily}', cursive, sans-serif`;
       case 'mono':
         return `'${cleanFamily}', 'Courier New', monospace`;
       case 'sans':
