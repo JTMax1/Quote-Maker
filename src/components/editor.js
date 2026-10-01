@@ -3,7 +3,7 @@
  * Instant quote generation, live reactive preview, 50 layouts, author portraits & cutouts, high-res export.
  */
 
-import { CANVAS_FORMATS, DEFAULT_PRESETS, LAYOUT_STYLES } from '../data/defaultPresets.js';
+import { CANVAS_FORMATS, DEFAULT_PRESETS, LAYOUT_STYLES, CUSTOM_DIMENSION_PRESETS } from '../data/defaultPresets.js';
 import { PRESET_AUTHOR_PORTRAITS } from '../data/authorCutouts.js';
 import { getRandomQuote } from '../data/sampleQuotes.js';
 import { StorageService } from '../services/storageService.js';
@@ -45,6 +45,9 @@ export class Editor {
       date: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       watermark: this.profile.watermarkText || "QuoteForge",
       ratio: this.profile.defaultRatio || "1:1",
+      customWidth: 1200,
+      customHeight: 628,
+      lockAspectRatio: false,
       layoutId: this.activePreset.layoutId || 'cutout-right',
       showAuthor: this.profile.showAuthor ?? true,
       showDate: this.profile.showDate ?? true,
@@ -67,6 +70,13 @@ export class Editor {
     this.activeRailCategory = 'typography';
     this.isExportSheetOpen = false;
 
+    // Multi-Step In-Editor History Stack (Undo / Redo)
+    this.historyStack = [];
+    this.historyIndex = -1;
+    this.maxHistory = 50;
+    this.isRestoringHistory = false;
+    this.historyDebounceTimer = null;
+
     // Sub-modals
     this.authorImageModal = new AuthorImageModal((imageConfig) => {
       this.state.showAuthorImage = imageConfig.showAuthorImage;
@@ -74,6 +84,7 @@ export class Editor {
       this.state.authorImagePlacement = imageConfig.authorImagePlacement;
       this.updateAuthorImageStrip();
       this.scheduleRender();
+      this.recordState('Change Author Photo');
     });
 
     this.layoutPicker = new LayoutPicker((layout) => {
@@ -83,6 +94,7 @@ export class Editor {
         : 'none';
       this.updateLayoutDisplay();
       this.scheduleRender();
+      this.recordState(`Layout: ${layout.label}`);
     });
 
     this.fontPickerModal = new FontPickerModal(
@@ -95,6 +107,7 @@ export class Editor {
         this.updateTypographyUI();
         this.scheduleRender();
         Toast.show(`Applied font: ${family}`, 'success');
+        this.recordState(`Font: ${family}`);
       },
       (pairing) => {
         this.state.styles.fontFamily = pairing.quoteFont;
@@ -102,6 +115,7 @@ export class Editor {
         this.updateTypographyUI();
         this.scheduleRender();
         Toast.show(`Applied "${pairing.name}" font pairing!`, 'success');
+        this.recordState(`Pairing: ${pairing.name}`);
       },
       'editorFontPickerModal'
     );
@@ -117,12 +131,139 @@ export class Editor {
 
     this.renderDebounceTimer = null;
     this.render();
+    this.recordState('Initial Canvas');
   }
 
   loadInitialPreset() {
     const all = StorageService.getAllPresets();
     const found = all.find(p => p.id === this.profile.activePresetId);
     return found || DEFAULT_PRESETS[0];
+  }
+
+  getSerializableState() {
+    return JSON.parse(JSON.stringify({
+      quote: this.state.quote,
+      author: this.state.author,
+      handle: this.state.handle,
+      category: this.state.category,
+      date: this.state.date,
+      watermark: this.state.watermark,
+      ratio: this.state.ratio,
+      customWidth: this.state.customWidth,
+      customHeight: this.state.customHeight,
+      lockAspectRatio: this.state.lockAspectRatio,
+      layoutId: this.state.layoutId,
+      showAuthor: this.state.showAuthor,
+      showDate: this.state.showDate,
+      showCategory: this.state.showCategory,
+      showWatermark: this.state.showWatermark,
+      brandingStyle: this.state.brandingStyle,
+      brandingPosition: this.state.brandingPosition,
+      brandingOpacity: this.state.brandingOpacity,
+      brandingLogo: this.state.brandingLogo,
+      brandingHandle: this.state.brandingHandle,
+      showAuthorImage: this.state.showAuthorImage,
+      authorImage: this.state.authorImage,
+      authorImagePlacement: this.state.authorImagePlacement,
+      styles: { ...this.state.styles }
+    }));
+  }
+
+  recordState(actionName = 'Edit') {
+    if (this.isRestoringHistory) return;
+
+    const currentSerializable = this.getSerializableState();
+
+    if (this.historyIndex >= 0 && this.historyStack[this.historyIndex]) {
+      const topState = this.historyStack[this.historyIndex].state;
+      if (JSON.stringify(topState) === JSON.stringify(currentSerializable)) {
+        return;
+      }
+    }
+
+    if (this.historyIndex < this.historyStack.length - 1) {
+      this.historyStack = this.historyStack.slice(0, this.historyIndex + 1);
+    }
+
+    this.historyStack.push({
+      action: actionName,
+      timestamp: Date.now(),
+      state: currentSerializable
+    });
+
+    if (this.historyStack.length > this.maxHistory) {
+      this.historyStack.shift();
+    }
+    this.historyIndex = this.historyStack.length - 1;
+    this.updateUndoRedoUI();
+  }
+
+  recordStateDebounced(actionName = 'Edit', delay = 450) {
+    if (this.historyDebounceTimer) clearTimeout(this.historyDebounceTimer);
+    this.historyDebounceTimer = setTimeout(() => {
+      this.recordState(actionName);
+    }, delay);
+  }
+
+  undo() {
+    if (this.historyIndex <= 0) {
+      Toast.show('Nothing to undo', 'info', { duration: 1500 });
+      return;
+    }
+    this.historyIndex--;
+    const snapshot = this.historyStack[this.historyIndex];
+    this.restoreSnapshot(snapshot, 'Undo');
+  }
+
+  redo() {
+    if (this.historyIndex >= this.historyStack.length - 1) {
+      Toast.show('Nothing to redo', 'info', { duration: 1500 });
+      return;
+    }
+    this.historyIndex++;
+    const snapshot = this.historyStack[this.historyIndex];
+    this.restoreSnapshot(snapshot, 'Redo');
+  }
+
+  restoreSnapshot(snapshot, direction = 'Undo') {
+    this.isRestoringHistory = true;
+    try {
+      this.state = {
+        ...this.state,
+        ...JSON.parse(JSON.stringify(snapshot.state))
+      };
+      this.syncFormValues();
+      this.updateThemePill();
+      this.updateLayoutDisplay();
+      this.updateAuthorImageStrip();
+      this.updateBrandingUI();
+      this.updateTypographyUI();
+      this.scheduleRender();
+      this.updateUndoRedoUI();
+      Toast.show(`${direction}: ${snapshot.action}`, 'info', { duration: 1400 });
+    } finally {
+      this.isRestoringHistory = false;
+    }
+  }
+
+  updateUndoRedoUI() {
+    const btnUndo = this.containerEl.querySelector('#btnEditorUndo');
+    const btnRedo = this.containerEl.querySelector('#btnEditorRedo');
+
+    const canUndo = this.historyIndex > 0;
+    const canRedo = this.historyIndex < this.historyStack.length - 1;
+
+    if (btnUndo) {
+      btnUndo.disabled = !canUndo;
+      const prevAction = canUndo ? (this.historyStack[this.historyIndex - 1]?.action || 'previous change') : '';
+      btnUndo.title = canUndo ? `Undo: ${prevAction} (Ctrl+Z / ⌘Z)` : 'Nothing to undo (Ctrl+Z / ⌘Z)';
+    }
+
+    if (btnRedo) {
+      btnRedo.disabled = !canRedo;
+      const nextAction = canRedo ? (this.historyStack[this.historyIndex + 1]?.action || 'next change') : '';
+      btnRedo.title = canRedo ? `Redo: ${nextAction} (Ctrl+Y / ⌘⇧Z)` : 'Nothing to redo (Ctrl+Y / ⌘⇧Z)';
+    }
   }
 
   applyPreset(preset, preserveLayout = false) {
@@ -176,6 +317,7 @@ export class Editor {
     this.updateBrandingUI();
     this.updateTypographyUI();
     this.scheduleRender();
+    this.recordState(`Preset: ${preset.name}`);
   }
 
   async loadState(stateObj) {
@@ -215,6 +357,7 @@ export class Editor {
     this.updateBrandingUI();
     this.updateTypographyUI();
     this.scheduleRender();
+    this.recordState('Load Saved Quote');
   }
 
   updateProfile(profile) {
@@ -249,7 +392,7 @@ export class Editor {
       <div class="editor-layout" id="editorLayoutRoot">
         <!-- Canvas Stage Area -->
         <div class="canvas-stage-wrapper ${this.mobileViewMode === 'controls' ? 'hidden-mobile' : ''}" id="canvasStageWrapper">
-          <!-- Canvas Top Utility Bar: Ratio Switcher & Mobile Architecture Switcher -->
+          <!-- Canvas Top Utility Bar: Ratio Switcher & Undo/Redo & Mobile Architecture Switcher -->
           <div class="canvas-top-utility-bar" id="canvasTopUtilityBar">
             <!-- Aspect Ratio Selector -->
             <div class="ratio-switcher" id="ratioSwitcher" role="radiogroup" aria-label="Canvas Aspect Ratio">
@@ -260,6 +403,18 @@ export class Editor {
                   <span class="ratio-label-short">${f.id}</span>
                 </button>
               `).join('')}
+            </div>
+
+            <!-- Multi-Step Undo / Redo Controls -->
+            <div class="undo-redo-btn-group" role="group" aria-label="Editor History Controls">
+              <button type="button" class="compact-util-btn" id="btnEditorUndo" title="Undo (Ctrl+Z / ⌘Z)" aria-label="Undo previous action" ${this.historyIndex > 0 ? '' : 'disabled'}>
+                <span aria-hidden="true">${icon('undo', { size: 12 })}</span>
+                <span>Undo</span>
+              </button>
+              <button type="button" class="compact-util-btn" id="btnEditorRedo" title="Redo (Ctrl+Y / ⌘⇧Z)" aria-label="Redo previous action" ${this.historyIndex < this.historyStack.length - 1 ? '' : 'disabled'}>
+                <span aria-hidden="true">${icon('redo', { size: 12 })}</span>
+                <span>Redo</span>
+              </button>
             </div>
 
             <!-- Mobile Layout Architecture Switcher (Options A, B, C) -->
@@ -283,6 +438,37 @@ export class Editor {
                   <span>Scrolls naturally with docked mini-preview</span>
                 </button>
               </div>
+            </div>
+          </div>
+
+          <!-- Custom Canvas Dimensions Toolbar Drawer -->
+          <div class="custom-dimensions-bar" id="customDimensionsBar" style="${this.state.ratio === 'custom' ? '' : 'display: none;'}">
+            <div class="custom-dim-header">
+              <span class="custom-dim-title">
+                <span aria-hidden="true">${icon('sliders', { size: 13 })}</span>
+                <span>Custom Dimensions</span>
+              </span>
+              <div class="custom-dim-presets">
+                ${CUSTOM_DIMENSION_PRESETS.map(p => `
+                  <button type="button" class="custom-dim-preset-chip" data-w="${p.width}" data-h="${p.height}" title="${p.desc}">
+                    ${p.label} (${p.width}×${p.height})
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+            <div class="custom-dim-inputs-row">
+              <div class="custom-dim-input-group">
+                <label for="inputCustomWidth">W (px)</label>
+                <input type="number" id="inputCustomWidth" min="200" max="6000" step="10" value="${this.state.customWidth || 1200}" aria-label="Custom canvas width in pixels" />
+              </div>
+              <button type="button" class="btn-lock-aspect ${this.state.lockAspectRatio ? 'active' : ''}" id="btnLockAspectRatio" title="${this.state.lockAspectRatio ? 'Aspect ratio locked' : 'Aspect ratio unlocked'}" aria-label="Lock aspect ratio" aria-pressed="${this.state.lockAspectRatio}">
+                <span aria-hidden="true">${icon(this.state.lockAspectRatio ? 'link' : 'unlink', { size: 13 })}</span>
+              </button>
+              <div class="custom-dim-input-group">
+                <label for="inputCustomHeight">H (px)</label>
+                <input type="number" id="inputCustomHeight" min="200" max="6000" step="10" value="${this.state.customHeight || 628}" aria-label="Custom canvas height in pixels" />
+              </div>
+              <span class="custom-dim-ratio-pill" id="lblCustomRatioCalc">${((this.state.customWidth || 1200) / (this.state.customHeight || 628)).toFixed(2)}:1</span>
             </div>
           </div>
 
@@ -752,6 +938,13 @@ export class Editor {
                 </div>
                 <span>Ultra-Compressed</span>
               </button>
+              <button type="button" class="export-format-chip ${this.exportFormat === 'svg' ? 'active' : ''}" data-format="svg" role="radio" aria-checked="${this.exportFormat === 'svg'}">
+                <div class="format-chip-header">
+                  <strong>SVG</strong>
+                  <span class="format-chip-badge">Vector</span>
+                </div>
+                <span>Infinite Scale</span>
+              </button>
             </div>
           </div>
 
@@ -857,6 +1050,10 @@ export class Editor {
     // Ratio Switcher (Synchronized between desktop & mobile compact bar)
     const setRatio = (ratio) => {
       this.state.ratio = ratio;
+      const customBar = this.containerEl.querySelector('#customDimensionsBar');
+      if (customBar) {
+        customBar.style.display = ratio === 'custom' ? 'flex' : 'none';
+      }
       this.containerEl.querySelectorAll('.ratio-chip').forEach(c => {
         const isMatch = c.dataset.ratio === ratio;
         c.classList.toggle('active', isMatch);
@@ -868,6 +1065,7 @@ export class Editor {
         c.setAttribute('aria-checked', isMatch ? 'true' : 'false');
       });
       this.scheduleRender();
+      this.recordState(`Canvas Format: ${ratio}`);
     };
 
     const ratioSwitcher = this.containerEl.querySelector('#ratioSwitcher');
@@ -885,6 +1083,120 @@ export class Editor {
         const btn = e.target.closest('.compact-ratio-btn');
         if (!btn || !btn.dataset.ratio) return;
         setRatio(btn.dataset.ratio);
+      });
+    }
+
+    // History Undo / Redo Toolbar Buttons
+    const btnUndo = this.containerEl.querySelector('#btnEditorUndo');
+    const btnRedo = this.containerEl.querySelector('#btnEditorRedo');
+    if (btnUndo) {
+      btnUndo.addEventListener('click', () => this.undo());
+    }
+    if (btnRedo) {
+      btnRedo.addEventListener('click', () => this.redo());
+    }
+
+    // Global Keyboard Shortcuts for Undo / Redo (Ctrl+Z, Cmd+Z, Ctrl+Y, Cmd+Shift+Z)
+    window.addEventListener('keydown', (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const modKey = isMac ? e.metaKey : e.ctrlKey;
+      if (!modKey || e.altKey) return;
+
+      const activeEl = document.activeElement;
+      const isInput = activeEl && ['INPUT', 'TEXTAREA'].includes(activeEl.tagName);
+
+      if (e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          this.redo();
+        } else {
+          if (!isInput) {
+            e.preventDefault();
+            this.undo();
+          }
+        }
+      } else if (e.key.toLowerCase() === 'y') {
+        if (!isInput) {
+          e.preventDefault();
+          this.redo();
+        }
+      }
+    });
+
+    // Custom Dimensions Toolbar Controls
+    const inputCustomWidth = this.containerEl.querySelector('#inputCustomWidth');
+    const inputCustomHeight = this.containerEl.querySelector('#inputCustomHeight');
+    const btnLockAspect = this.containerEl.querySelector('#btnLockAspectRatio');
+    const lblCustomRatioCalc = this.containerEl.querySelector('#lblCustomRatioCalc');
+
+    const updateRatioPill = () => {
+      const w = Number(this.state.customWidth) || 1200;
+      const h = Number(this.state.customHeight) || 628;
+      if (lblCustomRatioCalc) {
+        lblCustomRatioCalc.textContent = `${(w / h).toFixed(2)}:1`;
+      }
+    };
+
+    if (inputCustomWidth) {
+      inputCustomWidth.addEventListener('input', (e) => {
+        const val = Math.max(200, Math.min(6000, Number(e.target.value) || 1200));
+        const prevW = this.state.customWidth || 1200;
+        this.state.customWidth = val;
+        if (this.state.lockAspectRatio && inputCustomHeight) {
+          const ratio = (this.state.customHeight || 628) / prevW;
+          this.state.customHeight = Math.round(val * ratio);
+          inputCustomHeight.value = this.state.customHeight;
+        }
+        updateRatioPill();
+        this.scheduleRender();
+        this.recordStateDebounced('Custom Width', 500);
+      });
+    }
+
+    if (inputCustomHeight) {
+      inputCustomHeight.addEventListener('input', (e) => {
+        const val = Math.max(200, Math.min(6000, Number(e.target.value) || 628));
+        const prevH = this.state.customHeight || 628;
+        this.state.customHeight = val;
+        if (this.state.lockAspectRatio && inputCustomWidth) {
+          const ratio = (this.state.customWidth || 1200) / prevH;
+          this.state.customWidth = Math.round(val * ratio);
+          inputCustomWidth.value = this.state.customWidth;
+        }
+        updateRatioPill();
+        this.scheduleRender();
+        this.recordStateDebounced('Custom Height', 500);
+      });
+    }
+
+    if (btnLockAspect) {
+      btnLockAspect.addEventListener('click', () => {
+        this.state.lockAspectRatio = !this.state.lockAspectRatio;
+        btnLockAspect.classList.toggle('active', this.state.lockAspectRatio);
+        btnLockAspect.setAttribute('aria-pressed', this.state.lockAspectRatio ? 'true' : 'false');
+        btnLockAspect.innerHTML = `<span aria-hidden="true">${icon(this.state.lockAspectRatio ? 'link' : 'unlink', { size: 13 })}</span>`;
+        btnLockAspect.title = this.state.lockAspectRatio ? 'Aspect ratio locked' : 'Aspect ratio unlocked';
+        Toast.show(this.state.lockAspectRatio ? 'Aspect ratio locked' : 'Aspect ratio unlocked', 'info', { duration: 1500 });
+      });
+    }
+
+    const customBar = this.containerEl.querySelector('#customDimensionsBar');
+    if (customBar) {
+      customBar.addEventListener('click', (e) => {
+        const chip = e.target.closest('.custom-dim-preset-chip');
+        if (!chip) return;
+        const w = Number(chip.dataset.w);
+        const h = Number(chip.dataset.h);
+        if (w && h) {
+          this.state.customWidth = w;
+          this.state.customHeight = h;
+          if (inputCustomWidth) inputCustomWidth.value = w;
+          if (inputCustomHeight) inputCustomHeight.value = h;
+          updateRatioPill();
+          this.scheduleRender();
+          this.recordState(`Preset Dimensions: ${w}×${h}`);
+          Toast.show(`Dimensions set to ${w}×${h}px`, 'success');
+        }
       });
     }
 
@@ -910,6 +1222,7 @@ export class Editor {
       this.state.showAuthorImage = e.target.checked;
       this.updateAuthorImageStrip();
       this.scheduleRender();
+      this.recordState('Toggle Author Photo');
     });
 
     // Quote Input with live char counter
@@ -920,6 +1233,7 @@ export class Editor {
       charCount.textContent = `${e.target.value.length} chars`;
       this.updateTypographyUI();
       this.scheduleRender();
+      this.recordStateDebounced('Edit Quote', 500);
     });
 
     // Inspire Me button
@@ -943,6 +1257,7 @@ export class Editor {
       charCount.textContent = `${this.state.quote.length} chars`;
       this.syncFormValues();
       this.scheduleRender();
+      this.recordState('Inspire Quote');
       Toast.show('Loaded inspiration quote!', 'info');
     });
 
@@ -956,18 +1271,22 @@ export class Editor {
       this.state.author = e.target.value;
       this.updateTypographyUI();
       this.scheduleRender();
+      this.recordStateDebounced('Edit Author', 500);
     });
     handleInput.addEventListener('input', (e) => {
       this.state.handle = e.target.value;
       this.scheduleRender();
+      this.recordStateDebounced('Edit Handle', 500);
     });
     catInput.addEventListener('input', (e) => {
       this.state.category = e.target.value;
       this.scheduleRender();
+      this.recordStateDebounced('Edit Category', 500);
     });
     dateInput.addEventListener('input', (e) => {
       this.state.date = e.target.value;
       this.scheduleRender();
+      this.recordStateDebounced('Edit Date', 500);
     });
 
     // Toggles
@@ -978,14 +1297,17 @@ export class Editor {
     toggleAuthor.addEventListener('change', (e) => {
       this.state.showAuthor = e.target.checked;
       this.scheduleRender();
+      this.recordState('Toggle Author');
     });
     toggleDate.addEventListener('change', (e) => {
       this.state.showDate = e.target.checked;
       this.scheduleRender();
+      this.recordState('Toggle Date');
     });
     toggleCat.addEventListener('change', (e) => {
       this.state.showCategory = e.target.checked;
       this.scheduleRender();
+      this.recordState('Toggle Category');
     });
 
     // Typography & Font Picker Triggers
@@ -1323,13 +1645,15 @@ export class Editor {
           c.classList.toggle('active', isMatch);
           c.setAttribute('aria-checked', isMatch ? 'true' : 'false');
         });
-        if (lblSheetDownload) {
-          lblSheetDownload.textContent = `Download (${fmt.toUpperCase()} 2x)`;
+        if (fmt === 'svg') {
+          if (lblSheetDownload) lblSheetDownload.textContent = 'Download (SVG Vector)';
+          if (lblFormatBadge) lblFormatBadge.textContent = 'SVG Vector';
+          Toast.show('Format set to SVG (Vector)', 'info');
+        } else {
+          if (lblSheetDownload) lblSheetDownload.textContent = `Download (${fmt.toUpperCase()} 2x)`;
+          if (lblFormatBadge) lblFormatBadge.textContent = `${fmt.toUpperCase()} 2x`;
+          Toast.show(`Format set to ${fmt.toUpperCase()}`, 'info');
         }
-        if (lblFormatBadge) {
-          lblFormatBadge.textContent = `${fmt.toUpperCase()} 2x`;
-        }
-        Toast.show(`Format set to ${fmt.toUpperCase()}`, 'info');
       });
     }
 
@@ -1674,9 +1998,33 @@ export class Editor {
       chip.setAttribute('aria-checked', isActive ? 'true' : 'false');
     });
 
+    // Sync custom dimensions drawer
+    const customBar = this.containerEl.querySelector('#customDimensionsBar');
+    if (customBar) {
+      customBar.style.display = this.state.ratio === 'custom' ? 'flex' : 'none';
+    }
+    const inputW = this.containerEl.querySelector('#inputCustomWidth');
+    const inputH = this.containerEl.querySelector('#inputCustomHeight');
+    const btnLock = this.containerEl.querySelector('#btnLockAspectRatio');
+    const lblRatio = this.containerEl.querySelector('#lblCustomRatioCalc');
+
+    if (inputW) inputW.value = this.state.customWidth || 1200;
+    if (inputH) inputH.value = this.state.customHeight || 628;
+    if (btnLock) {
+      btnLock.classList.toggle('active', !!this.state.lockAspectRatio);
+      btnLock.setAttribute('aria-pressed', this.state.lockAspectRatio ? 'true' : 'false');
+      btnLock.innerHTML = `<span aria-hidden="true">${icon(this.state.lockAspectRatio ? 'link' : 'unlink', { size: 13 })}</span>`;
+    }
+    if (lblRatio) {
+      const w = Number(this.state.customWidth) || 1200;
+      const h = Number(this.state.customHeight) || 628;
+      lblRatio.textContent = `${(w / h).toFixed(2)}:1`;
+    }
+
     this.updateAuthorImageStrip();
     this.updateBrandingUI();
     this.updateTypographyUI();
+    this.updateUndoRedoUI();
   }
 
   updateThemePill() {

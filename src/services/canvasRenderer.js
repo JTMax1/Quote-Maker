@@ -76,12 +76,14 @@ export class CanvasRenderer {
       authorImagePlacement = 'auto',
       layoutId = 'classic-centered',
       ratio = "1:1",
+      customWidth = null,
+      customHeight = null,
       styles = {}
     } = data;
 
     const formatInfo = CANVAS_FORMATS.find(f => f.id === ratio) || CANVAS_FORMATS[0];
-    const width = formatInfo.width;
-    const height = formatInfo.height;
+    const width = (ratio === 'custom' && customWidth) ? Math.max(200, Math.min(6000, Number(customWidth))) : formatInfo.width;
+    const height = (ratio === 'custom' && customHeight) ? Math.max(200, Math.min(6000, Number(customHeight))) : formatInfo.height;
 
     const activeLayout = LAYOUT_STYLES.find(l => l.id === layoutId) || LAYOUT_STYLES[0];
     let effectivePlacement = (authorImagePlacement && authorImagePlacement !== 'auto')

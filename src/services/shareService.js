@@ -3,15 +3,35 @@
  */
 
 import { CanvasRenderer } from './canvasRenderer.js';
+import { SvgRenderer } from './svgRenderer.js';
 import { Toast } from '../components/toast.js';
 
 export class ShareService {
   /**
-   * Download rendered quote as PNG, JPG, or WebP
+   * Download rendered quote as PNG, JPG, WebP, or SVG
    */
   static async downloadImage(quoteData, format = 'png', scale = 2) {
     try {
-      const normalizedFormat = format.toLowerCase() === 'jpeg' || format.toLowerCase() === 'jpg' ? 'jpg' : (format.toLowerCase() === 'webp' ? 'webp' : 'png');
+      const lower = (format || 'png').toLowerCase();
+
+      // Handle SVG Vector format
+      if (lower === 'svg') {
+        Toast.show('Generating SVG vector graphic...', 'info');
+        const blob = SvgRenderer.exportSvgBlob(quoteData);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const filename = `quote-${(quoteData.author || 'quoteforge').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}.svg`;
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        Toast.show(`Downloaded ${filename} (SVG Vector)!`, 'success');
+        return;
+      }
+
+      const normalizedFormat = lower === 'jpeg' || lower === 'jpg' ? 'jpg' : (lower === 'webp' ? 'webp' : 'png');
       const mimeType = normalizedFormat === 'webp' ? 'image/webp' : (normalizedFormat === 'jpg' ? 'image/jpeg' : 'image/png');
       const quality = normalizedFormat === 'jpg' ? 0.92 : 0.95;
 

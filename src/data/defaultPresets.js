@@ -80,7 +80,24 @@ export const CANVAS_FORMATS = [
     width: 1920,
     height: 1080,
     icon: 'monitor'
+  },
+  {
+    id: 'custom',
+    label: 'Custom Size',
+    sublabel: 'Custom Width × Height Pixels',
+    aspectRatio: 1200 / 628,
+    width: 1200,
+    height: 628,
+    icon: 'sliders'
   }
+];
+
+export const CUSTOM_DIMENSION_PRESETS = [
+  { label: 'LinkedIn / OG Card', width: 1200, height: 628, desc: '1.91:1 Link Preview' },
+  { label: 'Twitter / X Media', width: 1200, height: 675, desc: '16:9 Timeline Post' },
+  { label: 'Pinterest Pin', width: 1000, height: 1500, desc: '2:3 Vertical Pin' },
+  { label: 'YouTube Banner', width: 2560, height: 1440, desc: '16:9 Channel Art' },
+  { label: 'A4 Print Sheet', width: 2480, height: 3508, desc: 'High-Res 300 DPI' }
 ];
 
 /**

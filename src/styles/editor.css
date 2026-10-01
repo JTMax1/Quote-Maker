@@ -696,8 +696,14 @@
 
 .export-format-chips-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .export-format-chips-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .export-format-chip {
@@ -918,6 +924,189 @@
   border-color: var(--border-glass-strong);
   box-shadow: var(--shadow-sm);
 }
+
+/* Undo / Redo Toolbar Controls */
+.undo-redo-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.3rem;
+  border: 1px solid var(--border-glass);
+  flex-shrink: 0;
+}
+
+.undo-redo-btn-group .compact-util-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all var(--transition-fast);
+}
+
+.undo-redo-btn-group .compact-util-btn:not(:disabled):hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.undo-redo-btn-group .compact-util-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Custom Dimensions Toolbar Drawer */
+.custom-dimensions-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-sm);
+  animation: fadeInDown 0.2s ease;
+  box-sizing: border-box;
+}
+
+.custom-dim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.custom-dim-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-accent);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.custom-dim-presets {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.custom-dim-preset-chip {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 0.22rem 0.6rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.custom-dim-preset-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--brand-primary-border);
+  background: var(--brand-primary-subtle);
+}
+
+.custom-dim-inputs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.custom-dim-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.custom-dim-input-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.custom-dim-input-group input {
+  width: 85px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.84rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+.custom-dim-input-group input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--brand-primary-subtle);
+}
+
+.btn-lock-aspect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-lock-aspect:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.btn-lock-aspect.active {
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  background: var(--brand-primary-subtle);
+}
+
+.custom-dim-ratio-pill {
+  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface-elevated);
+  color: var(--brand-accent);
+  border: 1px solid var(--border-glass);
+  margin-left: auto;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 /* Layout Selection Tool Card (50 Layouts) */
 .layout-selection-strip {
