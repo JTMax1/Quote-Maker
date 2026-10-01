@@ -14,11 +14,31 @@ export const BRANDING_STYLES = [
 ];
 
 export const BRANDING_POSITIONS = [
-  { id: 'bottom-right', label: 'Bottom Right', icon: 'cornerDownRight' },
-  { id: 'bottom-left', label: 'Bottom Left', icon: 'cornerDownLeft' },
-  { id: 'top-right', label: 'Top Right', icon: 'cornerUpRight' },
-  { id: 'top-left', label: 'Top Left', icon: 'cornerUpLeft' },
-  { id: 'footer-center', label: 'Footer Center', icon: 'alignCenter' }
+  { id: 'top-left', label: 'Top Left', short: 'TL', icon: 'cornerUpLeft' },
+  { id: 'top-center', label: 'Top Center', short: 'TC', icon: 'alignCenter' },
+  { id: 'top-right', label: 'Top Right', short: 'TR', icon: 'cornerUpRight' },
+  { id: 'bottom-left', label: 'Bottom Left', short: 'BL', icon: 'cornerDownLeft' },
+  { id: 'bottom-center', label: 'Bottom Center', short: 'BC', icon: 'alignCenter' },
+  { id: 'bottom-right', label: 'Bottom Right', short: 'BR', icon: 'cornerDownRight' }
+];
+
+export const BRANDING_SIZES = [
+  { id: 'xs', label: 'XS', scale: 0.65 },
+  { id: 's', label: 'S', scale: 0.8 },
+  { id: 'm', label: 'M', scale: 1.0 },
+  { id: 'l', label: 'L', scale: 1.25 },
+  { id: 'xl', label: 'XL', scale: 1.55 },
+  { id: 'xxl', label: '2XL', scale: 1.9 },
+  { id: 'xxxl', label: '3XL', scale: 2.3 }
+];
+
+export const CANVAS_PLACEMENTS = [
+  { id: 'top-left', label: 'Top Left', short: 'TL' },
+  { id: 'top-center', label: 'Top Center', short: 'TC' },
+  { id: 'top-right', label: 'Top Right', short: 'TR' },
+  { id: 'bottom-left', label: 'Bottom Left', short: 'BL' },
+  { id: 'bottom-center', label: 'Bottom Center', short: 'BC' },
+  { id: 'bottom-right', label: 'Bottom Right', short: 'BR' }
 ];
 
 export class BrandingService {

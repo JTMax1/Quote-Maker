@@ -13,7 +13,7 @@ import confetti from 'canvas-confetti';
 import { icon } from '../utils/icons.js';
 import { FontLoaderService } from '../services/fontLoaderService.js';
 import { FontPickerModal } from './fontPickerModal.js';
-import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS } from '../services/brandingService.js';
+import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS, BRANDING_SIZES, CANVAS_PLACEMENTS } from '../services/brandingService.js';
 import { escapeHtml } from '../utils/security.js';
 import { CanvasRenderer } from '../services/canvasRenderer.js';
 
@@ -45,6 +45,9 @@ export class TemplateStudio {
       abstractPattern: 'orbital-rings',
       layoutId: 'classic-centered',
       portraitPlacement: 'cutout-right',
+      authorPlacement: 'auto',
+      datePlacement: 'top-right',
+      categoryPlacement: 'top-left',
       gradient: null,
       badgeStyle: 'neon-pill',
       letterSpacing: '0.02em',
@@ -54,6 +57,7 @@ export class TemplateStudio {
       brandingHandle: '@quoteforge',
       brandingStyle: 'badge',
       brandingPosition: 'bottom-right',
+      brandingSize: 'm',
       brandingOpacity: 0.85,
       brandingLogo: null
     };
@@ -344,6 +348,37 @@ export class TemplateStudio {
                 </select>
               </div>
             </div>
+
+            <!-- Placement Micro-Rows for Template Defaults -->
+            <div style="margin-top: 0.65rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <div class="studio-pos-row">
+                <span class="studio-pos-lbl">Author Placement</span>
+                <div class="pos-segmented-bar" id="studioAuthorPosSelector" role="radiogroup" aria-label="Default Author Placement">
+                  <button type="button" class="pos-chip ${(!this.template.authorPlacement || this.template.authorPlacement === 'auto') ? 'active' : ''}" data-studio-author-pos="auto" title="Auto (Inline below quote)">Auto</button>
+                  ${CANVAS_PLACEMENTS.map(p => `
+                    <button type="button" class="pos-chip ${this.template.authorPlacement === p.id ? 'active' : ''}" data-studio-author-pos="${p.id}" title="${p.label}">${p.short}</button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="studio-pos-row">
+                <span class="studio-pos-lbl">Date Placement</span>
+                <div class="pos-segmented-bar" id="studioDatePosSelector" role="radiogroup" aria-label="Default Date Placement">
+                  ${CANVAS_PLACEMENTS.map(p => `
+                    <button type="button" class="pos-chip ${(this.template.datePlacement || 'top-right') === p.id ? 'active' : ''}" data-studio-date-pos="${p.id}" title="${p.label}">${p.short}</button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="studio-pos-row">
+                <span class="studio-pos-lbl">Category Placement</span>
+                <div class="pos-segmented-bar" id="studioCategoryPosSelector" role="radiogroup" aria-label="Default Category Placement">
+                  ${CANVAS_PLACEMENTS.map(p => `
+                    <button type="button" class="pos-chip ${(this.template.categoryPlacement || 'top-left') === p.id ? 'active' : ''}" data-studio-cat-pos="${p.id}" title="${p.label}">${p.short}</button>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Frame & Border Style -->
@@ -428,13 +463,31 @@ export class TemplateStudio {
                 </div>
               </div>
 
-              <!-- Canvas Position Selector -->
+              <!-- Canvas Position Selector (6 Placements including Top Center) -->
               <div>
-                <label class="form-label" style="margin-bottom: 0.35rem; display: block;">Canvas Placement</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <label class="form-label" style="margin: 0;">Canvas Placement</label>
+                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand-primary); text-transform: uppercase;">${(BRANDING_POSITIONS.find(p => p.id === this.template.brandingPosition) || {}).label || 'Bottom Right'}</span>
+                </div>
                 <div class="branding-pos-selector" id="studioBrandingPosSelector" role="radiogroup" aria-label="Branding Placement on Canvas">
                   ${BRANDING_POSITIONS.map(p => `
-                    <button type="button" class="branding-pos-btn ${this.template.brandingPosition === p.id ? 'active' : ''}" data-pos="${p.id}" role="radio" aria-checked="${this.template.brandingPosition === p.id}">
+                    <button type="button" class="branding-pos-btn ${this.template.brandingPosition === p.id ? 'active' : ''}" data-pos="${p.id}" role="radio" aria-checked="${this.template.brandingPosition === p.id}" title="${p.label}">
                       <span>${p.label}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Branding Size Scale (xs to xxxl) -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <label class="form-label" style="margin: 0;">Branding Size Scale</label>
+                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand-primary); text-transform: uppercase;" id="lblStudioBrandingSize">${(this.template.brandingSize || 'm').toUpperCase()}</span>
+                </div>
+                <div class="size-segmented-bar" id="studioBrandingSizeSelector" role="radiogroup" aria-label="Branding Suite Size Scale">
+                  ${BRANDING_SIZES.map(s => `
+                    <button type="button" class="size-chip ${(this.template.brandingSize || 'm') === s.id ? 'active' : ''}" data-studio-branding-size="${s.id}" role="radio" aria-checked="${(this.template.brandingSize || 'm') === s.id}" title="Size ${s.label} (${s.scale}x scale)">
+                      ${s.label}
                     </button>
                   `).join('')}
                 </div>
@@ -675,6 +728,37 @@ export class TemplateStudio {
       this.updateMockup();
     });
 
+    // Studio Placement Segmented Controls
+    const studioAuthorPosSelector = this.containerEl.querySelector('#studioAuthorPosSelector');
+    studioAuthorPosSelector?.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-studio-author-pos]');
+      if (!btn) return;
+      studioAuthorPosSelector.querySelectorAll('[data-studio-author-pos]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      this.template.authorPlacement = btn.dataset.studioAuthorPos;
+      this.updateMockup();
+    });
+
+    const studioDatePosSelector = this.containerEl.querySelector('#studioDatePosSelector');
+    studioDatePosSelector?.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-studio-date-pos]');
+      if (!btn) return;
+      studioDatePosSelector.querySelectorAll('[data-studio-date-pos]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      this.template.datePlacement = btn.dataset.studioDatePos;
+      this.updateMockup();
+    });
+
+    const studioCategoryPosSelector = this.containerEl.querySelector('#studioCategoryPosSelector');
+    studioCategoryPosSelector?.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-studio-cat-pos]');
+      if (!btn) return;
+      studioCategoryPosSelector.querySelectorAll('[data-studio-cat-pos]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      this.template.categoryPlacement = btn.dataset.studioCatPos;
+      this.updateMockup();
+    });
+
     // Watermark & Branding Suite controls
     const toggleWatermark = this.containerEl.querySelector('#toggleStudioWatermark');
     const brandingBody = this.containerEl.querySelector('#studioBrandingOptionsBody');
@@ -727,6 +811,23 @@ export class TemplateStudio {
       this.updateWatermarkMockup();
     });
 
+    // Branding Size Scale Selector
+    const studioBrandingSizeSelector = this.containerEl.querySelector('#studioBrandingSizeSelector');
+    const lblStudioBrandingSize = this.containerEl.querySelector('#lblStudioBrandingSize');
+    studioBrandingSizeSelector?.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-studio-branding-size]');
+      if (!btn) return;
+      studioBrandingSizeSelector.querySelectorAll('[data-studio-branding-size]').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      this.template.brandingSize = btn.dataset.studioBrandingSize;
+      if (lblStudioBrandingSize) lblStudioBrandingSize.textContent = btn.dataset.studioBrandingSize.toUpperCase();
+      this.updateWatermarkMockup();
+    });
+
     const sliderOpacity = this.containerEl.querySelector('#sliderStudioBrandingOpacity');
     const lblOpacity = this.containerEl.querySelector('#lblStudioBrandingOpacity');
     sliderOpacity?.addEventListener('input', (e) => {
@@ -773,11 +874,15 @@ export class TemplateStudio {
         ...this.template,
         name: this.template.name.trim() || 'Custom Template',
         id: 'custom_' + Date.now(),
+        authorPlacement: this.template.authorPlacement || 'auto',
+        datePlacement: this.template.datePlacement || 'top-right',
+        categoryPlacement: this.template.categoryPlacement || 'top-left',
         showWatermark: this.template.showWatermark,
         watermark: this.template.watermark,
         brandingHandle: this.template.brandingHandle,
         brandingStyle: this.template.brandingStyle,
         brandingPosition: this.template.brandingPosition,
+        brandingSize: this.template.brandingSize || 'm',
         brandingOpacity: this.template.brandingOpacity,
         brandingLogo: this.template.brandingLogo,
         fontWeight: this.template.fontWeight,
@@ -888,6 +993,43 @@ export class TemplateStudio {
       });
     }
 
+    const sizeSelector = this.containerEl.querySelector('#studioBrandingSizeSelector');
+    const lblSize = this.containerEl.querySelector('#lblStudioBrandingSize');
+    if (sizeSelector) {
+      sizeSelector.querySelectorAll('.size-chip').forEach(btn => {
+        const isActive = btn.dataset.studioBrandingSize === (this.template.brandingSize || 'm');
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      });
+    }
+    if (lblSize) {
+      lblSize.textContent = (this.template.brandingSize || 'm').toUpperCase();
+    }
+
+    const authorPosSelector = this.containerEl.querySelector('#studioAuthorPosSelector');
+    if (authorPosSelector) {
+      const activePos = this.template.authorPlacement || 'auto';
+      authorPosSelector.querySelectorAll('[data-studio-author-pos]').forEach(b => {
+        b.classList.toggle('active', b.dataset.studioAuthorPos === activePos);
+      });
+    }
+
+    const datePosSelector = this.containerEl.querySelector('#studioDatePosSelector');
+    if (datePosSelector) {
+      const activePos = this.template.datePlacement || 'top-right';
+      datePosSelector.querySelectorAll('[data-studio-date-pos]').forEach(b => {
+        b.classList.toggle('active', b.dataset.studioDatePos === activePos);
+      });
+    }
+
+    const categoryPosSelector = this.containerEl.querySelector('#studioCategoryPosSelector');
+    if (categoryPosSelector) {
+      const activePos = this.template.categoryPlacement || 'top-left';
+      categoryPosSelector.querySelectorAll('[data-studio-cat-pos]').forEach(b => {
+        b.classList.toggle('active', b.dataset.studioCatPos === activePos);
+      });
+    }
+
     const sliderOpacity = this.containerEl.querySelector('#sliderStudioBrandingOpacity');
     const lblOpacity = this.containerEl.querySelector('#lblStudioBrandingOpacity');
     const opacityVal = Math.round((this.template.brandingOpacity ?? 0.85) * 100);
@@ -948,9 +1090,13 @@ export class TemplateStudio {
       showAuthor: true,
       showDate: true,
       showCategory: true,
+      authorPlacement: this.template.authorPlacement || 'auto',
+      datePlacement: this.template.datePlacement || 'top-right',
+      categoryPlacement: this.template.categoryPlacement || 'top-left',
       showWatermark: !!this.template.showWatermark,
       brandingStyle: this.template.brandingStyle || 'badge',
       brandingPosition: this.template.brandingPosition || 'bottom-right',
+      brandingSize: this.template.brandingSize || 'm',
       brandingOpacity: this.template.brandingOpacity ?? 0.85,
       brandingLogo: this.template.brandingLogo || null,
       brandingHandle: this.template.brandingHandle || '@quoteforge',

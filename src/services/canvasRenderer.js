@@ -66,8 +66,12 @@ export class CanvasRenderer {
       showDate = true,
       showCategory = true,
       showWatermark = true,
+      authorPlacement = 'auto',
+      categoryPlacement = 'top-left',
+      datePlacement = 'top-right',
       brandingStyle = "text",
       brandingPosition = "bottom-right",
+      brandingSize = "m",
       brandingOpacity = 0.55,
       brandingLogo = null,
       brandingHandle = "",
@@ -317,17 +321,26 @@ export class CanvasRenderer {
       this.drawHeader(ctx, {
         showCategory,
         category,
+        categoryPlacement,
         showDate,
         date,
+        datePlacement,
         x: quoteBoxX,
         y: currentY,
         width: quoteBoxW,
         styles,
         activeLayout,
         loadedAuthorImg: isHeaderAvatar ? loadedAuthorImg : null,
-        effectivePlacement
+        effectivePlacement,
+        cardX,
+        cardY,
+        cardW,
+        cardH
       });
-      currentY += headerH;
+      const isTopHeader = (!categoryPlacement || categoryPlacement.startsWith('top')) || (!datePlacement || datePlacement.startsWith('top')) || isHeaderAvatar;
+      if (isTopHeader) {
+        currentY += headerH;
+      }
     } else if (activeLayout.id === 'newspaper-headline') {
       currentY = Math.max(currentY, cardY + 120);
     } else if (activeLayout.id === 'broadsheet-banner') {
@@ -449,8 +462,10 @@ export class CanvasRenderer {
     // 14. Draw Footer (Author, Verified Badge, Watermark, Footer Avatar / Card)
     const footerY = contentY + contentH - footerReservedHeight + (footerReservedHeight * 0.15);
 
+    const effectiveShowAuthorInFooter = showAuthor && (authorPlacement === 'auto' || !authorPlacement);
+
     this.drawFooter(ctx, {
-      showAuthor,
+      showAuthor: effectiveShowAuthorInFooter,
       author,
       handle,
       showWatermark,
@@ -498,12 +513,28 @@ export class CanvasRenderer {
       }
     }
 
-    // 17. Draw Watermark & Branding (Supports Text, Glassmorphic Badge, Custom Logo, and Logo+Text)
+    // 17. Draw Custom Author & Handle Fixed Placement (when authorPlacement !== 'auto')
+    if (showAuthor && author && authorPlacement && authorPlacement !== 'auto') {
+      this.drawAuthorFixed(ctx, {
+        author,
+        handle,
+        placement: authorPlacement,
+        cardX,
+        cardY,
+        cardW,
+        cardH,
+        styles,
+        activeLayout
+      });
+    }
+
+    // 18. Draw Watermark & Branding (Supports Text, Glassmorphic Badge, Custom Logo, and Logo+Text)
     if (showWatermark) {
       this.drawBranding(ctx, {
         watermark,
         brandingStyle,
         brandingPosition,
+        brandingSize,
         brandingOpacity,
         loadedLogoImg,
         handle: brandingHandle || handle,
@@ -513,7 +544,8 @@ export class CanvasRenderer {
         cardX,
         cardY,
         cardW,
-        cardH
+        cardH,
+        activeLayout
       });
     }
 
@@ -1845,12 +1877,78 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  static drawHeader(ctx, { showCategory, category, showDate, date, x, y, width, styles, activeLayout, loadedAuthorImg, effectivePlacement }) {
-    ctx.save();
-    const metaColor = styles.metaColor || '#71717a';
-    const accentColor = styles.accentColor || '#3b82f6';
-    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+  static getElementAnchor(placement, cardX, cardY, cardW, cardH, insetX = 54, insetY = 40) {
+    const cRight = cardX + cardW;
+    const cBottom = cardY + cardH;
 
+    let x = cardX + insetX;
+    let y = cardY + insetY;
+    let align = 'left';
+    let vAlign = 'top';
+
+    switch (placement) {
+      case 'top-left':
+        x = cardX + insetX;
+        y = cardY + insetY;
+        align = 'left';
+        vAlign = 'top';
+        break;
+      case 'top-center':
+        x = cardX + cardW / 2;
+        y = cardY + insetY;
+        align = 'center';
+        vAlign = 'top';
+        break;
+      case 'top-right':
+        x = cRight - insetX;
+        y = cardY + insetY;
+        align = 'right';
+        vAlign = 'top';
+        break;
+      case 'bottom-left':
+        x = cardX + insetX;
+        y = cBottom - insetY;
+        align = 'left';
+        vAlign = 'bottom';
+        break;
+      case 'bottom-center':
+      case 'footer-center':
+        x = cardX + cardW / 2;
+        y = cBottom - insetY;
+        align = 'center';
+        vAlign = 'bottom';
+        break;
+      case 'bottom-right':
+      default:
+        x = cRight - insetX;
+        y = cBottom - insetY;
+        align = 'right';
+        vAlign = 'bottom';
+        break;
+    }
+    return { x, y, align, vAlign };
+  }
+
+  static drawHeader(ctx, {
+    showCategory,
+    category,
+    categoryPlacement = 'top-left',
+    showDate,
+    date,
+    datePlacement = 'top-right',
+    x,
+    y,
+    width,
+    styles,
+    activeLayout,
+    loadedAuthorImg,
+    effectivePlacement,
+    cardX,
+    cardY,
+    cardW,
+    cardH
+  }) {
+    ctx.save();
     let headerOffsetX = 0;
     if (effectivePlacement === 'avatar-header-badge' && loadedAuthorImg) {
       const hAvSize = 38;
@@ -1858,56 +1956,234 @@ export class CanvasRenderer {
       headerOffsetX = hAvSize + 12;
     }
 
-    if (showCategory && category) {
-      const catText = category.toUpperCase();
-      ctx.font = `700 24px "${font}", sans-serif`;
-      ctx.textBaseline = 'middle';
-      const textWidth = ctx.measureText(catText).width;
-      const badgeX = x + headerOffsetX;
+    const cX = typeof cardX === 'number' ? cardX : x;
+    const cY = typeof cardY === 'number' ? cardY : y;
+    const cW = typeof cardW === 'number' ? cardW : width;
+    const cH = typeof cardH === 'number' ? cardH : 600;
 
-      if (styles.badgeStyle === 'neon-pill') {
-        const pillW = textWidth + 36;
-        const pillH = 44;
-        ctx.fillStyle = `${accentColor}22`;
-        ctx.strokeStyle = accentColor;
-        ctx.lineWidth = 2;
-        this.roundRect(ctx, badgeX, y, pillW, pillH, 22, true, true);
-        ctx.fillStyle = accentColor;
-        ctx.fillText(catText, badgeX + 18, y + pillH / 2);
-      } else if (styles.badgeStyle === 'gold-badge') {
-        ctx.fillStyle = accentColor;
-        ctx.fillText(`✦ ${catText} ✦`, badgeX, y + 20);
-      } else if (styles.badgeStyle === 'bold-block') {
-        const pillW = textWidth + 24;
-        const pillH = 38;
-        ctx.fillStyle = accentColor;
-        ctx.fillRect(badgeX, y, pillW, pillH);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(catText, badgeX + 12, y + pillH / 2);
-      } else if (styles.badgeStyle === 'brutalist-badge') {
-        const pillW = textWidth + 24;
-        const pillH = 40;
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(badgeX, y, pillW, pillH);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(catText, badgeX + 12, y + pillH / 2);
-      } else {
-        const pillW = textWidth + 30;
-        const pillH = 42;
-        ctx.fillStyle = `${accentColor}18`;
-        this.roundRect(ctx, badgeX, y, pillW, pillH, 12, true, false);
-        ctx.fillStyle = accentColor;
-        ctx.fillText(catText, badgeX + 15, y + pillH / 2);
-      }
+    let catBox = null;
+    if (showCategory && category) {
+      catBox = this.drawCategoryBadge(ctx, {
+        category,
+        placement: categoryPlacement || 'top-left',
+        cardX: cX,
+        cardY: cY,
+        cardW: cW,
+        cardH: cH,
+        styles,
+        fallbackX: x + headerOffsetX,
+        fallbackY: y
+      });
     }
 
     if (showDate && date) {
-      ctx.font = `500 24px "${font}", sans-serif`;
-      ctx.fillStyle = metaColor;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(date, x + width, y + 21);
+      this.drawDateStamp(ctx, {
+        date,
+        placement: datePlacement || 'top-right',
+        cardX: cX,
+        cardY: cY,
+        cardW: cW,
+        cardH: cH,
+        styles,
+        fallbackX: x + width,
+        fallbackY: y,
+        offsetCategory: (categoryPlacement === datePlacement) ? catBox : null
+      });
     }
+
+    ctx.restore();
+  }
+
+  static drawCategoryBadge(ctx, {
+    category,
+    placement = 'top-left',
+    cardX,
+    cardY,
+    cardW,
+    cardH,
+    styles,
+    fallbackX = null,
+    fallbackY = null
+  }) {
+    if (!category) return null;
+    ctx.save();
+
+    const accentColor = styles.accentColor || '#3b82f6';
+    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+    const catText = category.toUpperCase();
+
+    ctx.font = `700 24px "${font}", sans-serif`;
+    ctx.textBaseline = 'middle';
+    const textWidth = ctx.measureText(catText).width;
+
+    const safeInsetX = Math.max(54, Math.round(cardW * 0.055));
+    const safeInsetY = Math.max(38, Math.round(cardH * 0.042));
+    const anchor = this.getElementAnchor(placement, cardX, cardY, cardW, cardH, safeInsetX, safeInsetY);
+
+    let pillW = textWidth + 30;
+    let pillH = 42;
+    if (styles.badgeStyle === 'neon-pill') {
+      pillW = textWidth + 36;
+      pillH = 44;
+    } else if (styles.badgeStyle === 'bold-block' || styles.badgeStyle === 'brutalist-badge') {
+      pillW = textWidth + 24;
+      pillH = 40;
+    }
+
+    let bX = anchor.x;
+    if (anchor.align === 'right') bX = anchor.x - pillW;
+    else if (anchor.align === 'center') bX = anchor.x - pillW / 2;
+
+    let bY = anchor.y;
+    if (anchor.vAlign === 'bottom') bY = anchor.y - pillH;
+
+    if (styles.badgeStyle === 'neon-pill') {
+      ctx.fillStyle = `${accentColor}22`;
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 2;
+      this.roundRect(ctx, bX, bY, pillW, pillH, 22, true, true);
+      ctx.fillStyle = accentColor;
+      ctx.textAlign = 'left';
+      ctx.fillText(catText, bX + 18, bY + pillH / 2);
+    } else if (styles.badgeStyle === 'gold-badge') {
+      ctx.fillStyle = accentColor;
+      ctx.textAlign = anchor.align;
+      ctx.fillText(`✦ ${catText} ✦`, anchor.x, bY + pillH / 2);
+    } else if (styles.badgeStyle === 'bold-block') {
+      ctx.fillStyle = accentColor;
+      ctx.fillRect(bX, bY, pillW, pillH);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.fillText(catText, bX + 12, bY + pillH / 2);
+    } else if (styles.badgeStyle === 'brutalist-badge') {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(bX, bY, pillW, pillH);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.fillText(catText, bX + 12, bY + pillH / 2);
+    } else {
+      ctx.fillStyle = `${accentColor}18`;
+      this.roundRect(ctx, bX, bY, pillW, pillH, 12, true, false);
+      ctx.fillStyle = accentColor;
+      ctx.textAlign = 'left';
+      ctx.fillText(catText, bX + 15, bY + pillH / 2);
+    }
+
+    ctx.restore();
+    return { x: bX, y: bY, width: pillW, height: pillH };
+  }
+
+  static drawDateStamp(ctx, {
+    date,
+    placement = 'top-right',
+    cardX,
+    cardY,
+    cardW,
+    cardH,
+    styles,
+    offsetCategory = null
+  }) {
+    if (!date) return;
+    ctx.save();
+
+    const metaColor = styles.metaColor || '#71717a';
+    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+    ctx.font = `500 24px "${font}", sans-serif`;
+    ctx.fillStyle = metaColor;
+
+    const safeInsetX = Math.max(54, Math.round(cardW * 0.055));
+    const safeInsetY = Math.max(38, Math.round(cardH * 0.042));
+    const anchor = this.getElementAnchor(placement, cardX, cardY, cardW, cardH, safeInsetX, safeInsetY);
+
+    let dX = anchor.x;
+    let dY = anchor.y;
+    let textAlign = anchor.align;
+
+    if (offsetCategory) {
+      if (placement === 'top-left' || placement === 'bottom-left') {
+        dX = offsetCategory.x + offsetCategory.width + 16;
+        textAlign = 'left';
+        dY = offsetCategory.y + offsetCategory.height / 2;
+      } else if (placement === 'top-right' || placement === 'bottom-right') {
+        dX = offsetCategory.x - 16;
+        textAlign = 'right';
+        dY = offsetCategory.y + offsetCategory.height / 2;
+      } else {
+        dY = offsetCategory.y + offsetCategory.height + 16;
+        textAlign = 'center';
+      }
+    } else {
+      if (anchor.vAlign === 'bottom') {
+        dY = anchor.y - 20;
+      } else {
+        dY = anchor.y + 21;
+      }
+    }
+
+    ctx.textAlign = textAlign;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(date, dX, dY);
+    ctx.restore();
+  }
+
+  static drawAuthorFixed(ctx, {
+    author,
+    handle,
+    placement = 'bottom-left',
+    cardX,
+    cardY,
+    cardW,
+    cardH,
+    styles,
+    activeLayout
+  }) {
+    if (!author) return;
+    ctx.save();
+
+    const textColor = styles.textColor || '#18181b';
+    const accentColor = styles.accentColor || '#3b82f6';
+    const font = styles.authorFontFamily || 'Plus Jakarta Sans';
+    const authorFontStack = FontLoaderService.getFallbackStack(font);
+
+    const safeInsetX = Math.max(54, Math.round(cardW * 0.055));
+    const safeInsetY = Math.max(38, Math.round(cardH * 0.042));
+    const anchor = this.getElementAnchor(placement, cardX, cardY, cardW, cardH, safeInsetX, safeInsetY);
+
+    const authorText = (activeLayout && (activeLayout.id === 'museum-plaque' || activeLayout.id === 'single-line-divider'))
+      ? author.toUpperCase()
+      : `— ${author}`;
+
+    ctx.textAlign = anchor.align;
+
+    if (anchor.vAlign === 'bottom') {
+      const handleOffset = handle ? 28 : 0;
+      const authorY = anchor.y - handleOffset;
+
+      ctx.font = `700 28px ${authorFontStack}`;
+      ctx.fillStyle = textColor;
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(authorText, anchor.x, authorY);
+
+      if (handle) {
+        ctx.font = `500 20px ${authorFontStack}`;
+        ctx.fillStyle = accentColor;
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(handle, anchor.x, anchor.y);
+      }
+    } else {
+      ctx.font = `700 28px ${authorFontStack}`;
+      ctx.fillStyle = textColor;
+      ctx.textBaseline = 'top';
+      ctx.fillText(authorText, anchor.x, anchor.y);
+
+      if (handle) {
+        ctx.font = `500 20px ${authorFontStack}`;
+        ctx.fillStyle = accentColor;
+        ctx.textBaseline = 'top';
+        ctx.fillText(handle, anchor.x, anchor.y + 32);
+      }
+    }
+
     ctx.restore();
   }
 
@@ -2568,6 +2844,7 @@ export class CanvasRenderer {
     watermark = 'QuoteForge',
     brandingStyle = 'text',
     brandingPosition = 'bottom-right',
+    brandingSize = 'm',
     brandingOpacity = 0.55,
     loadedLogoImg = null,
     handle = '',
@@ -2628,18 +2905,25 @@ export class CanvasRenderer {
         align = 'left';
         break;
 
-      case 'top-right':
-        anchorX = cRight - safeInsetX;
-        anchorY = cY + safeInsetY + 14;
-        align = 'right';
-        break;
-
       case 'top-left':
         anchorX = cX + safeInsetX;
         anchorY = cY + safeInsetY + 14;
         align = 'left';
         break;
 
+      case 'top-center':
+        anchorX = cX + cW / 2;
+        anchorY = cY + safeInsetY + 14;
+        align = 'center';
+        break;
+
+      case 'top-right':
+        anchorX = cRight - safeInsetX;
+        anchorY = cY + safeInsetY + 14;
+        align = 'right';
+        break;
+
+      case 'bottom-center':
       case 'footer-center':
         anchorX = cX + cW / 2;
         anchorY = cBottom - safeInsetY;
@@ -2708,11 +2992,23 @@ export class CanvasRenderer {
     // Guarantee minimum opacity of 0.45 so watermark is never washed out
     const opacity = Math.max(0.45, Math.min(1.0, parseFloat(brandingOpacity) || 0.65));
 
+    // Size Scale Multiplier (xs, s, m, l, xl, xxl, xxxl)
+    const sizeScaleMap = {
+      xs: 0.65,
+      s: 0.8,
+      m: 1.0,
+      l: 1.25,
+      xl: 1.55,
+      xxl: 1.9,
+      xxxl: 2.3
+    };
+    const bScale = sizeScaleMap[brandingSize] || 1.0;
+
     ctx.globalAlpha = opacity;
 
     if (brandingStyle === 'logo') {
       // Draw Logo Emblem Only (with elegant seal fallback)
-      const maxDim = 52;
+      const maxDim = Math.round(52 * bScale);
       let lw = maxDim;
       let lh = maxDim;
 
@@ -2736,7 +3032,7 @@ export class CanvasRenderer {
         ctx.arc(lx + maxDim / 2, ly + maxDim / 2, maxDim / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '700 22px sans-serif';
+        ctx.font = `700 ${Math.round(22 * bScale)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('❝', lx + maxDim / 2, ly + maxDim / 2 + 1);
@@ -2744,12 +3040,13 @@ export class CanvasRenderer {
     } else if (brandingStyle === 'badge' || brandingStyle === 'pill-badge') {
       // Glassmorphic Pill Badge: [Emblem/Logo] @handle or Watermark
       const badgeDisplayText = handle || watermark || 'QuoteForge';
-      ctx.font = `600 18px ${brandingFontStack}`;
+      const badgeFontSize = Math.round(18 * bScale);
+      ctx.font = `600 ${badgeFontSize}px ${brandingFontStack}`;
       const textWidth = ctx.measureText(badgeDisplayText).width;
-      const emblemSize = 22;
-      const padX = 14;
-      const badgeH = 38;
-      const badgeW = textWidth + emblemSize + padX * 2 + 8;
+      const emblemSize = Math.round(22 * bScale);
+      const padX = Math.round(14 * bScale);
+      const badgeH = Math.round(38 * bScale);
+      const badgeW = textWidth + emblemSize + padX * 2 + Math.round(8 * bScale);
 
       let bx = anchorX;
       if (align === 'right') bx = anchorX - badgeW;
@@ -2793,7 +3090,7 @@ export class CanvasRenderer {
         ctx.arc(emX + emblemSize / 2, emY + emblemSize / 2, emblemSize / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '700 12px sans-serif';
+        ctx.font = `700 ${Math.round(12 * bScale)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('✦', emX + emblemSize / 2, emY + emblemSize / 2);
@@ -2802,15 +3099,16 @@ export class CanvasRenderer {
       // Badge Text
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.font = `600 18px ${brandingFontStack}`;
+      ctx.font = `600 ${badgeFontSize}px ${brandingFontStack}`;
       ctx.fillStyle = lightSurface ? '#0f172a' : '#f8fafc';
-      ctx.fillText(badgeDisplayText, emX + emblemSize + 8, by + badgeH / 2 + 1);
+      ctx.fillText(badgeDisplayText, emX + emblemSize + Math.round(8 * bScale), by + badgeH / 2 + 1);
     } else if (brandingStyle === 'logo-text') {
       // Logo Emblem + Text side-by-side
-      ctx.font = `700 19px ${brandingFontStack}`;
+      const ltFontSize = Math.round(19 * bScale);
+      ctx.font = `700 ${ltFontSize}px ${brandingFontStack}`;
       const textWidth = ctx.measureText(displayText).width;
-      const logoSize = 30;
-      const gap = 8;
+      const logoSize = Math.round(30 * bScale);
+      const gap = Math.round(8 * bScale);
       const totalW = logoSize + gap + textWidth;
 
       let sx = anchorX;
@@ -2826,7 +3124,7 @@ export class CanvasRenderer {
         ctx.arc(sx + logoSize / 2, sy + logoSize / 2, logoSize / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.font = '700 16px sans-serif';
+        ctx.font = `700 ${Math.round(16 * bScale)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('❝', sx + logoSize / 2, sy + logoSize / 2);
@@ -2834,12 +3132,13 @@ export class CanvasRenderer {
 
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.font = `700 19px ${brandingFontStack}`;
+      ctx.font = `700 ${ltFontSize}px ${brandingFontStack}`;
       ctx.fillStyle = brandTextColor;
       ctx.fillText(displayText, sx + logoSize + gap, sy + logoSize / 2);
     } else {
       // Minimalist Text Watermark (Default)
-      ctx.font = `600 20px ${brandingFontStack}`;
+      const textFontSize = Math.round(20 * bScale);
+      ctx.font = `600 ${textFontSize}px ${brandingFontStack}`;
       ctx.fillStyle = brandMetaColor;
       ctx.textAlign = align;
       ctx.textBaseline = 'bottom';

@@ -16,7 +16,7 @@ import { escapeHtml } from '../utils/security.js';
 import { icon } from '../utils/icons.js';
 import { FontPickerModal } from './fontPickerModal.js';
 import { FontLoaderService } from '../services/fontLoaderService.js';
-import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS } from '../services/brandingService.js';
+import { BrandingService, BRANDING_STYLES, BRANDING_POSITIONS, BRANDING_SIZES, CANVAS_PLACEMENTS } from '../services/brandingService.js';
 import { dbService } from '../services/dbService.js';
 
 export class Editor {
@@ -53,8 +53,12 @@ export class Editor {
       showDate: this.profile.showDate ?? true,
       showCategory: this.profile.showCategory ?? true,
       showWatermark: this.profile.showWatermark ?? true,
+      authorPlacement: 'auto',
+      datePlacement: 'top-right',
+      categoryPlacement: 'top-left',
       brandingStyle: 'text',
       brandingPosition: 'bottom-right',
+      brandingSize: 'm',
       brandingOpacity: 0.55,
       brandingLogo: null,
       brandingHandle: this.profile.handle || '',
@@ -157,8 +161,12 @@ export class Editor {
       showDate: this.state.showDate,
       showCategory: this.state.showCategory,
       showWatermark: this.state.showWatermark,
+      authorPlacement: this.state.authorPlacement,
+      datePlacement: this.state.datePlacement,
+      categoryPlacement: this.state.categoryPlacement,
       brandingStyle: this.state.brandingStyle,
       brandingPosition: this.state.brandingPosition,
+      brandingSize: this.state.brandingSize,
       brandingOpacity: this.state.brandingOpacity,
       brandingLogo: this.state.brandingLogo,
       brandingHandle: this.state.brandingHandle,
@@ -706,39 +714,73 @@ export class Editor {
               </div>
             </div>
 
-            <!-- Toggles List -->
-            <div class="toggles-list" style="margin-top: 0.5rem;">
-              <div class="toggle-item">
-                <div class="toggle-info">
-                  <span class="toggle-label">Author & Handle</span>
-                  <span class="toggle-desc">Show signature name</span>
+            <!-- Toggles List with Micro-Segmented Placement Bars -->
+            <div class="toggles-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Author & Handle Toggle + Placement -->
+              <div class="toggle-item-wrapper">
+                <div class="toggle-item">
+                  <div class="toggle-info">
+                    <span class="toggle-label">Author & Handle</span>
+                    <span class="toggle-desc">Show signature & handle</span>
+                  </div>
+                  <label class="switch" for="toggleAuthor">
+                    <input type="checkbox" id="toggleAuthor" aria-label="Toggle author and handle display" ${this.state.showAuthor ? 'checked' : ''} />
+                    <span class="slider"></span>
+                  </label>
                 </div>
-                <label class="switch" for="toggleAuthor">
-                  <input type="checkbox" id="toggleAuthor" aria-label="Toggle author and handle display" ${this.state.showAuthor ? 'checked' : ''} />
-                  <span class="slider"></span>
-                </label>
+                <div class="pos-picker-inline-row" id="rowAuthorPlacement" style="${this.state.showAuthor ? 'display: flex;' : 'display: none;'}">
+                  <span class="pos-picker-lbl">Placement</span>
+                  <div class="pos-segmented-bar" id="authorPosSelector" role="radiogroup" aria-label="Author Placement on Canvas">
+                    <button type="button" class="pos-chip ${(!this.state.authorPlacement || this.state.authorPlacement === 'auto') ? 'active' : ''}" data-author-pos="auto" title="Auto (Inline below quote)">Auto</button>
+                    ${CANVAS_PLACEMENTS.map(p => `
+                      <button type="button" class="pos-chip ${this.state.authorPlacement === p.id ? 'active' : ''}" data-author-pos="${p.id}" title="${p.label}">${p.short}</button>
+                    `).join('')}
+                  </div>
+                </div>
               </div>
 
-              <div class="toggle-item">
-                <div class="toggle-info">
-                  <span class="toggle-label">Date Stamp</span>
-                  <span class="toggle-desc">Show date in header</span>
+              <!-- Date Stamp Toggle + Placement -->
+              <div class="toggle-item-wrapper">
+                <div class="toggle-item">
+                  <div class="toggle-info">
+                    <span class="toggle-label">Date Stamp</span>
+                    <span class="toggle-desc">Show date on canvas</span>
+                  </div>
+                  <label class="switch" for="toggleDate">
+                    <input type="checkbox" id="toggleDate" aria-label="Toggle date display" ${this.state.showDate ? 'checked' : ''} />
+                    <span class="slider"></span>
+                  </label>
                 </div>
-                <label class="switch" for="toggleDate">
-                  <input type="checkbox" id="toggleDate" aria-label="Toggle date display" ${this.state.showDate ? 'checked' : ''} />
-                  <span class="slider"></span>
-                </label>
+                <div class="pos-picker-inline-row" id="rowDatePlacement" style="${this.state.showDate ? 'display: flex;' : 'display: none;'}">
+                  <span class="pos-picker-lbl">Placement</span>
+                  <div class="pos-segmented-bar" id="datePosSelector" role="radiogroup" aria-label="Date Placement on Canvas">
+                    ${CANVAS_PLACEMENTS.map(p => `
+                      <button type="button" class="pos-chip ${(this.state.datePlacement || 'top-right') === p.id ? 'active' : ''}" data-date-pos="${p.id}" title="${p.label}">${p.short}</button>
+                    `).join('')}
+                  </div>
+                </div>
               </div>
 
-              <div class="toggle-item">
-                <div class="toggle-info">
-                  <span class="toggle-label">Category Badge</span>
-                  <span class="toggle-desc">Show topic badge pill</span>
+              <!-- Category Badge Toggle + Placement -->
+              <div class="toggle-item-wrapper">
+                <div class="toggle-item">
+                  <div class="toggle-info">
+                    <span class="toggle-label">Category Badge</span>
+                    <span class="toggle-desc">Show topic badge pill</span>
+                  </div>
+                  <label class="switch" for="toggleCategory">
+                    <input type="checkbox" id="toggleCategory" aria-label="Toggle category badge display" ${this.state.showCategory ? 'checked' : ''} />
+                    <span class="slider"></span>
+                  </label>
                 </div>
-                <label class="switch" for="toggleCategory">
-                  <input type="checkbox" id="toggleCategory" aria-label="Toggle category badge display" ${this.state.showCategory ? 'checked' : ''} />
-                  <span class="slider"></span>
-                </label>
+                <div class="pos-picker-inline-row" id="rowCategoryPlacement" style="${this.state.showCategory ? 'display: flex;' : 'display: none;'}">
+                  <span class="pos-picker-lbl">Placement</span>
+                  <div class="pos-segmented-bar" id="categoryPosSelector" role="radiogroup" aria-label="Category Placement on Canvas">
+                    ${CANVAS_PLACEMENTS.map(p => `
+                      <button type="button" class="pos-chip ${(this.state.categoryPlacement || 'top-left') === p.id ? 'active' : ''}" data-cat-pos="${p.id}" title="${p.label}">${p.short}</button>
+                    `).join('')}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -809,13 +851,31 @@ export class Editor {
                 </div>
               </div>
 
-              <!-- Canvas Position Selector -->
+              <!-- Canvas Position Selector (6 Placements including Top Center) -->
               <div>
-                <label class="form-label" style="margin-bottom: 0.35rem; display: block;">Canvas Placement</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <label class="form-label" style="margin: 0;">Canvas Placement</label>
+                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand-primary); text-transform: uppercase;">${(BRANDING_POSITIONS.find(p => p.id === this.state.brandingPosition) || {}).label || 'Bottom Right'}</span>
+                </div>
                 <div class="branding-pos-selector" id="brandingPosSelector" role="radiogroup" aria-label="Branding Placement on Canvas">
                   ${BRANDING_POSITIONS.map(p => `
-                    <button class="branding-pos-btn ${this.state.brandingPosition === p.id ? 'active' : ''}" data-pos="${p.id}" role="radio" aria-checked="${this.state.brandingPosition === p.id}">
+                    <button type="button" class="branding-pos-btn ${this.state.brandingPosition === p.id ? 'active' : ''}" data-pos="${p.id}" role="radio" aria-checked="${this.state.brandingPosition === p.id}" title="${p.label}">
                       <span>${p.label}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- Branding Size Scale (xs to xxxl) -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <label class="form-label" style="margin: 0;">Branding Size Scale</label>
+                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--brand-primary); text-transform: uppercase;" id="lblBrandingSize">${(this.state.brandingSize || 'm').toUpperCase()}</span>
+                </div>
+                <div class="size-segmented-bar" id="brandingSizeSelector" role="radiogroup" aria-label="Branding Suite Size Scale">
+                  ${BRANDING_SIZES.map(s => `
+                    <button type="button" class="size-chip ${(this.state.brandingSize || 'm') === s.id ? 'active' : ''}" data-branding-size="${s.id}" role="radio" aria-checked="${(this.state.brandingSize || 'm') === s.id}" title="Size ${s.label} (${s.scale}x scale)">
+                      ${s.label}
                     </button>
                   `).join('')}
                 </div>
@@ -1289,26 +1349,82 @@ export class Editor {
       this.recordStateDebounced('Edit Date', 500);
     });
 
-    // Toggles
+    // Toggles and Micro-Segmented Placement Rows
     const toggleAuthor = this.containerEl.querySelector('#toggleAuthor');
     const toggleDate = this.containerEl.querySelector('#toggleDate');
     const toggleCat = this.containerEl.querySelector('#toggleCategory');
+    const rowAuthorPlacement = this.containerEl.querySelector('#rowAuthorPlacement');
+    const rowDatePlacement = this.containerEl.querySelector('#rowDatePlacement');
+    const rowCategoryPlacement = this.containerEl.querySelector('#rowCategoryPlacement');
 
-    toggleAuthor.addEventListener('change', (e) => {
-      this.state.showAuthor = e.target.checked;
-      this.scheduleRender();
-      this.recordState('Toggle Author');
-    });
-    toggleDate.addEventListener('change', (e) => {
-      this.state.showDate = e.target.checked;
-      this.scheduleRender();
-      this.recordState('Toggle Date');
-    });
-    toggleCat.addEventListener('change', (e) => {
-      this.state.showCategory = e.target.checked;
-      this.scheduleRender();
-      this.recordState('Toggle Category');
-    });
+    if (toggleAuthor) {
+      toggleAuthor.addEventListener('change', (e) => {
+        this.state.showAuthor = e.target.checked;
+        if (rowAuthorPlacement) rowAuthorPlacement.style.display = e.target.checked ? 'flex' : 'none';
+        this.scheduleRender();
+        this.recordState('Toggle Author');
+      });
+    }
+
+    if (toggleDate) {
+      toggleDate.addEventListener('change', (e) => {
+        this.state.showDate = e.target.checked;
+        if (rowDatePlacement) rowDatePlacement.style.display = e.target.checked ? 'flex' : 'none';
+        this.scheduleRender();
+        this.recordState('Toggle Date');
+      });
+    }
+
+    if (toggleCat) {
+      toggleCat.addEventListener('change', (e) => {
+        this.state.showCategory = e.target.checked;
+        if (rowCategoryPlacement) rowCategoryPlacement.style.display = e.target.checked ? 'flex' : 'none';
+        this.scheduleRender();
+        this.recordState('Toggle Category');
+      });
+    }
+
+    // Author Placement Selector
+    const authorPosSelector = this.containerEl.querySelector('#authorPosSelector');
+    if (authorPosSelector) {
+      authorPosSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-author-pos]');
+        if (!btn) return;
+        authorPosSelector.querySelectorAll('[data-author-pos]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.state.authorPlacement = btn.dataset.authorPos;
+        this.scheduleRender();
+        this.recordState(`Author Placement: ${btn.dataset.authorPos}`);
+      });
+    }
+
+    // Date Placement Selector
+    const datePosSelector = this.containerEl.querySelector('#datePosSelector');
+    if (datePosSelector) {
+      datePosSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-date-pos]');
+        if (!btn) return;
+        datePosSelector.querySelectorAll('[data-date-pos]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.state.datePlacement = btn.dataset.datePos;
+        this.scheduleRender();
+        this.recordState(`Date Placement: ${btn.dataset.datePos}`);
+      });
+    }
+
+    // Category Placement Selector
+    const categoryPosSelector = this.containerEl.querySelector('#categoryPosSelector');
+    if (categoryPosSelector) {
+      categoryPosSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-cat-pos]');
+        if (!btn) return;
+        categoryPosSelector.querySelectorAll('[data-cat-pos]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.state.categoryPlacement = btn.dataset.catPos;
+        this.scheduleRender();
+        this.recordState(`Category Placement: ${btn.dataset.catPos}`);
+      });
+    }
 
     // Typography & Font Picker Triggers
     const btnOpenFontQuote = this.containerEl.querySelector('#btnOpenFontPickerQuote');
@@ -1422,6 +1538,27 @@ export class Editor {
         btn.setAttribute('aria-checked', 'true');
         this.state.brandingPosition = btn.dataset.pos;
         this.scheduleRender();
+        this.recordState(`Branding Position: ${btn.dataset.pos}`);
+      });
+    }
+
+    // Branding Size Scale Selector
+    const brandingSizeSelector = this.containerEl.querySelector('#brandingSizeSelector');
+    const lblBrandingSize = this.containerEl.querySelector('#lblBrandingSize');
+    if (brandingSizeSelector) {
+      brandingSizeSelector.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-branding-size]');
+        if (!btn) return;
+        brandingSizeSelector.querySelectorAll('[data-branding-size]').forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-checked', 'true');
+        this.state.brandingSize = btn.dataset.brandingSize;
+        if (lblBrandingSize) lblBrandingSize.textContent = btn.dataset.brandingSize.toUpperCase();
+        this.scheduleRender();
+        this.recordState(`Branding Size: ${btn.dataset.brandingSize}`);
       });
     }
 
@@ -1917,6 +2054,19 @@ export class Editor {
         b.setAttribute('aria-checked', isMatch ? 'true' : 'false');
       });
     }
+
+    const sizeSelector = this.containerEl.querySelector('#brandingSizeSelector');
+    const lblSize = this.containerEl.querySelector('#lblBrandingSize');
+    if (sizeSelector) {
+      sizeSelector.querySelectorAll('.size-chip').forEach(b => {
+        const isMatch = b.dataset.brandingSize === (this.state.brandingSize || 'm');
+        b.classList.toggle('active', isMatch);
+        b.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+      });
+    }
+    if (lblSize) {
+      lblSize.textContent = (this.state.brandingSize || 'm').toUpperCase();
+    }
   }
 
   updateTypographyUI() {
@@ -1990,6 +2140,39 @@ export class Editor {
     if (toggleDate) toggleDate.checked = !!this.state.showDate;
     if (toggleCat) toggleCat.checked = !!this.state.showCategory;
     if (toggleAuthorImage) toggleAuthorImage.checked = !!this.state.showAuthorImage;
+
+    const rowAuthorPlacement = this.containerEl.querySelector('#rowAuthorPlacement');
+    const rowDatePlacement = this.containerEl.querySelector('#rowDatePlacement');
+    const rowCategoryPlacement = this.containerEl.querySelector('#rowCategoryPlacement');
+    if (rowAuthorPlacement) rowAuthorPlacement.style.display = this.state.showAuthor ? 'flex' : 'none';
+    if (rowDatePlacement) rowDatePlacement.style.display = this.state.showDate ? 'flex' : 'none';
+    if (rowCategoryPlacement) rowCategoryPlacement.style.display = this.state.showCategory ? 'flex' : 'none';
+
+    const authorPosSelector = this.containerEl.querySelector('#authorPosSelector');
+    if (authorPosSelector) {
+      const activePos = this.state.authorPlacement || 'auto';
+      authorPosSelector.querySelectorAll('[data-author-pos]').forEach(b => {
+        b.classList.toggle('active', b.dataset.authorPos === activePos);
+      });
+    }
+
+    const datePosSelector = this.containerEl.querySelector('#datePosSelector');
+    if (datePosSelector) {
+      const activePos = this.state.datePlacement || 'top-right';
+      datePosSelector.querySelectorAll('[data-date-pos]').forEach(b => {
+        b.classList.toggle('active', b.dataset.datePos === activePos);
+      });
+    }
+
+    const categoryPosSelector = this.containerEl.querySelector('#categoryPosSelector');
+    if (categoryPosSelector) {
+      const activePos = this.state.categoryPlacement || 'top-left';
+      categoryPosSelector.querySelectorAll('[data-cat-pos]').forEach(b => {
+        b.classList.toggle('active', b.dataset.catPos === activePos);
+      });
+    }
+
+    this.updateBrandingUI();
 
     // Sync active ratio chips
     this.containerEl.querySelectorAll('.ratio-chip').forEach(chip => {

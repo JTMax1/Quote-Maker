@@ -76,8 +76,12 @@ export class SvgRenderer {
       showDate = true,
       showCategory = true,
       showWatermark = true,
+      authorPlacement = 'auto',
+      categoryPlacement = 'top-left',
+      datePlacement = 'top-right',
       brandingStyle = "text",
       brandingPosition = "bottom-right",
+      brandingSize = "m",
       brandingOpacity = 0.55,
       brandingLogo = null,
       showAuthorImage = false,
@@ -212,13 +216,50 @@ export class SvgRenderer {
       `;
     }
 
+    // Anchor helper for SVG coordinates
+    const getSvgAnchor = (placement) => {
+      const safeX = padX + 28;
+      const safeY = padY + 36;
+      const rightX = width - padX - 28;
+      const bottomY = height - padY - 26;
+      const centerX = width / 2;
+
+      switch (placement) {
+        case 'top-left':
+          return { x: safeX, y: safeY, anchor: 'start', vAlign: 'top' };
+        case 'top-center':
+          return { x: centerX, y: safeY, anchor: 'middle', vAlign: 'top' };
+        case 'top-right':
+          return { x: rightX, y: safeY, anchor: 'end', vAlign: 'top' };
+        case 'bottom-left':
+          return { x: safeX, y: bottomY, anchor: 'start', vAlign: 'bottom' };
+        case 'bottom-center':
+        case 'footer-center':
+          return { x: centerX, y: bottomY, anchor: 'middle', vAlign: 'bottom' };
+        case 'bottom-right':
+        default:
+          return { x: rightX, y: bottomY, anchor: 'end', vAlign: 'bottom' };
+      }
+    };
+
+    const sizeScaleMap = {
+      xs: 0.65,
+      s: 0.8,
+      m: 1.0,
+      l: 1.25,
+      xl: 1.55,
+      xxl: 1.9,
+      xxxl: 2.3
+    };
+    const bScale = sizeScaleMap[brandingSize] || 1.0;
+
     // Category Badge
     let categoryElement = '';
     if (showCategory && category) {
-      const badgeY = padY + (cardStyle !== 'none' ? 36 : 20);
+      const catAnchor = getSvgAnchor(categoryPlacement || 'top-left');
       categoryElement = `
-      <g transform="translate(${textX}, ${badgeY})">
-        <text class="meta-text" text-anchor="${textAnchor}" font-size="${metaFontSize}" font-weight="700" letter-spacing="0.1em" fill="${accentColor}" opacity="0.9">
+      <g transform="translate(${catAnchor.x}, ${catAnchor.y})">
+        <text class="meta-text" text-anchor="${catAnchor.anchor}" font-size="${metaFontSize}" font-weight="700" letter-spacing="0.1em" fill="${accentColor}" opacity="0.9">
           ${escapeHtml(category.toUpperCase())}
         </text>
       </g>`;
@@ -237,21 +278,30 @@ export class SvgRenderer {
     // Author & Handle
     let authorElement = '';
     if (showAuthor && author) {
-      const authorY = startY + (lines.length * lineHeight) + Math.round(authorFontSize * 1.5);
       const safeAuthor = escapeHtml(author);
       const safeHandle = handle ? ` <tspan class="meta-text" font-weight="400"> ${escapeHtml(handle)}</tspan>` : '';
-      authorElement = `
-      <text class="author-text" x="${textX}" y="${authorY}" font-size="${authorFontSize}" text-anchor="${textAnchor}">
-        — ${safeAuthor}${safeHandle}
-      </text>`;
+
+      if (authorPlacement && authorPlacement !== 'auto') {
+        const aAnchor = getSvgAnchor(authorPlacement);
+        authorElement = `
+        <text class="author-text" x="${aAnchor.x}" y="${aAnchor.y}" font-size="${authorFontSize}" text-anchor="${aAnchor.anchor}">
+          — ${safeAuthor}${safeHandle}
+        </text>`;
+      } else {
+        const authorY = startY + (lines.length * lineHeight) + Math.round(authorFontSize * 1.5);
+        authorElement = `
+        <text class="author-text" x="${textX}" y="${authorY}" font-size="${authorFontSize}" text-anchor="${textAnchor}">
+          — ${safeAuthor}${safeHandle}
+        </text>`;
+      }
     }
 
     // Date
     let dateElement = '';
     if (showDate && date) {
-      const dateY = height - padY - 24;
+      const dAnchor = getSvgAnchor(datePlacement || 'top-right');
       dateElement = `
-      <text class="meta-text" x="${padX + 24}" y="${dateY}" font-size="${metaFontSize}" text-anchor="start">
+      <text class="meta-text" x="${dAnchor.x}" y="${dAnchor.y}" font-size="${metaFontSize}" text-anchor="${dAnchor.anchor}">
         ${escapeHtml(date)}
       </text>`;
     }
@@ -259,28 +309,11 @@ export class SvgRenderer {
     // Watermark
     let watermarkElement = '';
     if (showWatermark && watermark) {
-      let wmX = width - padX - 24;
-      let wmY = height - padY - 24;
-      let wmAnchor = 'end';
-
-      if (brandingPosition === 'bottom-left') {
-        wmX = padX + 24;
-        wmAnchor = 'start';
-      } else if (brandingPosition === 'top-right') {
-        wmX = width - padX - 24;
-        wmY = padY + 36;
-        wmAnchor = 'end';
-      } else if (brandingPosition === 'top-left') {
-        wmX = padX + 24;
-        wmY = padY + 36;
-        wmAnchor = 'start';
-      } else if (brandingPosition === 'footer-center') {
-        wmX = width / 2;
-        wmAnchor = 'middle';
-      }
+      const wmAnchor = getSvgAnchor(brandingPosition || 'bottom-right');
+      const wmSize = Math.max(10, Math.round(13 * bScale));
 
       watermarkElement = `
-      <text class="watermark-text" x="${wmX}" y="${wmY}" text-anchor="${wmAnchor}">
+      <text class="watermark-text" x="${wmAnchor.x}" y="${wmAnchor.y}" font-size="${wmSize}px" text-anchor="${wmAnchor.anchor}">
         ${escapeHtml(watermark)}
       </text>`;
     }
