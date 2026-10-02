@@ -177,10 +177,93 @@
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   transition: all var(--transition-fast);
+  cursor: pointer;
 }
 
 .btn-apply-theme:hover {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
   color: #ffffff;
+}
+
+/* Preset Toolbar Right Actions */
+.presets-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.preset-io-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass-strong);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.preset-io-btn:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+/* Card Tools Container */
+.preset-card-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.preset-tool-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.preset-tool-btn:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  transform: translateY(-1px);
+}
+
+.preset-tool-btn.danger:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.preset-custom-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--brand-primary);
+  border-radius: var(--radius-full);
+  margin-left: 0.35rem;
+  vertical-align: middle;
 }

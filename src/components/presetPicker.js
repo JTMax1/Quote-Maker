@@ -1,6 +1,7 @@
 /**
  * Preset Template Picker & Catalog
- * Enables switching between dozens of built-in and community-published themes.
+ * Enables switching between dozens of built-in and community-published themes,
+ * with full custom theme CRUD (Edit in Studio, Duplicate, Delete, Import/Export JSON).
  */
 
 import { PRESET_CATEGORIES } from '../data/defaultPresets.js';
@@ -10,9 +11,10 @@ import { escapeHtml, sanitizeStyleValue } from '../utils/security.js';
 import { icon } from '../utils/icons.js';
 
 export class PresetPicker {
-  constructor(containerEl, onSelectPreset) {
+  constructor(containerEl, onSelectPreset, onEditInStudio) {
     this.containerEl = containerEl;
     this.onSelectPreset = onSelectPreset;
+    this.onEditInStudio = onEditInStudio;
     this.selectedCategory = 'all';
     this.searchQuery = '';
     this.activePresetId = null;
@@ -28,7 +30,7 @@ export class PresetPicker {
   render() {
     this.containerEl.innerHTML = `
       <div class="presets-container">
-        <!-- Toolbar: Search & Categories -->
+        <!-- Toolbar: Search, Categories & Import/Export -->
         <div class="presets-toolbar">
           <div class="category-filter-bar" id="presetCategoryBar">
             ${PRESET_CATEGORIES.map(cat => `
@@ -39,12 +41,24 @@ export class PresetPicker {
             `).join('')}
           </div>
 
-          <div style="min-width: 240px; position: relative;">
-            <label for="presetSearchInput" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Search presets</label>
-            <div style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
-              ${icon('search', { size: 15 })}
+          <div class="presets-toolbar-right">
+            <div style="min-width: 220px; position: relative;">
+              <label for="presetSearchInput" class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Search presets</label>
+              <div style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;">
+                ${icon('search', { size: 15 })}
+              </div>
+              <input type="search" class="form-input" id="presetSearchInput" placeholder="Search themes, styles, fonts..." aria-label="Search themes, styles, or fonts" style="width: 100%; border-radius: 9999px; padding-left: 2.3rem;" />
             </div>
-            <input type="search" class="form-input" id="presetSearchInput" placeholder="Search themes, styles, or fonts..." aria-label="Search themes, styles, or fonts" style="width: 100%; border-radius: 9999px; padding-left: 2.3rem;" />
+
+            <input type="file" id="inputImportPresetJson" accept=".json,application/json" style="display: none;" aria-label="Import Presets JSON" />
+            <button type="button" class="preset-io-btn" id="btnImportPresets" title="Import Custom Themes from JSON file">
+              <span>${icon('upload', { size: 13 })}</span>
+              <span>Import</span>
+            </button>
+            <button type="button" class="preset-io-btn" id="btnExportPresets" title="Export all Custom Themes to JSON file">
+              <span>${icon('download', { size: 13 })}</span>
+              <span>Export</span>
+            </button>
           </div>
         </div>
 
@@ -62,8 +76,9 @@ export class PresetPicker {
   bindEvents() {
     // Category click
     const catBar = this.containerEl.querySelector('#presetCategoryBar');
-    catBar.addEventListener('click', (e) => {
+    catBar?.addEventListener('click', (e) => {
       const btn = e.target.closest('.category-chip');
+      if (!btn) return;
       catBar.querySelectorAll('.category-chip').forEach(b => {
         b.classList.remove('active');
         b.setAttribute('aria-pressed', 'false');
@@ -76,14 +91,59 @@ export class PresetPicker {
 
     // Search input
     const searchInput = this.containerEl.querySelector('#presetSearchInput');
-    searchInput.addEventListener('input', (e) => {
+    searchInput?.addEventListener('input', (e) => {
       this.searchQuery = e.target.value.toLowerCase().trim();
       this.renderCards();
+    });
+
+    // Import Themes JSON
+    const btnImport = this.containerEl.querySelector('#btnImportPresets');
+    const inputImport = this.containerEl.querySelector('#inputImportPresetJson');
+    btnImport?.addEventListener('click', () => inputImport?.click());
+    inputImport?.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const res = StorageService.importTemplatesFromJSON(text);
+        if (res.success) {
+          Toast.show(`Imported ${res.count} custom themes successfully!`, 'success');
+          this.renderCards();
+        } else {
+          Toast.show(`Failed to import: ${res.error}`, 'error');
+        }
+      } catch (err) {
+        Toast.show('Error reading JSON file', 'error');
+      } finally {
+        inputImport.value = '';
+      }
+    });
+
+    // Export Themes JSON
+    const btnExport = this.containerEl.querySelector('#btnExportPresets');
+    btnExport?.addEventListener('click', () => {
+      const json = StorageService.exportTemplatesAsJSON();
+      const customTemplates = StorageService.getCustomTemplates();
+      if (!customTemplates.length) {
+        Toast.show('No custom templates to export yet. Create one in Template Studio!', 'info');
+        return;
+      }
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `quoteforge-custom-themes-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      Toast.show(`Exported ${customTemplates.length} custom themes!`, 'success');
     });
   }
 
   renderCards() {
     const grid = this.containerEl.querySelector('#presetsCardsGrid');
+    if (!grid) return;
     const allPresets = StorageService.getAllPresets();
 
     let filtered = allPresets;
@@ -164,6 +224,27 @@ export class PresetPicker {
         <div class="preset-author-sample" style="color: ${accent}">— Leonardo da Vinci</div>
       `;
 
+      // Card action tools (Edit, Duplicate, Delete for Custom; Fork for Built-in)
+      const toolsHtml = preset.isCustom ? `
+        <div class="preset-card-tools">
+          <button type="button" class="preset-tool-btn btn-preset-edit" data-id="${safeId}" title="Edit in Template Studio" aria-label="Edit in Template Studio">
+            ${icon('edit', { size: 13 })}
+          </button>
+          <button type="button" class="preset-tool-btn btn-preset-copy" data-id="${safeId}" title="Duplicate this theme" aria-label="Duplicate theme">
+            ${icon('copy', { size: 13 })}
+          </button>
+          <button type="button" class="preset-tool-btn danger btn-preset-delete" data-id="${safeId}" title="Delete custom theme" aria-label="Delete custom theme">
+            ${icon('trash', { size: 13 })}
+          </button>
+        </div>
+      ` : `
+        <div class="preset-card-tools">
+          <button type="button" class="preset-tool-btn btn-preset-fork" data-id="${safeId}" title="Customize in Template Studio" aria-label="Customize in Template Studio">
+            ${icon('sparkles', { size: 13 })}
+          </button>
+        </div>
+      `;
+
       return `
         <div class="preset-card ${isActive ? 'active-theme' : ''}" data-id="${safeId}">
           <div class="preset-preview-box" style="background: ${bgStyle}; color: ${color}; font-family: '${font}', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px; box-sizing: border-box;">
@@ -171,30 +252,85 @@ export class PresetPicker {
           </div>
           <div class="preset-card-footer">
             <div class="preset-name-wrap">
-              <span class="preset-card-title">${safeName} ${preset.isCustom ? '★' : ''}</span>
+              <span class="preset-card-title">
+                ${safeName}
+                ${preset.isCustom ? '<span class="preset-custom-badge">Custom</span>' : ''}
+              </span>
               <span class="preset-card-font">${font} • ${safeCategory}</span>
             </div>
-            <button class="btn-apply-theme" data-id="${safeId}" aria-label="Select ${safeName} theme">
-              ${isActive ? 'Active' : 'Select'}
-            </button>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              ${toolsHtml}
+              <button type="button" class="btn-apply-theme" data-id="${safeId}" aria-label="Select ${safeName} theme">
+                ${isActive ? 'Active' : 'Select'}
+              </button>
+            </div>
           </div>
         </div>
       `;
     }).join('');
 
-    // Attach click events once per card (prevents double-firing from child button bubbling)
+    // Attach card clicks & stop propagation for action buttons
     grid.querySelectorAll('.preset-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = card.dataset.id;
-        if (id) {
-          const selected = allPresets.find(p => p.id === id);
-          if (selected) {
-            this.activePresetId = id;
+      const id = card.dataset.id;
+      const selected = allPresets.find(p => p.id === id);
+      if (!selected) return;
+
+      // Select Card click
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.preset-tool-btn')) return;
+        this.activePresetId = id;
+        this.renderCards();
+        if (this.onSelectPreset) {
+          this.onSelectPreset(selected);
+        }
+        Toast.show(`Applied "${selected.name}" style!`, 'success');
+      });
+
+      // Edit in Studio
+      const btnEdit = card.querySelector('.btn-preset-edit');
+      btnEdit?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.onEditInStudio) {
+          this.onEditInStudio(selected);
+        }
+      });
+
+      // Fork / Customize Built-in in Studio
+      const btnFork = card.querySelector('.btn-preset-fork');
+      btnFork?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.onEditInStudio) {
+          const forked = {
+            ...selected,
+            id: null,
+            name: `${selected.name} (Custom)`,
+            isCustom: true
+          };
+          this.onEditInStudio(forked);
+          Toast.show(`Opened "${selected.name}" in Template Studio!`, 'info');
+        }
+      });
+
+      // Duplicate Theme
+      const btnCopy = card.querySelector('.btn-preset-copy');
+      btnCopy?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const clone = StorageService.duplicateCustomTemplate(id);
+        if (clone) {
+          Toast.show(`Duplicated "${clone.name}"!`, 'success');
+          this.renderCards();
+        }
+      });
+
+      // Delete Theme
+      const btnDelete = card.querySelector('.btn-preset-delete');
+      btnDelete?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm(`Are you sure you want to delete the "${selected.name}" theme?`)) {
+          const ok = StorageService.deleteCustomTemplate(id);
+          if (ok) {
+            Toast.show(`Deleted "${selected.name}" theme`, 'info');
             this.renderCards();
-            if (this.onSelectPreset) {
-              this.onSelectPreset(selected);
-            }
-            Toast.show(`Applied "${selected.name}" style!`, 'success');
           }
         }
       });

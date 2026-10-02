@@ -181,10 +181,19 @@ class App {
 
     // 2. Preset Library View
     const presetsContainer = document.getElementById('view-presets');
-    this.components.presets = new PresetPicker(presetsContainer, (selectedPreset) => {
-      this.components.editor.applyPreset(selectedPreset, false);
-      this.switchTab('editor');
-    });
+    this.components.presets = new PresetPicker(
+      presetsContainer,
+      (selectedPreset) => {
+        this.components.editor.applyPreset(selectedPreset, false);
+        this.switchTab('editor');
+      },
+      (presetToEdit) => {
+        if (this.components.studio) {
+          this.components.studio.loadTemplate(presetToEdit, { isEditing: !!presetToEdit.isCustom });
+        }
+        this.switchTab('studio');
+      }
+    );
 
     // 3. History View
     const historyContainer = document.getElementById('view-history');

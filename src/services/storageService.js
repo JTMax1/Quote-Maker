@@ -216,6 +216,116 @@ export class StorageService {
     }
   }
 
+  static deleteCustomTemplate(templateId) {
+    try {
+      const templates = this.getCustomTemplates();
+      const updated = templates.filter(t => t.id !== templateId);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_TEMPLATES, JSON.stringify(updated));
+      return true;
+    } catch (e) {
+      console.error('Failed to delete custom template:', e);
+      return false;
+    }
+  }
+
+  static duplicateCustomTemplate(templateId) {
+    try {
+      const templates = this.getCustomTemplates();
+      const original = templates.find(t => t.id === templateId);
+      if (!original) return null;
+      const clone = {
+        ...original,
+        id: 'custom_' + Date.now(),
+        name: `${original.name} (Copy)`,
+        createdAt: new Date().toISOString()
+      };
+      const updated = [clone, ...templates];
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_TEMPLATES, JSON.stringify(updated));
+      return clone;
+    } catch (e) {
+      console.error('Failed to duplicate custom template:', e);
+      return null;
+    }
+  }
+
+  static exportTemplatesAsJSON() {
+    try {
+      const templates = this.getCustomTemplates();
+      return JSON.stringify({
+        app: 'QuoteForge',
+        schemaVersion: '1.0.0',
+        exportedAt: new Date().toISOString(),
+        templates
+      }, null, 2);
+    } catch (e) {
+      console.error('Failed to export templates:', e);
+      return null;
+    }
+  }
+
+  static importTemplatesFromJSON(jsonString) {
+    try {
+      const parsed = JSON.parse(jsonString);
+      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.templates) ? parsed.templates : []);
+      if (!incoming.length) return { success: false, count: 0, error: 'No valid templates found in JSON' };
+
+      const existing = this.getCustomTemplates();
+      let importedCount = 0;
+      const merged = [...existing];
+
+      incoming.forEach(tpl => {
+        if (!tpl || typeof tpl !== 'object' || !tpl.name) return;
+        const validTemplate = {
+          ...tpl,
+          id: tpl.id || ('custom_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)),
+          isCustom: true,
+          importedAt: new Date().toISOString()
+        };
+        const existingIdx = merged.findIndex(m => m.id === validTemplate.id);
+        if (existingIdx >= 0) {
+          merged[existingIdx] = validTemplate;
+        } else {
+          merged.unshift(validTemplate);
+        }
+        importedCount++;
+      });
+
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_TEMPLATES, JSON.stringify(merged));
+      return { success: true, count: importedCount };
+    } catch (e) {
+      console.error('Failed to import templates:', e);
+      return { success: false, count: 0, error: e.message };
+    }
+  }
+
+  static getStudioDraft() {
+    try {
+      const data = localStorage.getItem('quoteforge_studio_draft');
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static saveStudioDraft(draftData) {
+    try {
+      if (!draftData) {
+        localStorage.removeItem('quoteforge_studio_draft');
+      } else {
+        localStorage.setItem('quoteforge_studio_draft', JSON.stringify({
+          ...draftData,
+          savedAt: Date.now()
+        }));
+      }
+    } catch (e) {}
+  }
+
+  static clearStudioDraft() {
+    try {
+      localStorage.removeItem('quoteforge_studio_draft');
+    } catch (e) {}
+  }
+
   static getAllPresets() {
     const custom = this.getCustomTemplates();
     return [...DEFAULT_PRESETS, ...custom];
